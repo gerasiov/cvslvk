@@ -1,4 +1,5 @@
 use_system lexyacc
 use_wi pccts
-use_system dyana
 use_system d99
+use_system d99-mtint
+use_system d99-mtdouble
