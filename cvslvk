@@ -215,15 +215,15 @@ make_rules()
 
   for d in *_*; do if test -d $d; then
     postfix=`echo $d | cut -f2 -d_ | cut -f1-2 -d-`
-    echo "$d `cat $d/depend.cvslvk 2>/dev/null | tr '\n' ' '`" >> $WILIST-$postfix.tmp
+    echo "$d `cat $d/depend.cvslvk 2>/dev/null | tr '\n' ' '`" >> $WILIST-$postfix.tmp.$$
   fi; done
   for i in $WILIST-*; do
-    test "`basename $i`" = "`basename $i .tmp`" -a ! -f $i.tmp && rm -f $i;
+    test "`basename $i`" = "`basename $i .tmp.$$`" -a ! -f $i.tmp && rm -f $i;
   done
-  for i in $WILIST-*.tmp; do mv $i `basename $i .tmp`; done
+  for i in $WILIST-*.tmp.$$; do mv $i `basename $i .tmp.$$`; done
   chmod 644 $WILIST-* 2>/dev/null
 
-  $CHGRP $CVSGROUP $WILIST-*
+  $CHGRP $CVSGROUP $WILIST-* 2>/dev/null
   $CHMOD g+w $WILIST-* 2>/dev/null
 }
 
