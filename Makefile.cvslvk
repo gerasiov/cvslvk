@@ -341,23 +341,23 @@ endif
 
 ifdef CL_OPTIMIZE
 
-override DEFINES += $(CL_DEFINES_OPTIMIZE)
+DEFINES += $(CL_DEFINES_OPTIMIZE)
 ifeq ($(CL_COMP),gcc)
-override DEFINES += $(CL_DEFINES_OPTIMIZE_GCC)
+DEFINES += $(CL_DEFINES_OPTIMIZE_GCC)
 endif
 ifeq ($(CL_COMP),suncc)
-override DEFINES += $(CL_DEFINES_OPTIMIZE_SUNCC)
+DEFINES += $(CL_DEFINES_OPTIMIZE_SUNCC)
 endif
 
 else
 ifndef CL_NDEBUG
 
-override DEFINES += $(CL_DEFINES_DEBUG)
+DEFINES += $(CL_DEFINES_DEBUG)
 ifeq ($(CL_COMP),gcc)
-override DEFINES += $(CL_DEFINES_DEBUG_GCC)
+DEFINES += $(CL_DEFINES_DEBUG_GCC)
 endif
 ifeq ($(CL_COMP),suncc)
-override DEFINES += $(CL_DEFINES_DEBUG_SUNCC)
+DEFINES += $(CL_DEFINES_DEBUG_SUNCC)
 endif
 
 endif
