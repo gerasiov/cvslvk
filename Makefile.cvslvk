@@ -1,7 +1,7 @@
 # The include-makefile for CVS-LVK projects.
 
 
-HELPER = $(CL_DIR)/cvslvk
+override CL_HELPER := $(CL_DIR)/cvslvk
 
 
 # $(CL_DEFAULT_GOAL) - what to make when "make" is run with no parameters
@@ -25,7 +25,7 @@ endif
 
 # If no command is given, stop immidiatly
 ifeq ($(EXECUTABLE)$(LIBRARY)$(SUBDIRS),)
-override CL_TMP := $(shell $(HELPER) error cvslvk: cannot determine mode. Please set EXECUTABLE, LIBRARY or SUBDIRS)
+override CL_TMP := $(shell $(CL_HELPER) error cvslvk: cannot determine mode. Please set EXECUTABLE, LIBRARY or SUBDIRS)
 endif
 
 
@@ -58,7 +58,7 @@ endif
 
 # The huge expression does the following:
 #   for each CL_VARS entry result is: var=value [value1 ... valueN] --
-override CL_CHECK_VARS_COMMAND = override CL_TMP := $(shell $(HELPER) check_vars $(foreach d,$(CL_VARS),$(filter-out :%,$(subst :, :,$(d)))=$($(filter-out :%,$(subst :, :,$(d)))) $(subst |, ,$(filter-out $(filter-out :%,$(subst :, :,$(d))), $(subst :, ,$(d)))) --))
+override CL_CHECK_VARS_COMMAND = override CL_TMP := $(shell $(CL_HELPER) check_vars $(foreach d,$(CL_VARS),$(filter-out :%,$(subst :, :,$(d)))=$($(filter-out :%,$(subst :, :,$(d)))) $(subst |, ,$(filter-out $(filter-out :%,$(subst :, :,$(d))), $(subst :, ,$(d)))) --))
 # The actual check (kills make on errors)
 ifneq ($(CL_VARS),)
 $(CL_CHECK_VARS_COMMAND)
@@ -72,11 +72,11 @@ override CL_VARS :=
 
 # Architecture and OS are those we are using
 # These are detected automatically using 'uname', but since 'uname' output
-# is os- and architecture-dependent, we use a wrapper in $(HELPER)
+# is os- and architecture-dependent, we use a wrapper in $(CL_HELPER)
 # Currently supported: solaris and linux, on x86 and sparc
 
-override CL_ARCH := $(shell $(HELPER) get_arch)
-override CL_OS := $(shell $(HELPER) get_os)
+override CL_ARCH := $(shell $(CL_HELPER) get_arch)
+override CL_OS := $(shell $(CL_HELPER) get_os)
 
 
 # Compiler defaults to GCC. Sun CC may be still used, if $(CL_COMP)=suncc
@@ -84,10 +84,10 @@ override CL_OS := $(shell $(HELPER) get_os)
 
 # Find out what WIs we will use.
 # Required compiler setting may also go from here:
-#   first parameter of "$(HELPER) process_wi" is "need" or "compute",
+#   first parameter of "$(CL_HELPER) process_wi" is "need" or "compute",
 #     "need" means that compiler is the build parameter anyway,
 #     "compute" means that WI processing should find out whether it is needed 
-#   second parameter of "$(HELPER) process_wi" is "gcc" or "suncc" or "any"
+#   second parameter of "$(CL_HELPER) process_wi" is "gcc" or "suncc" or "any"
 #     "gcc" and "suncc" means that exacltly this compiler should be used
 #     "any" means that WI processing should choose (it will try to use gcc
 #     if possible)
@@ -105,17 +105,17 @@ CL_COMP_PARAM_TMP := compute
 endif
 
 # Don't do anythong more if we need only to show WI logic
-# ('$(HELPER) show_wi' will kill make)
+# ('$(CL_HELPER) show_wi' will kill make)
 ifeq ($(MAKECMDGOALS),show_wi)
-override CL_TMP := $(shell $(HELPER) show_wi $(CL_COMP_PARAM_TMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
+override CL_TMP := $(shell $(CL_HELPER) show_wi $(CL_COMP_PARAM_TMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
 endif
 
 # We want "make clean" to work even when WIs are not available
 # So we process this case separately.
 ifeq ($(MAKECMDGOALS),clean)
-override CL_TMP := $(shell $(HELPER) process_wi in_clean $(CL_COMP_PARAM_TMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
+override CL_TMP := $(shell $(CL_HELPER) process_wi in_clean $(CL_COMP_PARAM_TMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
 else
-override CL_TMP := $(shell $(HELPER) process_wi $(CL_COMP_PARAM_TMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
+override CL_TMP := $(shell $(CL_HELPER) process_wi $(CL_COMP_PARAM_TMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
 endif
 ifeq ($(filter gcc,$(CL_TMP)),gcc)
 override CL_PARAM_COMP := 1
@@ -170,7 +170,7 @@ endif
 endif
 
 ifeq ($(CL_COMP)-$(CL_LTYPE),suncc-shared)
-override CL_TMP := $(shell $(HELPER) error Building shared libraries with suncc is not yet supported)
+override CL_TMP := $(shell $(CL_HELPER) error Building shared libraries with suncc is not yet supported)
 endif
 
 
@@ -233,7 +233,7 @@ endif
 # with suncc. Hopefully this is correct.
 
 ifeq ($(MAKECMDGOALS),clean)
-override CL_BD := $(shell $(HELPER) get_bd_for_clean $(CL_DIR_PARAMS) $(CL_COMP))
+override CL_BD := $(shell $(CL_HELPER) get_bd_for_clean $(CL_DIR_PARAMS) $(CL_COMP))
 else
 override CL_BD := $(CL_DIR_PARAMS)
 ifdef CL_LOCALWORK
@@ -468,7 +468,7 @@ endif
 
 # Reorder the libraries if necessary
 ifneq ($(CL_LIBORDER),)
-override CL_LDFLAGS_LIBS := $(shell $(HELPER) liborder $(CL_LIBORDER) -- $(CL_LDFLAGS_LIBS))
+override CL_LDFLAGS_LIBS := $(shell $(CL_HELPER) liborder $(CL_LIBORDER) -- $(CL_LDFLAGS_LIBS))
 endif
 
 # Compute the final LDFLAGS (with compiler-dependent RPATH functionality)
@@ -507,10 +507,10 @@ override DEPS := $(SOURCES:%=$(CL_BD)/%.deps)
 override CL_DEPS_ALL := $(CL_DEPS_NU) $(DEPS)
 
 $(CL_BD)/%.deps: %
-	@$(HELPER) depend $< $@ $(INCLUDES) $(DEFINES)
+	@$(CL_HELPER) depend $< $@ $(INCLUDES) $(DEFINES)
 
 $(CL_BD)/%.deps: $(CL_BD)/%
-	@$(HELPER) depend $< $@ $(INCLUDES) $(DEFINES)
+	@$(CL_HELPER) depend $< $@ $(INCLUDES) $(DEFINES)
 
 CL_NODEP_RULES += clean create_wi update_wi install
 
@@ -543,7 +543,7 @@ endif
 # Relink on changes of LDFLAGS
 # First, touch corresponding files in $(CL_BD) if parameters changed
 # (Use single complex shell command to make things faster)
-override CL_TMP := $(shell $(HELPER) touchap $(CL_BD) WILIST $(CL_WI_LIST) -- ALLCOMPILEFLAGS $(CFLAGS) $(CXXFLAGS) -- LINKFLAGS $(LDFLAGS))
+override CL_TMP := $(shell $(CL_HELPER) touchap $(CL_BD) WILIST $(CL_WI_LIST) -- ALLCOMPILEFLAGS $(CFLAGS) $(CXXFLAGS) -- LINKFLAGS $(LDFLAGS))
 $(CL_OBJECTS_ALL) $(CL_DEPS_ALL) : $(CL_BD)/WILIST $(CL_BD)/ALLCOMPILEFLAGS $(filter $(CL_WI_LIST:%=$(CL_DIR)/%/rules.cvslvk),$(wildcard $(CL_DIR)/*/rules.cvslvk))
 ifneq ($(EXECUTABLE),)
 override CL_TMP := $(filter -L%, $(LDFLAGS))
@@ -575,23 +575,23 @@ create_wi: $(ALWAYS)
 	@echo
 	@echo Creating working installation $(CL_WI_DIR) ...
 	@echo
-	@$(HELPER) before_create_wi $(CL_WI_DIR)
+	@$(CL_HELPER) before_create_wi $(CL_WI_DIR)
 	@echo Running $(MAKE) all CL_PREFIX=$(CL_DIR)/$(CL_WI_DIR) ...
 	@echo
 	@$(MAKE) all CL_PREFIX=$(CL_DIR)/$(CL_WI_DIR)
-	@$(HELPER) before_install_wi $(CL_WI_DIR)
+	@$(CL_HELPER) before_install_wi $(CL_WI_DIR)
 	@echo
 	@echo Running $(MAKE) install CL_PREFIX=$(CL_DIR)/$(CL_WI_DIR) ...
 	@echo
 	@$(MAKE) install CL_PREFIX=$(CL_DIR)/$(CL_WI_DIR) CL_INSTALL_WI=1
-	@$(HELPER) complete_wi $(CL_WI_DIR)
+	@$(CL_HELPER) complete_wi $(CL_WI_DIR)
 	@echo
 
 update_wi: $(ALWAYS)
 	@if test -d $(CL_DIR)/$(CL_WI_DIR); then \
 	  echo; \
 	  echo Removing available working installation $(CL_WI_DIR) ...; \
-	  $(HELPER) remove_wi $(CL_WI_DIR); \
+	  $(CL_HELPER) remove_wi $(CL_WI_DIR); \
 	  echo; fi
 	@make create_wi
 
