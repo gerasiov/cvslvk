@@ -31,7 +31,7 @@ if test "$CL_VERBOSE" != ""; then echo $* 1>&2; fi
 echo_build_error()
 {
       echo 1>&2
-      echo "*** BUILD ERROR ***" 1>&2
+      echo "*** ERROR ***" 1>&2
       echo 1>&2
 }
 
@@ -160,11 +160,12 @@ depend()
 }
 
 
-# prepare_wi <полное имя инсталляции>
-prepare_wi()
+# before_create_wi <полное имя инсталляции>
+# Вызывается по make create_wi перед вызовом make all
+before_create_wi()
 {
   cd $CL_DIR
-  if test -e $1; then
+  if test -d $1; then
     echo_build_error
     echo "The working installation $1 already exists" 1>&2
     echo "If you wish, you may remove in by running" 1>&2
@@ -175,6 +176,14 @@ prepare_wi()
 
   mkdir $1
   return $?
+}
+
+
+# before_install_wi <полное имя инсталляции>
+# Вызывается по make create_wi перед вызовом make all
+before_install_wi()
+{
+  return 0
 }
 
 
@@ -224,8 +233,8 @@ command=$1
 shift
 
 case "$command" in
-  check_vars|get_arch|get_os|make_rules|find_modules|\
-  show_wi|check_wi|depend|prepare_wi|complete_wi|remove_wi|\
+  check_vars|get_arch|get_os|make_rules|find_modules|depend|\
+  show_wi|check_wi|before_create_wi|before_install_wi|complete_wi|remove_wi|\
   selfupdate)
     $command $*
     exit $?

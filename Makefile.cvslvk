@@ -263,7 +263,7 @@ $(CL_BD)/%.deps: %
 $(CL_BD)/%.deps: $(CL_BD)/%
 	@$(HELPER) depend $< $@ $(INCLUDES) $(DEFINES)
 
-CL_NODEP_RULES += clean show_wi
+CL_NODEP_RULES += clean show_wi create_wi
 
 ifneq ($(MAKECMDGOALS),)
 ifeq ($(filter-out $(CL_NODEP_RULES),$(MAKECMDGOALS)),)
@@ -295,13 +295,20 @@ endif
 
 override CL_WI_DIR := $(CL_MODULE)_$(CL_WI_VERSION)_$(CL_WI_INFO)
 
-create_wi: all
+create_wi: $(ALWAYS)
+	@$(HELPER) check_vars CL_MODULE=$(CL_MODULE)
 	@echo
 	@echo Creating working installation $(CL_WI_DIR) ...
 	@echo
-	@$(HELPER) check_vars CL_MODULE=$(CL_MODULE)
-	@$(HELPER) prepare_wi $(CL_WI_DIR)
-	$(MAKE) install CL_PREFIX=$(CL_DIR)/$(CL_WI_DIR) CL_INSTALL_WI=1
+	@$(HELPER) before_create_wi $(CL_WI_DIR)
+	@echo Running $(MAKE) all CL_PREFIX=$(CL_DIR)/$(CL_WI_DIR) ...
+	@echo
+	@$(MAKE) all CL_PREFIX=$(CL_DIR)/$(CL_WI_DIR)
+	@$(HELPER) before_install_wi $(CL_WI_DIR)
+	@echo
+	@echo Running $(MAKE) install CL_PREFIX=$(CL_DIR)/$(CL_WI_DIR) ...
+	@echo
+	@$(MAKE) install CL_PREFIX=$(CL_DIR)/$(CL_WI_DIR) CL_INSTALL_WI=1
 	@$(HELPER) complete_wi $(CL_WI_DIR)
 	@echo
 
