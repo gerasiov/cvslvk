@@ -127,7 +127,7 @@ make_rules()
     if test -f $i; then
       dir=`dirname $i`
       echo >> $RULES_CVSLVK_TMP
-      echo 'ifeq ($(findstring '$dir',$(CL_WI_LIST)), '$dir')' >> $RULES_CVSLVK_TMP
+      echo 'ifneq ($(filter '$dir',$(CL_WI_LIST)),)' >> $RULES_CVSLVK_TMP
       echo 'override CL_WI = $(CL_DIR)'/$dir >> $RULES_CVSLVK_TMP
       echo '-include $(CL_DIR)/'$i >> $RULES_CVSLVK_TMP
       echo 'endif' >> $RULES_CVSLVK_TMP
@@ -346,7 +346,7 @@ selfupdate()
     cpp -P process_wi.awk.in | tr '@' '\n' | awk '{if(NF>0)print}'
   ) > process_wi.awk
   rm -f $CL_DIR/*.awk $CL_DIR/Makefile.cvslvk $CL_DIR/cvslvk
-  cp Makefile.cvslvk cvslvk getppid.awk process_wi.awk $CL_DIR/
+  cp Makefile.cvslvk cvslvk getppid.awk process_wi.awk liborder.awk $CL_DIR/
   cat foreign_modules | ( while read type name; do
     case "$type" in
       use_system)

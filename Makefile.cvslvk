@@ -697,6 +697,7 @@ $(CL_SL_NAMES):
 	rm -f $(CL_SL_NAMES) && ln -s $(CL_SYMLINKS) .
 endif
 
+override CL_TMP := $(shell echo $(EXECUTABLE) $(CL_SL_NAMES) 1>&2)
 all: all_subdirs $(EXECUTABLE) $(CL_SL_NAMES)
 
 $(EXECUTABLE): $(CL_BD)/$(EXECUTABLE)
