@@ -9,7 +9,7 @@ fi
 realls=`which ls`
 ls()
 {
-  LANG=C $realls $@
+  eval `locale | sed 's/\([^=]*\).*/\1=C/'` $realls $@
 }
 
 # Файл, создаваемый по cvslvk make_rules
@@ -132,6 +132,7 @@ get_os()
 get_comp_defaults()
 {
   case "`gcc -v 2>&1 | grep version`" in
+    *3.3*)  echo gcc33 ;;
     *3.2*)  echo gcc32 ;;
     *2.95*)  echo gcc295 ;;
     *2.96*)  echo gcc296 ;;
@@ -146,6 +147,10 @@ get_comp_defaults()
 get_comp_execs()
 {
   case "$1" in
+    gcc33)
+      defc=gcc-3.3
+      defcpp=g++-3.3
+      ver=3.3
     gcc32)
       defc=gcc-3.2
       defcpp=g++-3.2
@@ -226,9 +231,9 @@ make_rules()
 # process_wi [in_clean] <фиксировать ли компилятор> <какой компилятор> <запросы модулей>
 #   возможный нулевой параметр - in_clean если не нужно убивать make по ошибкам
 #   первый параметр: yes или unknown
-#   второй параметр: gcc32, gcc295, gcc296 или any
+#   второй параметр: gcc33, gcc32, gcc295, gcc296 или any
 #   возврат: первое слово - comp_param_needed или comp_param_not_needed
-#            второе - gcc32, gcc295, gcc296 или any
+#            второе - gcc33, gcc32, gcc295, gcc296 или any
 #            дальше - список примененных WI
 process_wi()
 {
@@ -243,7 +248,18 @@ process_wi()
   command="(echo $*; echo quiet $needcomp $comp; cat $wilist 2>/dev/null) | awk -f $CL_DIR/process_wi.awk"
   if eval $command >/dev/null; then
     res=`eval $command`;
-    echo $res
+# gcc33 and gcc32 are compatable.
+# Try to use gcc33 if any of those is suggested, and revert to 32 if it is not
+# available
+    echo $res | ( read p1 comp rest;
+                  if test "$comp" = "gcc33" -o "$comp" = "gcc32"; then
+		    if test -n "`which gcc-3.3`"; then
+		      comp=gcc33
+		    elif test -n "`which gcc-3.2`"; then
+		      comp=gcc32
+		    fi
+		  fi
+		  echo $p1 $comp $rest )
     return
   fi
 
@@ -284,7 +300,7 @@ get_bd_for_clean()
   if test -d $1; then echo $1; return; fi
 
   part3=`echo $1 | cut -d- -f3`
-  if test "$part3" = "gcc32" -o "$part3" = "gcc295" -o $part3 = "gcc296" -o "$part3" = "gcc"; then
+  if test "$part3" = "gcc33" -o "$part3" = "gcc32" -o "$part3" = "gcc295" -o $part3 = "gcc296" -o "$part3" = "gcc"; then
     echo $1
     return
   fi
@@ -292,6 +308,7 @@ get_bd_for_clean()
   part12=`echo $1 | cut -d- -f1-2`
   rest=`echo $1 | cut -d- -f3-`
   test "$rest" = "" || rest="-$rest" 
+  if test -d $part12-gcc33$rest; then echo $part12-gcc33$rest; return; fi
   if test -d $part12-gcc32$rest; then echo $part12-gcc32$rest; return; fi
   if test -d $part12-gcc295$rest; then echo $part12-gcc295$rest; return; fi
   if test -d $part12-gcc296$rest; then echo $part12-gcc296$rest; return; fi

@@ -68,6 +68,7 @@
     aq[ai] = 0; @\
     am = split ( WI_params[a[ai]], a2, "-" ); @\
     for ( aj=1; aj<=am; aj++ )  { @\
+      if ( a2[aj]=="gcc33" )  aq[ai]+=5; @\
       if ( a2[aj]=="gcc32" )  aq[ai]+=4; @\
       if ( a2[aj]=="optimized" )  aq[ai]+=2; @\
       if ( a2[aj]=="shared" )  aq[ai]+=1; @\
@@ -102,16 +103,15 @@
   fcnn = split ( PARAMS, fcna, "-" ); @\
   RES = ""; @\
   for ( fcni=1; fcni<=fcnn; fcni++ ) @\
-    if ( (fcna[fcni]=="gcc32") || (fcna[fcni]=="gcc295") || (fcna[fcni]=="gcc296") || (fcna[fcni]=="gcc") )  {RES=fcna[fcni]; break;} @\
+    if ( (fcna[fcni]=="gcc33") || (fcna[fcni]=="gcc32") || (fcna[fcni]=="gcc295") || (fcna[fcni]=="gcc296") || (fcna[fcni]=="gcc") )  {RES=fcna[fcni]; break;} @\
   } @\
 
 // Установка переменной conflicts в зависимости от текущей установки comp
 // и comp_param
 #define set_conflicts  { @\
-  if ( comp=="gcc" )  {conflicts = "gcc32 gcc296"} @\
-  else if ( comp=="gcc32" )  {conflicts = "gcc295 gcc gcc296"} @\
-  else if ( comp=="gcc295" )  {conflicts = "gcc32 gcc296"} @\
-  else if ( comp=="gcc296" )  {conflicts = "gcc32 gcc295 gcc"} @\
+  if ( comp=="gcc" || comp=="gcc295" )  {conflicts = "gcc33" "gcc32 gcc296"} @\
+  else if ( comp=="gcc32" || comp == "gcc33" )  {conflicts = "gcc295 gcc gcc296"} @\
+  else if ( comp=="gcc296" )  {conflicts = "gcc33" "gcc32 gcc295 gcc"} @\
   else {conflicts = ""} @\
   } @\
 
@@ -120,7 +120,7 @@
 // Вторая строка - параметры:
 //   $1: quiet | verbose
 //   $2: need | compute (про comp_param)
-//   $3: gcc32 | gcc295 | gcc296 | any
+//   $3: gcc33 | gcc32 | gcc295 | gcc296 | any
 // Каждая из следующих строк - доступная рабочая инсталляция, после которой ее
 //   требования
 BEGIN  {
