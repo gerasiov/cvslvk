@@ -299,6 +299,10 @@ selfupdate()
 
 
 command=$1
+if test "$command" = ""; then
+  echo "cvslvk: usage: cvslvk command [parameters]"
+  exit 1
+fi
 shift
 
 case "$command" in
