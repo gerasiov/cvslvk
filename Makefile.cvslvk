@@ -708,6 +708,7 @@ endif # SUBDIRS
 ifdef EXECUTABLE
 
 ifneq ($(CL_SYMLINKS),)
+$(shell $(CL_HELPER) remove_old_symlinks $(CL_SYMLINKS))
 override CL_SL_NAMES := $(notdir $(CL_SYMLINKS))
 $(CL_SL_NAMES):
 	@echo $(CL_SL_NAMES) > $(CL_BD)/SYMLINKS 2>/dev/null || true

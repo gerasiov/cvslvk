@@ -295,6 +295,19 @@ setup_bd()
 }
 
 
+# remove_old_symlinks <список CL_SYMLINKS>
+remove_old_symlinks()
+{
+  test $# -eq 0 && return
+
+  for l in $*; do
+    ln=`basename $l`
+    lv=`ls -l $ln 2>/dev/null | awk '{print($11)}'`
+    test "$l" != "$lv" && rm -f $ln
+  done
+}
+
+
 # cleanall
 cleanall()
 {
@@ -624,8 +637,8 @@ fi
 shift
 
 case "$command" in
-  check_vars|error|get_arch|get_os|make_rules|setup_bd|cleanall|\
-  make_sys_mkdep_flags_c|make_sys_mkdep_flags_cxx|\
+  check_vars|error|get_arch|get_os|make_rules|setup_bd|remove_old_symlinks|\
+  cleanall|make_sys_mkdep_flags_c|make_sys_mkdep_flags_cxx|\
   process_wi|show_wi|get_bd_for_clean|depend|liborder|touchap|\
   before_create_wi|before_install_wi|complete_wi|remove_wi|\
   install|selfupdate|\
