@@ -6,7 +6,7 @@ ifdef LEX_FILE
 ifndef LEX_C
 LEX_C = lex.yy.c
 endif
-override LEX_O := $(addsuffix .o $(basename $(LEX_C)))
+override LEX_O := $(addsuffix .o,$(basename $(LEX_C)))
 override CL_OBJECTS_NU += $(CL_BD)/$(LEX_O)
 override CL_DEPS_NU += $(CL_BD)/$(LEX_C).deps
 override LEX_FLAGS += -t -P$(LEX_YACC_PREFIX)
@@ -18,7 +18,7 @@ ifdef YACC_FILE
 ifndef YACC_C
 YACC_C = y.tab.c
 endif
-override YACC_O := $(addsuffix .o $(basename $(YACC_C)))
+override YACC_O := $(addsuffix .o,$(basename $(YACC_C)))
 ifndef YACC_H
 YACC_H = y.tab.h
 endif
