@@ -1,4 +1,4 @@
-#This file was created by <nikita> Fri Dec 24 17:37:25 1999
+#This file was created by <nikita> Mon Dec 27 14:46:15 1999
 #LyX 0.12 (C) 1995-1998 Matthias Ettrich and the LyX Team
 \lyxformat 2.15
 \textclass article
@@ -39,7 +39,7 @@
 \newline 
 
 \emph on 
-последнее изменение в этот документ внесено 24.12.1999
+последнее изменение в этот документ внесено 27.12.1999
 \newline 
 
 \newline 
@@ -5300,19 +5300,228 @@ override CL_LIBORDER += -lwx,-lXm
 -lXm
 \family default 
 .
+\layout Standard
+
+В переменной 
+\family typewriter 
+CL_LIBORDER
+\family default 
+ указывается любое количество пар ключей 
+\family typewriter 
+-l
+\family default 
+.
+ Ключи в одной паре разделяются запятой (без пробелов), разные пары разделяются
+ пробелами.
  
 \layout Standard
 
-В переменной CL_LIBORDER
+Указание некоторой библиотеки в переменной 
+\family typewriter 
+CL_LIBORDER
+\family default 
+ 
+\emph on 
+не обеспечивает
+\emph toggle 
+ ее подключение.
+ Переменная интерпретируется как 
+\begin_inset Quotes eld
+\end_inset 
+
+если обе библиотеки подключаются (при помощи переменной 
+\family typewriter 
+LDFLAGS
+\family default 
+), то их относительный порядок должен быть таким
+\begin_inset Quotes erd
+\end_inset 
+
+.
+ Если хоть одна из библиотек не подключается, то соответствующая пара игнорирует
+ся.
+ 
+\layout Standard
+
+Порядок библиотек, не упоминающихся в переменной 
+\family typewriter 
+CL_LIBORDER
+\family default 
+, 
+\emph on 
+может оказаться произвольным
+\emph toggle 
+.
+ Поэтому переменную следует задавать всегда, когда порядок библиотек имеет
+ значение.
 \end_deeper 
 \layout Subsubsection
 
 Зависимость 
 \family typewriter 
 $(ALWAYS)
+\layout Standard
+
+Нередко некоторые цели 
+\family typewriter 
+make
+\family default 
+ стандартно используют для выполнения каких-то действий, отличных от сборки.
+ Классическим примером является цель 
+\family typewriter 
+clean
+\family default 
+ -- комадна 
+\family typewriter 
+make
+\protected_separator 
+clean
+\family default 
+ не собирает файл с именем 
+\family typewriter 
+clean
+\family default 
+, а выполняет какую-то очистку.
+\layout Standard
+
+Однако, алгоритм работы программы 
+\family typewriter 
+make
+\family default 
+ таков, что если в текущем каталоге вдруг окажется файл с именем 
+\family typewriter 
+clean
+\family default 
+, то 
+\family typewriter 
+make
+\family default 
+ решит что цель 
+\family typewriter 
+clean
+\family default 
+ в пересборке не нуждается, и соответствующие ей действия не будут выполнены.
+\layout Standard
+
+Таким образом, иногда необходимо заставить 
+\family typewriter 
+make
+\family default 
+ выполнять команды, соответствующие некоторой цели, вне зависимости от того,
+ где какие файлы есть.
+ В принципе, такой механизм имеется (зависимоть 
+\family typewriter 
+.PHONY
+\family default 
+), но по мнению автора является недостаточно наглядным -- цель описывается
+ в одном месте, а ее свойство -- в другом.
+\layout Standard
+
+Внутри системы cvslvk используется собственный механизм.
+ А именно, если следи зависимостей цели имеется указание 
+\family typewriter 
+$(ALWAYS)
+\family default 
+, то эта целю будет пересобираться всегда, когда она окаывается в командной
+ строке 
+\family typewriter 
+make
+\family default 
+.
+ Например:
+\layout LyX-Code
+
+clean: $(CL_CLEAN) $(ALWAYS)
+\layout LyX-Code
+
+
+\protected_separator 
+ 
+\protected_separator 
+ 
+\protected_separator 
+ 
+\protected_separator 
+ ...
+\layout Standard
+
+Этот механизм доступен и пользователю.
+ Его можно использовать как в файлах 
+\family typewriter 
+rules.cvslvk
+\family default 
+, так и в 
+\family typewriter 
+Makefile
+\family default 
+-е ниже включения файла 
+\family typewriter 
+$(CL_DIR)/Makefile.cvslvk
+\family default 
+.
 \layout Subsubsection
 
 Блокировка вычисления зависимостей
+\layout Standard
+
+Система cslvk устроена таким образом, что перед выполнением любой команды
+ make автоматически осуществляется (пере)вычисление зависимостей всех файлов,
+ для которых зависимости не вычислены ранее либо устарели.
+ Однако, с целью экономии времени это можно иногда не делать.
+ Например, нет никакого резона вычислять зависимости перед выполнением команды
+ 
+\family typewriter 
+make
+\protected_separator 
+clean
+\family default 
+, т.к.
+ зависимости этой командой не используются и все рабно будут стерты в процессе
+ ее выполнения.
+\layout Standard
+
+В связи с этим в системе cvslvk имеется механизм блокировки вычисления зависимос
+тей.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_NODEP_RULES
+\newline 
+
+\family default 
+\series default 
+В этой переменной указывается набор правил, при указании которых в командной
+ строке зависимости вычислять не следует.
+ 
+\begin_deeper 
+\layout Standard
+
+В принципе, можно доопределять эту переменную в файлах 
+\family typewriter 
+rules.cvslvk
+\family default 
+ или в 
+\family typewriter 
+Makefile
+\family default 
+-е выше включения файла 
+\family typewriter 
+$(CL_DIR)/Makefile.cvslvk
+\family default 
+.
+ Однако, при этом следует быть крайне осторожным: если зависимости на самом
+ деле вычислять надо, то блокировка вычисления зависимостей приведет к некоррект
+ной работе системы.
+\layout Standard
+
+Так, ни в коем случае нельзя добавлять в переменную правиля, зависящие от
+ собираемой в данном каталоге программы или библиотеки.
+ Иначе при выполнении этих правил система cvslvk может не осуществить (хотя
+ может и осуществить) пересборку каталога, когда на самом деле это надо.
+\end_deeper 
 \layout Section
 
 Сообщения об ошибках
