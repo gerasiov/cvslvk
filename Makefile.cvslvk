@@ -36,6 +36,16 @@ CL_LOCALWORK = 1
 endif
 
 
+# Variable check subsystem
+
+# To check variables, set CL_VARS. The format is the following:
+# CL_VARS = MYVAR=$(MYVAR) MYVAR2=$(MYVAR2) ...
+
+ifneq ($(CL_VARS),)
+override CL_TMP := $(shell $(HELPER) check_vars $(CL_VARS))
+endif
+
+
 # Architecture and OS are those we are using
 # These are detected automatically using 'uname', but since 'uname' output
 # is os- and architecture-dependent, we use a wrapper in $(HELPER)
@@ -44,20 +54,51 @@ endif
 override CL_ARCH := $(shell $(HELPER) get_arch)
 override CL_OS := $(shell $(HELPER) get_os)
 
-# TEMPORARY: work around gcc 2.95.1 solaris/x86 bug
-ifeq ($(CL_ARCH)-$(CL_OS),x86-solaris)
-CL_GCC_DEBUG = -gstabs
-endif
-
-
 # Compiler defaults to GCC. Sun CC may be still used, if $(CL_COMP)=suncc
 # $(CL_COMP) should be 'gcc' or 'suncc'
 
-ifndef CL_COMP
-CL_COMP = gcc
+# Find out what WIs we will use.
+# Required compiler setting may also go from here:
+#   first parameter of "$(HELPER) process_wi" is "need" or "compute",
+#     "need" means that compiler is the build parameter anyway,
+#     "compute" means that WI processing should find out whether it is needed 
+#   second parameter of "$(HELPER) process_wi" is "gcc" or "suncc" or "any"
+#     "gcc" and "suncc" means that exacltly this compiler should be used
+#     "any" means that WI processing should choose (it will try to use gcc
+#     if possible)
+
+ifdef CL_COMP
+override CL_TMP := $(shell $(HELPER) check_enum CL_COMP=$(CL_COMP) gcc suncc)
+CL_COMP_TMP := $(CL_COMP)
+else
+CL_COMP_TMP := any
 endif
 
-override CL_TMP := $(shell $(HELPER) check_enum CL_COMP=$(CL_COMP) gcc suncc)
+ifdef CL_PARAM_COMP
+CL_COMP_PARAM_TEMP := need
+else
+CL_COMP_PARAM_TEMP := compute
+endif
+
+# Don't do anythong more if we need only to show WI logic
+# ('$(HELPER) show_wi' will kill make)
+ifeq ($(MAKECMDGOALS),show_wi)
+override CL_TMP := $(shell $(HELPER) show_wi $(CL_COMP_PARAM_TEMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
+endif
+
+override CL_TMP := $(shell $(HELPER) process_wi $(CL_COMP_PARAM_TEMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
+ifeq ($(filter gcc,$(CL_TMP)),gcc)
+override CL_PARAM_COMP := 1
+override CL_COMP := gcc
+endif
+ifeq ($(filter suncc,$(CL_TMP)),suncc)
+override CL_PARAM_COMP := 1
+override CL_COMP := suncc
+endif
+ifeq ($(filter any,$(CL_TMP)),any)
+override CL_COMP := gcc
+endif
+override CL_WI_LIST := $(filter-out gcc suncc any,$(CL_TMP))
 
 
 # Set C and C++ compilers
@@ -85,6 +126,7 @@ endif
 
 # $(CL_LTYPE) defaults to 'shared' for gcc, 'static' for suncc
 # Building shared libraries with suncc is not yet supported
+# (suncc seems to have problems with static constructors in shared libs)
 
 ifndef CL_LTYPE
 ifeq ($(CL_COMP),gcc)
@@ -102,17 +144,7 @@ override CL_TMP := $(shell $(HELPER) error Building shared libraries with suncc 
 endif
 
 
-# Variable check subsystem
-
-# To check variables, set CL_VARS. The format is the following:
-# CL_VARS = MYVAR=$(MYVAR) MYVAR2=$(MYVAR2) ...
-
-ifneq ($(CL_VARS),)
-override CL_TMP := $(shell $(HELPER) check_vars $(CL_VARS))
-endif
-
-
-# Build directory parameters.
+# Build parameters.
 # All generated files will be placed into a subdir
 #
 # The combination of variables that are used to find out build parameters
@@ -122,8 +154,10 @@ endif
 #
 # CL_COMP is used if CL_PARAM_COMP is defined, or if we are building
 # a c++ library, or if we use a module that has CL_COMP in params
+# (latter was checked above and now the result is in CL_PARAM_COMP)
 #
-# CL_LTYPE is used, if CL_PARAM_LTYPE is defined, or if we are building library
+# CL_LTYPE is used, if CL_PARAM_LTYPE is defined, or if we are building
+# a library
 #
 # CL_OTHERP is used if defined
 
@@ -134,9 +168,6 @@ ifdef LIBRARY
 ifeq ($(LD),$(CXX))
 CL_PARAM_COMP = 1
 endif
-endif
-ifeq ($(shell $(HELPER) need_comp_param $(CL_USE_MODULES)),yes)
-CL_PARAM_COMP = 1
 endif
 endif
 ifdef CL_PARAM_COMP
@@ -166,7 +197,7 @@ endif
 
 override CL_BD := $(CL_DIR_PARAMS)
 ifdef CL_LOCALWORK
-override CL_TMP := $(shell mkdir -p $(CL_BD))  # Create build directory
+override CL_TMP := $(shell mkdir -p $(CL_BD))  # Create the build directory
 endif
 
 # Since some include files may be generated, we want to add $(CL_BD) to
@@ -308,7 +339,8 @@ else
 CL_LIBRARY_SONAME = lib$(LIBRARY).so
 CL_LIBRARY_FNAME = lib$(LIBRARY).so
 endif
-# We support only gcc
+# We support only gcc.
+# We use -h instead of -soname because we want sun ld to work
 override CFLAGS += -fPIC
 override CXXFLAGS += -fPIC
 CL_MKLIB := $(LD) -shared -Wl,-h,$(CL_LIBRARY_SONAME) -o
@@ -333,36 +365,24 @@ endif
 endif  # ifdef LIBRARY
 
 
-# Find the available module installations and replace user references by
-# actual installations. Then include definitions for used modules
+# Include additional rules for used module working installations
 
 ifdef CL_LOCALWORK
-override CL_MODULES_WI := $(shell $(HELPER) find_modules $(CL_DIR_PARAMS) $(CL_USE_MODULES))
-
-$(CL_DIR)/rules.cvslvk:
-	@$(HELPER) make_rules
-
 include $(CL_DIR)/rules.cvslvk
 endif
 
-# 'show_wi' rule - will show what working installes are being used
 
-show_wi: $(ALWAYS)
-	@$(HELPER) show_wi $(CL_USE_MODULES) -- $(CL_MODULES_WI)
-
-# If the rule is not 'show_wi', abort if wi's are not available
-
-ifdef CL_LOCALWORK
-ifneq ($(MAKECMDGOALS),show_wi)
-ifneq ($(MAKECMDGOALS),clean)
-override CL_TMP := $(shell $(HELPER) check_wi $(CL_USE_MODULES) -- $(CL_MODULES_WI))
+# Add compiler-dependent RPATH functionality
+CL_ALL_LIBDIRS = $(filter -L%,$(LDFLAGS))
+ifeq ($(CL_COMP),gcc)
+override CL_RPATH := $(CL_ALL_LIBDIRS:-L%=-Wl,-R%)
 endif
+ifeq ($(CL_COMP),suncc)
+override CL_RPATH := $(CL_ALL_LIBDIRS:-L%=-R%)
 endif
-endif
-
+override LDFLAGS := $(LDFLAGS) $(CL_RPATH)
 
 # Now we can add $(INCLUDES) and $(DEFINES) to $(C{XX}FLAGS)
-
 override CFLAGS += $(INCLUDES) $(DEFINES)
 override CXXFLAGS += $(INCLUDES) $(DEFINES)
 
@@ -372,9 +392,6 @@ override CXXFLAGS += $(INCLUDES) $(DEFINES)
 # $(SOURCES) contains user sources
 # $(CL_SOURCES_NU) and $(CL_OBJECTS_NU) contain non-user sources and objects
 # The later is not automatically generated because methods differ.
-#
-# $(CL_SOURCES_NU) should be before $(SOURCES), because generated headers
-# may be used when dependences are calculated for user files
 
 ifdef CL_LOCALWORK
 override CL_SOURCES_ALL := $(CL_SOURCES_NU) $(SOURCES)
@@ -402,7 +419,7 @@ $(CL_BD)/%.deps: %
 $(CL_BD)/%.deps: $(CL_BD)/%
 	@$(HELPER) depend $< $@ $(INCLUDES) $(DEFINES)
 
-CL_NODEP_RULES += clean show_wi create_wi update_wi
+CL_NODEP_RULES += clean create_wi update_wi
 
 ifneq ($(MAKECMDGOALS),)
 ifeq ($(filter-out $(CL_NODEP_RULES),$(MAKECMDGOALS)),)
@@ -551,8 +568,13 @@ override CL_INSTALL_PARTS += install_subdirs
 endif
 
 ifdef CL_INSTALL_WI
+override CL_DEPEND_NU := $(foreach dep,$(CL_DEPEND_ON_EXACT),$(filter $(dep)_%,$(CL_WI_LIST)))
 install_rules: $(ALWAYS)
 	if test -f rules.cvslvk; then cp rules.cvslvk $(CL_PREFIX)/; fi
+	if test -f depend.cvslvk; then cp depend.cvslvk $(CL_PREFIX)/; fi
+ifneq ($(CL_DEPEND_NU),"" )
+	printf "\n%s\n" $(CL_DEPEND_NU) >> $(CL_PREFIX)/depend.cvslvk
+endif
 
 override CL_INSTALL_PARTS += install_rules
 endif
