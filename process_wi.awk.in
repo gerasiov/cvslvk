@@ -268,12 +268,14 @@ END  {
 	      print ( bindent "New requirements " cr[i] " are not met" );
 	    }
 	  else  {		// Кандидат еще не выбран, но модуль в списке
-            if ( verbose )
-	      print ( bindent "Appendind requirements " needp " to " needm "-" params[j] );
-	    ind = n"__"try[n]"__"j;
-	    saveds[ind] = 2;
-	    savedp[ind] = params[j];
-	    append ( params[j], needp, "-" );
+	    if ( needp!="" )  {
+              if ( verbose )
+	        print ( bindent "Appendind requirements " needp " to " needm "-" params[j] );
+	      ind = n"__"try[n]"__"j;
+	      saveds[ind] = 2;
+	      savedp[ind] = params[j];
+	      append ( params[j], needp, "-" );
+	      }
 	    }
 	  break;
 	  }
