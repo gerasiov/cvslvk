@@ -13,7 +13,7 @@ RULES_CVSLVK_TMP=$CL_DIR/rules.cvslvk.tmp  # Временная копия того же файла
 # Группа пользователей CVS
 CVSGROUP=cvsusers
 
-MAKEPID=$PPID
+MAKEPID=`ps -l | awk "{if (\$4==$$) {print($5)}}"`
 kill_make() { kill $MAKEPID; exit 1; }
 
 if test ! -f $CL_DIR/Makefile.cvslvk; then
@@ -97,12 +97,11 @@ make_rules()
 
 find_modules()
 {
-  if test "$1" = ""; then return 0; fi
   cdp=`echo $1 | cut -d- -f1-2`  # arch-os
   odp=`echo $1 | cut -d- -f3-`   # все остальное
   shift
   cd $CL_DIR
-  for ref in *; do
+  for ref; do
     ref_mod=`echo $ref | awk -F_ '{print($1)}'`
     ref_ver=`echo $ref | awk -F_ '{print($2)}'`
     ref_bld=`echo $ref | awk -F_ '{print($3)}'`
