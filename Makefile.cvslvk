@@ -14,6 +14,14 @@ endif
 default_goal: $(CL_DEFAULT_GOAL)
 
 
+# $(ALWAYS) macro - a rule that should be applied even if file exists
+#   ( usage:   xxx : $(ALWAYS) )
+# This one is at the beginning because it is widely used below.
+
+ALWAYS = /file/that/never/exists
+
+$(ALWAYS):
+
 # INTERNAL_LIBRARY is a special case of LIBRARY, that is used by the current
 # module only. Static library will not be installed, and for shared library
 # CNAME will not be installed
@@ -802,11 +810,3 @@ clean: clean_subdirs $(CL_CLEAN) $(ALWAYS)
 	rm -rf $(CL_BD) $(CL_ALL_LIB_NAMES)
 
 endif
-
-
-# $(ALWAYS) macro - a rule that should be applied even if file exists
-#   ( usage:   xxx : $(ALWAYS) )
-
-ALWAYS = /file/that/never/exists
-
-$(ALWAYS):
