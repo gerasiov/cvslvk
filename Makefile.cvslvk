@@ -408,6 +408,13 @@ override CL_RPATH_FLAG := -R
 endif
 
 
+# Split LDFLAGS into -L..., -l... and others
+
+override CL_LDFLAGS_DIRS := $(filter -L%,$(LDFLAGS))
+override CL_LDFLAGS_LIBS := $(filter -l%,$(LDFLAGS))
+override CL_LDFLAGS_OTHER := $(filter-out $(CL_LDFLAGS_DIRS) $(CL_LDFLAGS_LIBS),$(LDFLAGS))
+
+
 # Internal library variables
 #
 # Executable may use some internal libraries (libraries from the same module).
@@ -415,34 +422,43 @@ endif
 # Current restrictions:
 #   each library should be in a subdir;
 #   subdir name and library name should be the same 
-# The subdirs of the used internal librsries should be in CL_USE_IL variable
+# The subdirs of the used internal libraries should be in CL_USE_IL variable
 # When internal libraries are used, executable is linked separately during build
 # and during installation.
 # During build, rpaths to the build directories of the shared libraries are
 # set, and during install - rpaths for the install directory is set
 
-ifdef CL_USE_IL
+ifneq ($(CL_USE_IL),)
+# Do NOT add subdirs for install or clean
 ifeq ($(filter install clean,$(MAKECMDGOALS)),)
 override SUBDIRS := $(CL_USE_IL) $(filter-out $(CL_USE_IL),$(SUBDIRS))
 endif
+# includes may be just added to $(INCLUDES)
 override INCLUDES += $(CL_USE_IL:%=-I%)
-override CL_IL_LPATHS := $(CL_USE_IL:%=-L%)
-override CL_IL_LIBS_TMP := $(notdir $(CL_IL_LPATHS))
-override CL_IL_LIBS := $(CL_IL_LIBS_TMP:%=-l%)
+# -l flags also may be just added to $(CL_LDFLAGS_LIBS)
+override CL_IL_LIBS_TMP := $(notdir $(CL_USE_IL))
+override CL_LDFLAGS_LIBS += $(CL_IL_LIBS_TMP:%=-l%)
+# -L flags can't be just added because of rpath logic, so we use $(CL_LDFLAGS_OTHER)
+override CL_IL_DIRS := $(CL_USE_IL:%=-L%)
 override CL_PWD := $(shell pwd)
-override CL_IL_LDFLAGS_BUILD := $(CL_IL_LPATHS) $(CL_IL_LIBS) $(CL_IL_LPATHS:-L%=$(CL_RPATH_FLAG)$(CL_PWD)/%)
-override CL_IL_LDFLAGS_INSTALL := $(CL_IL_LPATHS) $(CL_IL_LIBS) $(CL_RPATH_FLAG)$(CL_PREFIX)/lib
+ifeq ($(MAKECMDGOALS),install)
+override CL_LDFLAGS_OTHER += $(CL_IL_DIRS) $(CL_RPATH_FLAG)$(CL_PREFIX)/lib
+else
+override CL_LDFLAGS_OTHER += $(CL_IL_DIRS) $(CL_IL_DIRS:-L%=$(CL_RPATH_FLAG)$(CL_PWD)/%)
+endif
 endif
 
 
-# Add compiler-dependent RPATH functionality to other LDFLAGS
+# Reorder the libraries if necessary
+ifneq ($(CL_LIBORDER),)
+override CL_LDFLAGS_LIBS := $(shell $(HELPER) liborder $(CL_LIBORDER) -- $(CL_LDFLAGS_LIBS))
+endif
 
-override CL_ALL_LIBDIRS := $(filter -L%,$(LDFLAGS))
-override LDFLAGS := $(LDFLAGS) $(CL_ALL_LIBDIRS:-L%=$(CL_RPATH_FLAG)%)
+# Compute the final LDFLAGS (with compiler-dependent RPATH functionality)
+override LDFLAGS := $(CL_LDFLAGS_DIRS) $(CL_LDFLAGS_DIRS:-L%=$(CL_RPATH_FLAG)%) $(CL_LDFLAGS_LIBS) $(CL_LDFLAGS_OTHER)
 
 
-# Now we can add $(INCLUDES) and $(DEFINES) to $(C{XX}FLAGS)
-
+# Add $(INCLUDES) and $(DEFINES) to $(C{XX}FLAGS)
 override CFLAGS += $(INCLUDES) $(DEFINES)
 override CXXFLAGS += $(INCLUDES) $(DEFINES)
 
@@ -697,7 +713,6 @@ $(CL_SL_NAMES):
 	rm -f $(CL_SL_NAMES) && ln -s $(CL_SYMLINKS) .
 endif
 
-override CL_TMP := $(shell echo $(EXECUTABLE) $(CL_SL_NAMES) 1>&2)
 all: all_subdirs $(EXECUTABLE) $(CL_SL_NAMES)
 
 $(EXECUTABLE): $(CL_BD)/$(EXECUTABLE)

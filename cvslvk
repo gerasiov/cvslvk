@@ -331,6 +331,29 @@ remove_wi()
 }
 
 
+# liborder <ограничения> -- <библиотеки>
+liborder()
+{
+  echo $* 1>&2
+  cons=""
+  while test "x$1" != "x--"; do
+    if test "x$cons" = "x"; then cons="$1"; else cons="$cons $1"; fi
+    shift
+  done
+  shift
+  libs="$*"
+  if printf "%s\n%s\n" "$cons" "$libs" | awk -f $CL_DIR/liborder.awk >/dev/null; then
+    printf "%s\n%s\n" "$cons" "$libs" | awk -f $CL_DIR/liborder.awk
+    return 0
+  else
+    echo_build_error
+    printf "%s\n%s\n" "$cons" "$libs" | awk -f $CL_DIR/liborder.awk 1>&2
+    echo 1>&2
+    kill_make
+  fi
+}
+
+
 selfupdate()
 {
   mkdir -p $CL_DIR/tmp/$USER
@@ -392,7 +415,7 @@ shift
 
 case "$command" in
   check_vars|check_enum|error|get_arch|get_os|make_rules|\
-  process_wi|show_wi|get_bd_for_clean|depend|\
+  process_wi|show_wi|get_bd_for_clean|depend|liborder|\
   before_create_wi|before_install_wi|complete_wi|remove_wi|\
   selfupdate)
     $command $*
