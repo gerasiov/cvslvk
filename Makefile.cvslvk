@@ -92,10 +92,9 @@ override CL_TMP := $(shell $(HELPER) show_wi $(CL_COMP_PARAM_TEMP) $(CL_COMP_TMP
 endif
 
 # We want "make clean" to work even when WIs are not available
-# Because CL_PARAM_COMP is set after WI processing, 'make clean' removes
-# subdirs both for set and unset CL_PARAM_COMP (FIXME?)
+# So we process this case separately.
 ifeq ($(MAKECMDGOALS),clean)
-override CL_TMP := any
+override CL_TMP := $(shell $(HELPER) process_wi in_clean $(CL_COMP_PARAM_TEMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
 else
 override CL_TMP := $(shell $(HELPER) process_wi $(CL_COMP_PARAM_TEMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
 endif

@@ -156,13 +156,16 @@ make_rules()
 }
 
 
-# process_wi <фиксировать ли компилятор> <какой компилятор> <запросы модулей>
+# process_wi [in_clean] <фиксировать ли компилятор> <какой компилятор> <запросы модулей>
+#   возможный нулевой параметр - in_clean если не нужно убивать make по ошибкам
 #   первый параметр: yes или unknown
 #   второй параметр: gcc, suncc или any
 #   возврат: первое слово - _suncc_, _gcc_ или _any_
 #            дальше - список примененных WI
 process_wi()
 {
+  if test $1 = "in_clean"; then in_clean=1; shift; else in_clean=0; fi
+
   postfix=`get_arch`-`get_os`
   key="$*"
   cache=$PROCESSWICACHE-$postfix
@@ -183,12 +186,23 @@ process_wi()
     return
   fi
 
-  echo_build_error
-  eval $command 1>&2
-  echo 1>&2
-  echo "You may run \"make show_wi\" to see complete WI logic" 1>&2
-  echo 1>&2
-  kill_make
+  if test "$in_clean" = "1"; then
+    echo 1>&2
+    echo "WARNING:" 1>&2
+    eval $command 1>&2
+    echo 1>&2
+    echo "WI settings will be ignored. Your clean may be incomplete." 1>&2
+    echo "(you may run \"make show_wi\" to see complete WI logic)" 1>&2
+    echo 1>&2
+    if test "$needcomp" = "yes"; then echo $comp; else echo "any"; fi
+  else
+    echo_build_error
+    eval $command 1>&2
+    echo 1>&2
+    echo "You may run \"make show_wi\" to see complete WI logic" 1>&2
+    echo 1>&2
+    kill_make
+  fi
 }
 
 # show_wi <параметры process_wi>
@@ -209,7 +223,7 @@ get_bd_for_clean()
   if test -d $1; then echo $1; return; fi
 
   part3=`echo $1 | sed 's/[^-]*-[^-]*-\([^-]*\).*/\1/'`
-  if test part3 = "gcc" -o part3 = "suncc"; then
+  if test "$part3" = "gcc" -o "$part3" = "suncc"; then
     echo $1; return
   fi
 
