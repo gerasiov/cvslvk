@@ -593,7 +593,7 @@ endif
 all: all_subdirs $(EXECUTABLE) $(CL_SL_NAMES)
 
 $(EXECUTABLE): $(CL_BD)/$(EXECUTABLE)
-	rm -f  $(EXECUTABLE) && ln -sf $(CL_BD)/$(EXECUTABLE) $(EXECUTABLE)
+	rm -f  $(EXECUTABLE) && ln -s $(CL_BD)/$(EXECUTABLE) $(EXECUTABLE)
 
 $(CL_BD)/$(EXECUTABLE): $(CL_OBJECTS_ALL)
 	$(LD) $(CL_OBJECTS_ALL) $(LDFLAGS) -o $@ 
