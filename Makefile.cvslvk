@@ -4,166 +4,17 @@
 HELPER = $(CL_DIR)/cvslvk
 
 
-# CL_DEFAULT_GOAL - what to make when "make" is run with no parameters
-#   Defaults to "all".
+# $(CL_DEFAULT_GOAL) - what to make when "make" is run with no parameters
+# Defaults to "all".
 
 ifndef CL_DEFAULT_GOAL
 CL_DEFAULT_GOAL = all
 endif
 
-cl_default_goal: $(CL_DEFAULT_GOAL)
+default_goal: $(CL_DEFAULT_GOAL)
 
 
-# Default settings
-#
-# Architecture and OS are those we are using
-
-override CL_ARCH := $(shell $(HELPER) get_arch)
-override CL_OS := $(shell $(HELPER) get_os)
-
-# Compiler defaults to GCC. Sun CC may be still used, if $(CL_COMP)=suncc
-
-ifndef CL_COMP
-CL_COMP = gcc
-endif
-
-ifeq ($(CL_COMP), g++)
-override CL_COMP = gcc
-endif
-ifeq ($(CL_COMP), CC)
-override CL_COMP = suncc
-endif
-ifeq ($(CL_COMP), cc)
-override CL_COMP = suncc
-endif
-
-ifeq ($(CL_COMP), gcc)
-override CC = gcc
-override CXX = g++
-endif
-ifeq ($(CL_COMP), suncc)
-override CC = cc
-override CXX = CC
-endif
-
-# Linker defaults to c++ compiler
-# $(LD) is predefined, so we use a wrapper
-ifndef CL_LD
-CL_LD = $(CXX)
-endif
-override LD := $(CL_LD)
-
-
-# Flags for debugging and optimizing
-# By default, everything is built with debug information
-# If CL_NDEBUG is set, everything will be built with no debug information
-# If CL_OPTIMIZE is set, everything will be built with optimizations AND
-# without debug information (optimization + gebug information is useless)
-# For debugging with gcc, $(CL_GCC_DEBUG) is used, defaults to -g
-# For debugging with suncc, $(CL_SUNCC_DEBUG) is used, defaults to -g
-# For optimizing with gcc, $(CL_GCC_OPTIMIZE) is used, defaults to -O2 -DNDEBUG
-# For optimizing with suncc, $(CL_SUNCC_OPTIMIZE) is used, defaults to -O -DNDEBUG
-
-override CFLAGS = -c
-override CXXFLAGS = -c
-
-ifndef CL_GCC_DEBUG
-CL_GCC_DEBUG = -g
-endif
-ifndef CL_SUNCC_DEBUG
-CL_SUNCC_DEBUG = -g
-endif
-
-ifndef CL_NDEBUG
-ifndef CL_OPTIMIZE
-ifeq ($(CL_COMP), gcc)
-override CFLAGS += $(CL_GCC_DEBUG)
-override CXXFLAGS += $(CL_GCC_DEBUG)
-endif
-ifeq ($(CL_COMP), suncc)
-override CFLAGS += $(CL_SUNCC_DEBUG)
-override CXXFLAGS += $(CL_SUNCC_DEBUG)
-endif
-endif
-endif
-
-ifndef CL_GCC_OPTIMIZE
-CL_GCC_OPTIMIZE = -O2 -DNDEBUG
-endif
-ifndef CL_SUNCC_OPTIMIZE
-CL_SUNCC_OPTIMIZE = -O -DNDEBUG
-endif
-
-ifdef CL_OPTIMIZE
-ifeq ($(CL_COMP), gcc)
-override CFLAGS += $(CL_GCC_OPTIMIZE)
-override CXXFLAGS += $(CL_GCC_OPTIMIZE)
-endif
-ifeq ($(CL_COMP), suncc)
-override CFLAGS += $(CL_SUNCC_OPTIMIZE)
-override CXXFLAGS += $(CL_SUNCC_OPTIMIZE)
-endif
-endif
-
-# Additional flags may be passed via $(CL_GCC_FLAGS) for gcc and via
-# $(CL_SUNCC_FLAGS) for Sun CC
-
-ifeq ($(CL_COMP), gcc)
-ifdef CL_GCC_OFLAGS
-override CFLAGS += $(CL_GCC_FLAGS)
-override CXXFLAGS += $(CL_GCC_FLAGS)
-endif
-endif
-ifeq ($(CL_COMP), suncc)
-ifdef CL_SUNCC_OFLAGS
-override CFLAGS += $(CL_SUNCC_FLAGS)
-override CXXFLAGS += $(CL_SUNCC_FLAGS)
-endif
-endif
-
-
-
-# Library building tools
-# If CL_LTYPE is 'shared', gcc -shared is used
-# $(LIBRARY) is library name.
-# For shared libraries, $(LIBRARY_VERSION) and $(LIBRARY_REVISION) may be also
-# used. $(LIBRARY_VERSION) will be built into soname
-
-ifeq ($(CL_LTYPE), shared)
-CL_LIBRARY_CNAME = lib$(LIBRARY).so
-ifdef LIBRARY_VERSION
-CL_LIBRARY_SONAME = lib$(LIBRARY).so.$(LIBRARY_VERSION)
-ifdef LIBRARY_REVISION
-CL_LIBRARY_FNAME = lib$(LIBRARY).so.$(LIBRARY_VERSION).$(LIBRARY_REVISION)
-else
-CL_LIBRARY_FNAME = lib$(LIBRARY).so.$(LIBRARY_VERSION)
-endif
-else
-CL_LIBRARY_SONAME = lib$(LIBRARY).so
-CL_LIBRARY_FNAME = lib$(LIBRARY).so
-endif
-ifeq ($(CL_COMP), gcc)
-override CFLAGS += -fPIC
-override CXXFLAGS += -fPIC
-CL_MKLIB = g++ -shared -Wl,-soname,$(CL_LIBRARY_SONAME) -o
-endif
-ifeq ($(CL_COMP), suncc)
-CL_MKLIB = false
-endif
-endif
-
-ifeq ($(CL_LTYPE), static)
-CL_LIBRARY_FNAME = lib$(LIBRARY).a
-ifeq ($(CL_COMP), gcc)
-CL_MKLIB = ar cr
-endif
-ifeq ($(CL_COMP), suncc)
-CL_MKLIB = false
-endif
-endif
-
-
-# ALWAYS macro - a rule that should be always applied
+# $(ALWAYS) macro - a rule that should be applied even if file exists
 #   ( usage:   xxx : $(ALWAYS) )
 
 ALWAYS = /etc/file_that_never_exists
@@ -171,28 +22,80 @@ ALWAYS = /etc/file_that_never_exists
 $(ALWAYS):
 
 
-# Parameter check subsystem
 
-# Required variables, directory parameters, and required modules
-# are checked in a shell command before any rules are applied.
-# If something wrong, make process is interrupted from $(HELPER) via kill.
+# Architecture and OS are those we are using
+# These are detected automatically using 'uname', but since 'uname' output
+# is os- and architecture-dependent, we use a wrapper in $(HELPER)
+# Currently supported: solaris and linux, on x86 and sparc
+
+override CL_ARCH := $(shell $(HELPER) get_arch)
+override CL_OS := $(shell $(HELPER) get_os)
+
+
+# Compiler defaults to GCC. Sun CC may be still used, if $(CL_COMP)=suncc
+# $(CL_COMP) should be 'gcc' or 'suncc'
+
+ifndef CL_COMP
+CL_COMP = gcc
+endif
+
+override CL_TMP := $(shell $(HELPER) check_enum CL_COMP=$(CL_COMP) gcc suncc)
+
+
+# Set C and C++ compilers
+
+ifeq ($(CL_COMP),gcc)
+override CC = gcc
+override CXX = g++
+endif
+ifeq ($(CL_COMP),suncc)
+override CC = cc
+override CXX = CC
+endif
+
+
+# Set linker. If all user sources are .c files, linker will default to $(CC)
+# Otherwise, it will default to $(CXX)
+
+override CL_TMP := $(filter-out %.c, $(SOURCES))
+ifeq ($(CL_TMP),)
+override LD := $(CC)
+else
+override LD := $(CXX)
+endif
+
+
+# $(CL_LTYPE) defaults to 'shared' for gcc, 'static' for suncc
+# Building shared libraries with suncc is not yet supported
+
+ifndef CL_LTYPE
+ifeq ($(CL_COMP),gcc)
+CL_LTYPE = shared
+endif
+ifeq ($(CL_COMP),suncc)
+CL_LTYPE = static
+endif
+endif
+
+override CL_TMP := $(shell $(HELPER) check_enum CL_LTYPE=$(CL_LTYPE) shared static)
+
+ifeq ($(CL_COMP)-$(CL_LTYPE),suncc-shared)
+override CL_TMP := $(shell $(HELPER) error Building shared libraries with suncc is not yet supported)
+endif
+
 
 # Variable check subsystem
-# By default, the variables used in check_dir (see below), are checked.
-# If some others should be also checked, then should be added to $(CL_VARS)
-# Example:  CL_VARS = MYVAR=$(MYVAR) MYVAR2=$(MYVAR2)
 
-ifdef CL_PARAM_COMP
-override CL_VARS += CL_COMP=$(CL_COMP)
-endif
-ifdef CL_PARAM_LTYPE
-override CL_VARS += CL_LTYPE=$(CL_LTYPE)
-endif
+# To check variables, set CL_VARS. The format is the following:
+# CL_VARS = MYVAR=$(MYVAR) MYVAR2=$(MYVAR2) ...
+
 ifdef CL_PARAM_OTHERP
 override CL_VARS += CL_OTHERP=$(CL_OTHERP)
 endif
 
+ifneq ($(CL_VARS),)
 override CL_TMP := $(shell $(HELPER) check_vars $(CL_VARS))
+endif
 
 
 # Build directory parameters.
@@ -200,24 +103,39 @@ override CL_TMP := $(shell $(HELPER) check_vars $(CL_VARS))
 #
 # The combination of variables that are used to find out build parameters
 # is the following.
-# Always CL_ARCH and CL_OS are used, togather with optimization and debugging
-# flags.
-# Optionally, the following may be used:
-#   if CL_PARAM_COMP is defined, then CL_COMP is used
-#   if CL_PARAM_LTYPE is defined, then CL_LTYPE is used
-#   if CL_PARAM_OTHERP is defined, then CL_OTHERP is used
-# To remove stored directory parameters, "make cleanup" should be used.
-# "cleanup" depends in $(CL_CLEAN), that defaults to "clean"
-# Make cleanup also removes all .depend files
+# Always CL_ARCH, CL_OS are used, together with optimization and
+# debugging flags.
+#
+# CL_COMP is used if CL_PARAM_COMP is defined, or if we are building
+# a c++ library, or if we use a module that has CL_COMP in params
+#
+# CL_LTYPE is used, if CL_PARAM_LTYPE is defined, or if we are building library
+#
+# CL_OTHER is used, if CL_PARAM_LTYPE is defined
 
 override CL_DIR_PARAMS := $(CL_ARCH)-$(CL_OS)
 
+ifndef CL_PARAM_COMP
+ifdef LIBRARY
+ifeq ($(LD),$(CXX))
+CL_PARAM_COMP = 1
+endif
+endif
+ifeq ($(shell $(HELPER) need_comp_param $(CL_USE_MODULES)),yes)
+CL_PARAM_COMP = 1
+endif
+endif
 ifdef CL_PARAM_COMP
 override CL_DIR_PARAMS := $(CL_DIR_PARAMS)-$(CL_COMP)
+endif
+
+ifdef LIBRARY
+CL_PARAM_LTYPE = 1
 endif
 ifdef CL_PARAM_LTYPE
 override CL_DIR_PARAMS := $(CL_DIR_PARAMS)-$(CL_LTYPE)
 endif
+
 ifdef CL_PARAM_OTHERP
 override CL_DIR_PARAMS := $(CL_DIR_PARAMS)-$(CL_OTHERP)
 endif
@@ -240,6 +158,161 @@ override CL_TMP := $(shell mkdir -p $(CL_BD))  # Create build directory
 # in -I's only
 
 override INCLUDES += -I. -I$(CL_BD)
+
+
+# Compiler flags for debugging and optimizing
+# By default, everything is built with debug information
+# If CL_NDEBUG is set, everything will be built with no debug information
+# If CL_OPTIMIZE is set, everything will be built with optimizations AND
+# without debug information (optimization + gebug information is useless)
+# For debugging with gcc, $(CL_GCC_DEBUG) is used, defaults to -g
+# For debugging with suncc, $(CL_SUNCC_DEBUG) is used, defaults to -g
+# For optimizing with gcc, $(CL_GCC_OPTIMIZE) is used, defaults to -O2 -DNDEBUG
+# For optimizing with suncc, $(CL_SUNCC_OPTIMIZE) is used, defaults to -O -DNDEBUG
+
+override CFLAGS := -c
+override CXXFLAGS := -c
+
+# Handle sun CC's templates database
+ifeq ($(CL_COMP),suncc)
+override CXXFLAGS += -ptr$(CL_BD)
+ifeq ($(LD),CC)
+override LDFLAGS += -ptr$(CL_BD)
+endif
+endif
+
+ifndef CL_GCC_DEBUG
+CL_GCC_DEBUG = -g
+endif
+ifndef CL_SUNCC_DEBUG
+CL_SUNCC_DEBUG = -g
+endif
+
+ifndef CL_NDEBUG
+ifndef CL_OPTIMIZE
+ifeq ($(CL_COMP),gcc)
+override CFLAGS += $(CL_GCC_DEBUG)
+override CXXFLAGS += $(CL_GCC_DEBUG)
+endif
+ifeq ($(CL_COMP),suncc)
+override CFLAGS += $(CL_SUNCC_DEBUG)
+override CXXFLAGS += $(CL_SUNCC_DEBUG)
+endif
+endif
+endif
+
+ifndef CL_GCC_OPTIMIZE
+CL_GCC_OPTIMIZE = -O2 -DNDEBUG
+endif
+ifndef CL_SUNCC_OPTIMIZE
+CL_SUNCC_OPTIMIZE = -O -DNDEBUG
+endif
+
+ifdef CL_OPTIMIZE
+ifeq ($(CL_COMP),gcc)
+override CFLAGS += $(CL_GCC_OPTIMIZE)
+override CXXFLAGS += $(CL_GCC_OPTIMIZE)
+endif
+ifeq ($(CL_COMP),suncc)
+override CFLAGS += $(CL_SUNCC_OPTIMIZE)
+override CXXFLAGS += $(CL_SUNCC_OPTIMIZE)
+endif
+endif
+
+# Additional compiler flags may be passed via the following variables:
+# $(CL_CC_FLAGS) for any compiler
+# $(CL_CC_CFLAGS) for any C compiler
+# $(CL_CC_CXXFLAGS) for any C++ compiler
+# $(CL_GCC_FLAGS) for gcc and g++
+# $(CL_GCC_CFLAGS) for gcc
+# $(CL_GCC_CXXFLAGS) for g++
+# $(CL_SUNCC_FLAGS) for cc and CC
+# $(CL_SUNCC_CFLAGS) for cc
+# $(CL_SUNCC_CXXFLAGS) for CC
+
+ifdef CL_CC_FLAGS
+override CFLAGS += $(CL_CC_FLAGS)
+override CXXFLAGS += $(CL_CC_FLAGS)
+endif
+ifdef CL_CC_CFLAGS
+override CFLAGS += $(CL_CC_FLAGS)
+endif
+ifdef CL_CC_CXXFLAGS
+override CXXFLAGS += $(CL_CC_FLAGS)
+endif
+
+ifeq ($(CL_COMP),gcc)
+ifdef CL_GCC_FLAGS
+override CFLAGS += $(CL_GCC_FLAGS)
+override CXXFLAGS += $(CL_GCC_FLAGS)
+endif
+ifdef CL_GCC_CFLAGS
+override CFLAGS += $(CL_GCC_FLAGS)
+endif
+ifdef CL_GCC_CXXFLAGS
+override CXXFLAGS += $(CL_GCC_FLAGS)
+endif
+endif
+
+ifeq ($(CL_COMP),suncc)
+ifdef CL_SUNCC_FLAGS
+override CFLAGS += $(CL_SUNCC_FLAGS)
+override CXXFLAGS += $(CL_SUNCC_FLAGS)
+endif
+ifdef CL_SUNCC_CFLAGS
+override CFLAGS += $(CL_SUNCC_FLAGS)
+endif
+ifdef CL_SUNCC_CXXFLAGS
+override CXXFLAGS += $(CL_SUNCC_FLAGS)
+endif
+endif
+
+
+# Library building tools
+
+ifdef LIBRARY
+
+# If CL_LTYPE is 'shared', gcc -shared is used
+# $(LIBRARY) is library name.
+# For shared libraries, $(LIBRARY_VERSION) and $(LIBRARY_REVISION) may be also
+# used. $(LIBRARY_VERSION) will be built into soname
+
+ifeq ($(CL_LTYPE),shared)
+CL_LIBRARY_CNAME = lib$(LIBRARY).so
+ifdef LIBRARY_VERSION
+CL_LIBRARY_SONAME = lib$(LIBRARY).so.$(LIBRARY_VERSION)
+ifdef LIBRARY_REVISION
+CL_LIBRARY_FNAME = lib$(LIBRARY).so.$(LIBRARY_VERSION).$(LIBRARY_REVISION)
+else
+CL_LIBRARY_FNAME = lib$(LIBRARY).so.$(LIBRARY_VERSION)
+endif
+else
+CL_LIBRARY_SONAME = lib$(LIBRARY).so
+CL_LIBRARY_FNAME = lib$(LIBRARY).so
+endif
+# We support only gcc
+override CFLAGS += -fPIC
+override CXXFLAGS += -fPIC
+CL_MKLIB := $(LD) -shared -Wl,-soname,$(CL_LIBRARY_SONAME) -o
+endif
+
+ifeq ($(CL_LTYPE),static)
+CL_LIBRARY_FNAME = lib$(LIBRARY).a
+ifeq ($(CL_COMP),gcc)
+CL_MKLIB := ar cr
+endif
+ifeq ($(CL_COMP),suncc)
+ifeq ($(LD),CC)
+# Here we want $(INCLUDES) and $(DEFINES) to be substituted later, so we use
+# = instead on :=
+CL_MKLIB = CC -xar -ptr$(CL_BD) $(DEFINES) $(INCLUDES) -o
+else
+CL_MKLIB := ar cr
+endif
+endif
+endif
+
+endif  # ifdef LIBRARY
 
 
 # Find the available module installations and replace user references by
@@ -269,26 +342,25 @@ endif
 
 # Now we can add $(INCLUDES) and $(DEFINES) to $(C{XX}FLAGS)
 
-override CXXFLAGS += $(INCLUDES)
-override CXXFLAGS += $(DEFINES)
+override CFLAGS += $(INCLUDES) $(DEFINES)
+override CXXFLAGS += $(INCLUDES) $(DEFINES)
 
 # Create $(CL_SOURCES_ALL) and $(CL_OBJECTS_ALL)
 # Assumptions:
 # $(SOURCES) contains user sources
 # $(CL_SOURCES_NU) and $(CL_OBJECTS_NU) contain non-user sources and objects
-# The later is not automatically generated because the method differs.
+# The later is not automatically generated because methods differ.
 #
 # $(CL_SOURCES_NU) should be before $(SOURCES), because generated headers
 # may be used when dependences are calculated for user files
 
+override CL_SOURCES_ALL := $(CL_SOURCES_NU) $(SOURCES)
 override OBJECTS := $(SOURCES:%=$(CL_BD)/%)
 override OBJECTS := $(OBJECTS:.cpp=.o)
 override OBJECTS := $(OBJECTS:.cc=.o)
 override OBJECTS := $(OBJECTS:.C=.o)
 override OBJECTS := $(OBJECTS:.mm=.o)
 override OBJECTS := $(OBJECTS:.c=.o)
-
-override CL_SOURCES_ALL := $(CL_SOURCES_NU) $(SOURCES)
 override CL_OBJECTS_ALL := $(CL_OBJECTS_NU) $(OBJECTS)
 
 
@@ -304,7 +376,7 @@ $(CL_BD)/%.deps: %
 $(CL_BD)/%.deps: $(CL_BD)/%
 	@$(HELPER) depend $< $@ $(INCLUDES) $(DEFINES)
 
-CL_NODEP_RULES += clean show_wi create_wi
+CL_NODEP_RULES += clean show_wi create_wi update_wi
 
 ifneq ($(MAKECMDGOALS),)
 ifeq ($(filter-out $(CL_NODEP_RULES),$(MAKECMDGOALS)),)
@@ -312,16 +384,24 @@ CL_NODEP_WORKED = 1
 endif
 endif
 
+# We include only those deps files that are currently available
+# To automatically rebuild dependences, we set up this makefile to be dependent
+# from all needed deps. Since GNU make always tries to remake makefile, this
+# enables all required dependences to be built
+
 ifndef CL_NODEP_WORKED
 
 $(CL_DIR)/Makefile.cvslvk: $(CL_DEPS_ALL)
 
--include $(CL_BD)/*.deps
-
+override CL_DEPS_TO_INCLUDE := $(filter $(CL_DEPS_ALL),$(wildcard $(CL_BD)/*.deps))
+ifneq ($(CL_DEPS_TO_INCLUDE),)
+include $(CL_DEPS_TO_INCLUDE)
 endif
 
+endif  # ifndef CL_NODEP_WORKED
 
-# Rule to create working installation.
+
+# Rule to create and update working installation.
 # $(CL_MODULE) is the module name
 # $(CL_WI_VERSION) is the wi version, defaults to 'unknown'
 # $(CL_WI_INFO) is the third part of the wi name, defaults to $(CL_DIR_PARAMS)
@@ -353,6 +433,16 @@ create_wi: $(ALWAYS)
 	@$(HELPER) complete_wi $(CL_WI_DIR)
 	@echo
 
+update_wi: $(ALWAYS)
+	@$(HELPER) check_vars CL_MODULE=$(CL_MODULE)
+	@if test -d $(CL_DIR)/$(CL_WI_DIR); then \
+	  echo; \
+	  echo Removing available working installation $(CL_WI_DIR) ...; \
+	  $(HELPER) remove_wi $(CL_WI_DIR); \
+	  echo; fi
+	@make create_wi
+
+
 # Rules for building object files
 
 $(CL_BD)/%.o: %.c
@@ -374,7 +464,7 @@ $(CL_BD)/%.o: %.C
 	$(CXX) $(CXXFLAGS) -o $@ $<
 
 
-# Rules for single-executable makefiles
+# Rules for executable makefiles
 
 ifdef EXECUTABLE
 
@@ -402,6 +492,8 @@ clean_se: $(ALWAYS)
 endif
 
 
+# Rules for library makefiles
+
 ifdef LIBRARY
 
 all: $(CL_BD)/$(CL_LIBRARY_FNAME)
@@ -413,7 +505,7 @@ install: all $(ALWAYS)
 	@$(HELPER) check_vars CL_PREFIX=$(CL_PREFIX)
 	mkdir -p $(CL_PREFIX)/lib $(CL_PREFIX)/include
 	cp $(CL_BD)/$(CL_LIBRARY_FNAME) $(CL_PREFIX)/lib
-ifeq ($(CL_LTYPE), shared)
+ifeq ($(CL_LTYPE),shared)
 ifneq ($(CL_LIBRARY_SONAME), $(CL_LIBRARY_FNAME))
 	(cd $(CL_PREFIX)/lib && ln -sf $(CL_LIBRARY_FNAME) $(CL_LIBRARY_SONAME))
 endif

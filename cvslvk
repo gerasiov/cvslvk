@@ -13,6 +13,8 @@ RULES_CVSLVK_TMP=$CL_DIR/rules.cvslvk.tmp  # Временная копия того же файла
 # Группа пользователей CVS
 CVSGROUP=cvsusers
 
+CHGRP=chgrp
+
 MYPID=$$
 kill_make()
 {
@@ -43,6 +45,16 @@ echo_build_error()
 }
 
 
+# error сообщение
+error()
+{
+  echo_build_error
+  echo $* 1>&2
+  echo 1>&2
+  kill_make
+}
+
+
 # check_vars ИМЯ=значение ...
 check_vars()
 {
@@ -58,6 +70,21 @@ check_vars()
     shift
   done
   if test $res -eq 1; then echo 1>&2; kill_make; fi
+}
+
+
+# check_enum <имя_переменной>=<значение> <допустимые значения>
+check_enum()
+{
+  var=`echo $1 | cut -d= -f1`
+  value=`echo $1 | cut -d= -f2`
+  shift
+  for i in $*; do test "$value" = "$i" && return 0; done
+  echo_build_error
+  echo "Bad value '$value' of variable $var." 1>&2
+  echo "Supported values are: $*." 1>&2
+  echo 1>&2
+  kill_make
 }
 
 
@@ -99,10 +126,25 @@ make_rules()
     fi
   done
   mv $RULES_CVSLVK_TMP $RULES_CVSLVK
-  chgrp $CVSGROUP $RULES_CVSLVK
+  $CHGRP $CVSGROUP $RULES_CVSLVK
   chmod 664 $RULES_CVSLVK
 }
 
+
+# need_comp_param <список обращений к модулям>
+# Печатает yes, если доступна инсталляция модуля, среди параметров которой
+# присутствует компилятор
+need_comp_param()
+{
+  if test "$1" = ""; then return 0; fi
+  cd $CL_DIR
+  for i in $*; do
+    x=`echo $i | cut -d_ -f1`
+    list=$x'_'*
+    if echo $list | grep -- -gcc >/dev/null; then echo yes; return 0; fi
+    if echo $list | grep -- -suncc >/dev/null; then echo yes; return 0; fi
+  done
+}
 
 # find_modules $CL_DIR_PARAMS <список обращений>
 # Формат именования инсталляций: <модуль>_<версия>_<параметры-сборки>
@@ -120,7 +162,7 @@ find_modules()
     ref_mod=`echo $ref | awk -F_ '{print($1)}'`
     ref_ver=`echo $ref | awk -F_ '{print($2)}'`
     ref_bld=`echo $ref | awk -F_ '{print($3)}'`
-    if test "$ref_ver" = ""; then
+    if test "$ref_ver" = "" -o "$ref_ver" = "any"; then
       list=$ref_mod'_'*'_'$cdp*;
     else
       list=$ref_mod'_'$ref_ver'_'$cdp*;
@@ -189,6 +231,7 @@ before_create_wi()
     echo 1>&2
     return 1
   fi
+  rmdir $1
   return 0
 }
 
@@ -197,7 +240,8 @@ before_create_wi()
 # Вызывается по make create_wi перед вызовом make all
 before_install_wi()
 {
-  return 0
+  cd $CL_DIR
+  mkdir $1
 }
 
 
@@ -205,7 +249,7 @@ before_install_wi()
 complete_wi()
 {
   cd $CL_DIR
-  find $1 -exec chgrp $CVSGROUP \{\} \;
+  find $1 -exec $CHGRP $CVSGROUP \{\} \;
   find $1 -exec chmod ug+rw \{\} \;
 
   make_rules
@@ -221,6 +265,12 @@ remove_wi()
     return 1;
   fi
 
+  echo $1/*
+  if test -f $1/NOREMOVE; then
+    echo "NOREMOVE file exists in this working installation"
+    return 1
+  fi
+
   rm -rf $1
   make_rules
 }
@@ -229,14 +279,14 @@ remove_wi()
 selfupdate()
 {
   mkdir -p $CL_DIR/tmp/$USER
-  chgrp $CVSGROUP $CL_DIR/tmp 2>/dev/null
+  $CHGRP $CVSGROUP $CL_DIR/tmp 2>/dev/null
   chmod 775 $CL_DIR/tmp 2>/dev/null
   cd $CL_DIR/tmp/$USER
   cvs checkout cvslvk > /dev/null
   cd cvslvk
   cp Makefile.cvslvk cvslvk *.awk $CL_DIR/
   cd $CL_DIR
-  chgrp $CVSGROUP *
+  $CHGRP $CVSGROUP *
   chmod ug+w *
   rm -r $CL_DIR/tmp/$USER/cvslvk
   make_rules
@@ -247,7 +297,8 @@ command=$1
 shift
 
 case "$command" in
-  check_vars|get_arch|get_os|make_rules|find_modules|depend|\
+  check_vars|check_enum|error|get_arch|get_os|make_rules|\
+  need_comp_param|find_modules|depend|\
   show_wi|check_wi|before_create_wi|before_install_wi|complete_wi|remove_wi|\
   selfupdate)
     $command $*
