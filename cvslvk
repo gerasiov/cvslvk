@@ -261,7 +261,7 @@ depend()
     flags="$* `cat $bd/SYS_MKDEP_FLAGS_CXX 2>/dev/null`"
   fi
 
-  $cpp -MM $flags $file > $dep.tmp
+  eval $cpp -MM $flags $file > $dep.tmp
   if test $? -ne 0; then
     printf $dep': $(ALWAYS)\n\n' > $dep
     rm -f $dep.tmp;
@@ -320,7 +320,7 @@ make_sys_mkdep_flags_c()
     echo > cvslvk-test.c
     gcc -v -E $* cvslvk-test.c 2>&1 | grep /cpp | tr ' ' '\n' |\
       egrep -v "/cpp|^cvslvk-test.c|^-v|^-lang" |\
-      tr '\n' ' ' > SYS_MKDEP_FLAGS_C
+      tr '\n' ' ' | awk -f $CL_DIR/cppargs.awk > SYS_MKDEP_FLAGS_C
     rm -f cvslvk-test.c
   fi
   return 0
@@ -338,7 +338,7 @@ make_sys_mkdep_flags_cxx()
     echo > cvslvk-test.cpp
     g++ -v -E $* cvslvk-test.cpp 2>&1 | grep /cpp | tr ' ' '\n' |\
       egrep -v "/cpp|^cvslvk-test.cpp|^-v|^-lang" |\
-      tr '\n' ' ' > SYS_MKDEP_FLAGS_CXX
+      tr '\n' ' ' | awk -f $CL_DIR/cppargs.awk > SYS_MKDEP_FLAGS_CXX
     rm -f cvslvk-test.cpp
   fi
   return 0
@@ -489,7 +489,7 @@ install()
   ) > process_wi.awk
  # Собственно установка
   (cd $CL_DIR && rm -f *.awk Makefile.cvslvk cvslvk autobuild.conf)
-  cp Makefile.cvslvk cvslvk getppid.awk process_wi.awk liborder.awk autobuild.conf $CL_DIR/
+  cp Makefile.cvslvk cvslvk getppid.awk process_wi.awk liborder.awk cppargs.awk autobuild.conf $CL_DIR/
   rm -f process_wi.awk
  # Удаление устаревших псевдомодулей
   for i in $CL_DIR/*/REMOVE_ON_CVSLVK_UPDATE; do
