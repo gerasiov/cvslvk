@@ -37,6 +37,11 @@ ARCH=`get_arch`-`get_os`
 SOURCE=`pwd`
 cd $CL_DIR
 
+# Удаление устаревших WI
+for i in */REMOVE_ON_CVSLVK_UPDATE; do
+  test -f $i && rm -rf `dirname $i`
+done
+
 
 # Установка/обновление rules.cvslvk для PCCTS
 WINAME='pccts_'$ARCH'-1.33MR12b'

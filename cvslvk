@@ -491,7 +491,7 @@ install()
   for i in $CL_DIR/*/REMOVE_ON_CVSLVK_UPDATE; do
     test -f $i && rm -rf `dirname $i`
   done
- # Установка псевдомодулей
+ # Установка/обновление псевдомодулей
   test -f ./install_pseudo && ./install_pseudo
  # Установка прав
   cd $CL_DIR
@@ -515,7 +515,7 @@ build()
   fi
 
   FOUND=0
-  eval `cat $AUTOBUILD_CONF | grep -v '^#' | awk -F: '{if ($1=="'$1'") {printf("FOUND=1;WI="$2";MODULE="$3";TAG="$4";PARAMS=\""$5"\";COMMENT=\""$6"\";")} }'`
+  eval `cat $AUTOBUILD_CONF | grep -v '^#' | awk -F: '{if ($1=="'$1'") {printf("FOUND=1;WI="$2";MODULE="$3";TAG="$4";PARAMS=\""$5"\";DEPS="$6";COMMENT=\""$7"\";")} }'`
   if test $FOUND -ne 1; then
     echo 1>&2
     echo 'Build "'$1'" is not available.' 1>&2
@@ -533,12 +533,27 @@ build()
   fi
 
   if test -d $CL_DIR/$FULL_WI_NAME; then
-    echo 1>&2
-    echo "Working installation $FULL_WI_NAME already exists." 1>&2
-    echo "Most likely you will not want to touch it." 1>&2
-    echo "If you really want to rebuild it, please remove it first." 1>&2
-    echo 1>&2
-    return 1
+    echo
+    echo "Working installation $FULL_WI_NAME already exists."
+    echo "Most likely you will not want to touch it."
+    echo "If you really want to rebuild it, please remove it first."
+    echo
+    return 0
+  fi
+
+  if test "$DEPS" != ""; then
+    for d in `echo $DEPS | tr ',' ' '`; do
+      echo
+      echo "Building dependency $d ..."
+      echo
+      $CL_DIR/cvslvk build $d #Вызываем новую копию скрипта, чтобы не портить переменные
+      if test $? -ne 0; then
+        echo 1>&2
+	echo "Dependency $d build failed. Can't build $1" 1>&2
+        echo 1>&2
+	return 1
+      fi
+    done
   fi
 
   mkdir -p $CL_DIR/tmp/$LOGNAME
@@ -553,7 +568,7 @@ build()
   echo "Checking out CVS module $MODULE $TAGINFO ..."
   echo
   cvs checkout $TAG_FLAG $MODULE
-  if test $? -ne 0; then
+  if test $? -ne 0 -o ! -d $MODULE; then
     echo 
     echo "CVS checkout failed."
     echo "Make sure that you have set CVSROOT correctly, done 'cvs login'"
@@ -593,7 +608,7 @@ build()
 show_ab()
 {
   echo
-  cat $AUTOBUILD_CONF | grep -v '^#' | awk -F: '{if($1!="")print($1 ": "$6)}'
+  cat $AUTOBUILD_CONF | grep -v '^#' | awk -F: '{if($1!="")print($1 ": "$7)}'
   echo
 }
 
