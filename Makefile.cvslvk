@@ -609,7 +609,7 @@ ifeq ($(CL_LTYPE),static)
 ifndef INTERNAL_LIBRARY
 install_library: $(ALWAYS)
 	mkdir -p $(CL_PREFIX)/lib
-	rm -f $(CL_BD)/$(CL_LIBRARY_FNAME)
+	rm -f $(CL_PREFIX)/lib/$(CL_LIBRARY_FNAME)
 	cp $(CL_BD)/$(CL_LIBRARY_FNAME) $(CL_PREFIX)/lib/
 
 override CL_INSTALL_PARTS += install_library
@@ -622,7 +622,7 @@ endif # LIBRARY
 ifdef EXPORT_INCLUDES
 install_includes: $(ALWAYS)
 	mkdir -p $(CL_PREFIX)/include
-	rm -rf $(EXPORT_INCLUDES:%=$(CL_PREFIX)/include/%)
+	( cd $(CL_PREFIX)/include && rm -rf $(EXPORT_INCLUDES) )
 	cp -r $(EXPORT_INCLUDES) $(CL_PREFIX)/include/
 
 override CL_INSTALL_PARTS += install_includes
@@ -631,7 +631,7 @@ endif
 ifdef SCRIPTS
 install_scripts: $(ALWAYS)
 	mkdir -p $(CL_PREFIX)/bin
-	rm -rf $(SCRIPTS:%=$(CL_PREFIX)/bin/%)
+	( cd $(CL_PREFIX)/bin && rm -rf $(SCRIPTS) )
 	cp $(SCRIPTS) $(CL_PREFIX)/bin/
 
 override CL_INSTALL_PARTS += install_scripts
@@ -641,7 +641,7 @@ ifdef SCRIPTS_WI
 ifdef CL_INSTALL_WI
 install_scripts_wi: $(ALWAYS)
 	mkdir -p $(CL_PREFIX)/bin
-	rm -rf $(SCRIPTS_WI:%=$(CL_PREFIX)/bin/%)
+	( cd $(CL_PREFIX)/bin && rm -rf $(SCRIPTS_WI) )
 	cp $(SCRIPTS_WI) $(CL_PREFIX)/bin/
 
 override CL_INSTALL_PARTS += install_scripts_wi
