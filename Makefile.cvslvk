@@ -218,8 +218,9 @@ endif
 
 ifeq ($(MAKECMDGOALS),clean)
 override CL_BD := $(shell $(HELPER) get_bd_for_clean $(CL_DIR_PARAMS) $(CL_COMP))
-ifdef CL_LOCALWORK
+else
 override CL_BD := $(CL_DIR_PARAMS)
+ifdef CL_LOCALWORK
 override CL_TMP := $(shell mkdir -p $(CL_BD))  # Create the build directory
 endif
 endif
