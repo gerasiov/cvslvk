@@ -289,6 +289,32 @@ selfupdate()
   cvs checkout cvslvk > /dev/null
   cd cvslvk
   cp Makefile.cvslvk cvslvk *.awk $CL_DIR/
+  cat foreign_modules | ( while read type name; do
+    case "$type" in
+      use_system)
+        dir=$CL_DIR/$name'_'`get_arch`-`get_os`
+        mkdir -p $dir 2>/dev/null
+	chmod 755 $dir 2>/dev/null
+	cp rules.cvslvk.$name $dir/rules.cvslvk 2>/dev/null
+	chmod 644 $dir/rules.cvslvk 2>/dev/null
+        $CHGRP $CVSGROUP $dir $dir/rules.cvslvk 2>/dev/null
+        $CHMOD g+w $dir $dir/rules.cvslvk 2>/dev/null
+      ;;
+      use_wi)
+        for dir in $CL_DIR/$name'_'`get_arch`-`get_os`*; do
+          if test ! -d $dir; then
+	    echo "Warning: hand-made working installation for $name is not present"
+	  else
+	    touch $dir/NOREMOVE 2>/dev/null
+	    cp rules.cvslvk.$name $dir/rules.cvslvk
+	    chmod 644 $dir/rules.cvslvk 2>/dev/null
+            $CHGRP $CVSGROUP $dir/rules.cvslvk 2>/dev/null
+            $CHMOD g+w $dir/rules.cvslvk 2>/dev/null
+	  fi
+	done
+      ;;
+    esac
+    done )
   cd $CL_DIR
   $CHGRP $CVSGROUP * 2>/dev/null
   $CHMOD ug+w * 2>/dev/null
