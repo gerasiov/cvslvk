@@ -521,6 +521,23 @@ ifneq ($(CL_DEPS_TO_INCLUDE),)
 include $(CL_DEPS_TO_INCLUDE)
 endif
 
+# Rebuild on changes of CL_WI_LIST or compiler flags
+# Rebuild on changes in WIs rules
+# Relink on changes of LDFLAGSu
+# First, touch corresponding files in $(CL_BD) if parameters changed
+# (Use single complex shell command to make things faster)
+override CL_TMP := $(shell $(HELPER) touchap $(CL_BD) WILIST $(CL_WI_LIST) -- ALLCOMPILEFLAGS $(CFLAGS) $(CXXFLAGS) -- LINKFLAGS $(LDFLAGS))
+$(CL_OBJECTS_ALL) $(CL_DEPS_ALL) : $(CL_BD)/WILIST $(CL_BD)/ALLCOMPILEFLAGS $(filter $(CL_WI_LIST:%=$(CL_DIR)/%/rules.cvslvk),$(wildcard $(CL_DIR)/*/rules.cvslvk))
+ifneq ($(EXECUTABLE),)
+override CL_TMP := $(filter -L%, $(LDFLAGS))
+vpath lib%.so $(CL_TMP:-L%=%)
+vpath lib%.a $(CL_TMP:-L%=%)
+$(CL_BD)/$(EXECUTABLE) : $(CL_BD)/LINKFLAGS $(filter -l%, $(LDFLAGS))
+endif
+ifneq ($(CL_LIBRARY_FNAME),)
+$(CL_BD)/$(CL_LIBRARY_FNAME) : $(CL_BD)/LINKFLAGS
+endif
+
 endif  # ifndef CL_NODEP_WORKED
 
 endif  # CL_LOCALWORK

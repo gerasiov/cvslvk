@@ -353,6 +353,24 @@ liborder()
 }
 
 
+# touchap <CL_BD> [файл параметры] -- ...
+touchap()
+{
+  CL_BD=$1; shift;
+  while test "x$1" != "x"; do
+    file=$CL_BD/$1; shift
+    params="";
+    while test "x$1" != "x--" -a "x$1" != "x"; do params="$params $1"; shift; done
+    test "x$1" = "x--" && shift
+    if test ! -f $file; then
+      printf "%s" "$params" > $file
+    else
+      test "x$params" = "x`cat $file`" || printf "%s" "$params" > $file
+    fi
+  done
+}
+
+
 selfupdate()
 {
   mkdir -p $CL_DIR/tmp/$USER
@@ -414,7 +432,7 @@ shift
 
 case "$command" in
   check_vars|check_enum|error|get_arch|get_os|make_rules|\
-  process_wi|show_wi|get_bd_for_clean|depend|liborder|\
+  process_wi|show_wi|get_bd_for_clean|depend|liborder|touchap|\
   before_create_wi|before_install_wi|complete_wi|remove_wi|\
   selfupdate)
     $command $*
