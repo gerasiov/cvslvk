@@ -144,11 +144,15 @@ make_rules()
   $CHGRP $CVSGROUP $RULES_CVSLVK
   $CHMOD 664 $RULES_CVSLVK
 
-  rm -f $WILIST-* $PROCESSWICACHE-*
   for d in *_*; do if test -d $d; then
     postfix=`echo $d | cut -f2 -d_ | cut -f1-2 -d-`
-    echo "$d `cat $d/depend.cvslvk 2>/dev/null | tr '\n' ' '`" >>  $WILIST-$postfix
+    echo "$d `cat $d/depend.cvslvk 2>/dev/null | tr '\n' ' '`" >> $WILIST-$postfix.tmp
   fi; done
+  for i in $WILIST-*; do
+    test "`basename $i`" = "`basename $i .tmp`" -a ! -f $i.tmp && rm -f $i;
+  done
+  for i in $WILIST-*.tmp; do mv $i `basename $i .tmp`; done
+  rm -f $PROCESSWICACHE-*
   chmod 644 $WILIST-* 2>/dev/null
 
   for i in $WILIST-*; do
