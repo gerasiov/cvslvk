@@ -8,7 +8,7 @@ fi
 
 # Файл, создаваемый по cvslvk make_rules
 RULES_CVSLVK=$CL_DIR/rules.cvslvk
-RULES_CVSLVK_TMP=$CL_DIR/rules.cvslvk.tmp  # Временная копия того же файла
+RULES_CVSLVK_TMP=$CL_DIR/rules.cvslvk.tmp.$$  # Временная копия того же файла
 
 # Группа пользователей CVS
 CVSGROUP=cvsusers
@@ -284,7 +284,7 @@ setup_bd()
 {
   mkdir -p $1
   touch $1/CVSLVK_BUILD_DIR
-  ls -l | awk '{ if (NF==11) {
+  LANG=C ls -l | awk '{ if (NF==11) {
 		   if ( split ( $11,a,"/" ) == 2 ) {
 		     if ( (a[1] != "'$1'") && (a[2] == $9) ) {
 		       print ( "rm -f " $9 );
@@ -302,7 +302,7 @@ remove_old_symlinks()
 
   for l in $*; do
     ln=`basename $l`
-    lv=`ls -l $ln 2>/dev/null | awk '{print($11)}'`
+    lv=`LANG=C ls -l $ln 2>/dev/null | awk '{print($11)}'`
     test "$l" != "$lv" && rm -f $ln
   done
 }
