@@ -228,6 +228,10 @@ ifdef CL_LOCALWORK
 include $(CL_DIR)/rules.cvslvk
 endif
 
+# If WIs added anything to CL_VARS, check that now
+ifneq ($(CL_VARS),)
+$(CL_CHECK_VARS_COMMAND)
+endif
 
 # We are going to use $(CL_COMP) as part of variable names.
 # But $(CL_COMP) is lowercase, and variable names are uppercase.
