@@ -1,4 +1,4 @@
-#This file was created by <nikita> Fri Dec  3 17:58:16 1999
+#This file was created by <nikita> Sun Dec  5 01:07:20 1999
 #LyX 0.12 (C) 1995-1998 Matthias Ettrich and the LyX Team
 \lyxformat 2.15
 \textclass article
@@ -39,7 +39,9 @@
 \newline 
 
 \emph on 
-последнее изменение в этот документ внесено 3.12.1999
+последнее изменение в этот документ внесено 4.12.1999
+\newline 
+
 \newline 
 
 \layout Section
@@ -126,7 +128,8 @@ make
  Система автоматически выберет нужную версию каждого из используемых модулей
  и корректно ее подключит: автоматически осуществит пересборку при изменениях
  в используемых модулях.
-\layout Itemize
+\begin_deeper 
+\layout Standard
 
 Свойства каждого модуля описываются при помощи привязанного к нему включаемого
  Makefile-а, синтаксис которого предоставляет очень широкие возможности
@@ -134,6 +137,7 @@ make
  В результате внешним модулем может быть библиотека, средство генерации
  исходных текстов по грамматике, вся среда DYANA и т.д., причем прозрачно
  для пользователя.
+\end_deeper 
 \layout Itemize
 
 Вся система представляет из себя несколько текстовых файлов, которые при
@@ -355,10 +359,102 @@ CL_OPTIMIZE=1
  не будут.
  Соответственно, в дальнейшем при продолжении отладки не придется все перетрансл
 ировать.
+\layout Itemize
+
+По команде 
+\family typewriter 
+make
+\protected_separator 
+CL_COMP=suncc
+\family default 
+ будет осуществлена компиляция при помощи компилятора фирмы Sun, с отладочной
+ информацией.
+ По команде 
+\family typewriter 
+make
+\protected_separator 
+CL_COMP=suncc
+\protected_separator 
+СL_OPTIMIZE=1
+\family default 
+ будет осуществлена компиляция при помощи компилятора фирмы Sun, с оптимизацией.
 \layout Standard
 
 Все файлы, созданные в процессе сборки, будут помещены в подкаталог.
- Имя этого подкаталога составля
+ Будем называть этот подкаталог 
+\emph on 
+подкаталогом сборки
+\emph toggle 
+.
+ Имя подкаталога сборки составляется из имени архитектуры, названия операционной
+ системы и параметров сборки.
+ Так, если осуществлять сборку рассматриваемого примера на сервере 
+\family typewriter 
+redsun
+\family default 
+, то подкаталог сборки будет назван 
+\family typewriter 
+sparc-solaris-debug/
+\family default 
+.
+ При сборки этого же примера с оптимизацией подкаталог сборки будет назван
+ 
+\family typewriter 
+sparc-solaris-optimized/
+\family default 
+.
+\layout Standard
+
+Собранный исполняемый файл создается в подкаталоге сборки, а в основной
+ каталог проекта помещается символьная ссылка на исполняемый файл.
+\layout Standard
+
+Команда 
+\family typewriter 
+make
+\protected_separator 
+clean
+\family default 
+ удаляет каталог сборки и указывающие на него символические ссылки.
+ В данном примере будет удален каталог 
+\family typewriter 
+sparc-solaris-debug/
+\family default 
+, а каталог 
+\family typewriter 
+sparc-solaris-optimized/
+\family default 
+ останется.
+ Для удаления каталога 
+\family typewriter 
+sparc-solaris-optimized/
+\family default 
+ следует ввести команду 
+\begin_inset Quotes eld
+\end_inset 
+
+
+\family typewriter 
+make
+\protected_separator 
+clean
+\protected_separator 
+CL_OPTIMIZE=1
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+.
+\layout Standard
+
+Команда 
+\family typewriter 
+make
+\protected_separator 
+cleanall
+\family default 
+ удалит все созданные каталоги сборки.
 \layout Section
 
 Пользовательский справочник
