@@ -14,25 +14,20 @@ endif
 default_goal: $(CL_DEFAULT_GOAL)
 
 
-# $(ALWAYS) macro - a rule that should be applied even if file exists
-#   ( usage:   xxx : $(ALWAYS) )
-
-ALWAYS = /file/that/never/exists
-
-$(ALWAYS):
-
-
 # INTERNAL_LIBRARY is a special case of LIBRARY, that is used by the current
 # module only. Static library will not be installed, and for shared library
 # CNAME will not be installed
+# We need to process it BEFORE command check
 ifdef INTERNAL_LIBRARY
 LIBRARY = $(INTERNAL_LIBRARY)
 endif
+
 
 # If no command is given, stop immidiatly
 ifeq ($(EXECUTABLE)$(LIBRARY)$(SUBDIRS),)
 override CL_TMP := $(shell $(HELPER) error cvslvk: cannot determine mode. Please set EXECUTABLE, LIBRARY or SUBDIRS)
 endif
+
 
 # Are we going to do anything in the current directory ?
 # If no, then most of the settings may be omitted
@@ -42,13 +37,37 @@ endif
 
 
 # Variable check subsystem
+# Do this BEFORE the vars are used
 
-# To check variables, set CL_VARS. The format is the following:
-# CL_VARS = MYVAR=$(MYVAR) MYVAR2=$(MYVAR2) ...
+# $(CL_VARS) lists variables to check.
+# Either just names or name:val1|...|valN
 
-ifneq ($(CL_VARS),)
-override CL_TMP := $(shell $(HELPER) check_vars $(CL_VARS))
+# Check some system settings
+ifneq ($(CL_COMP),)
+override CL_VARS += CL_COMP:gcc|suncc
 endif
+ifneq ($(CL_LTYPE),)
+override CL_VARS += CL_LTYPE:shared|static
+endif
+ifneq ($(filter create_wi update_wi,$(MAKECMDGOALS)),)
+override CL_VARS += CL_MODULE
+endif
+ifneq ($(filter install,$(MAKECMDGOALS)),)
+override CL_VARS += CL_PREFIX
+endif
+
+# The huge expression does the following:
+#   for each CL_VARS entry result is: var=value [value1 ... valueN] --
+override CL_CHECK_VARS_COMMAND = override CL_TMP := $(shell $(HELPER) check_vars $(foreach d,$(CL_VARS),$(filter-out :%,$(subst :, :,$(d)))=$($(filter-out :%,$(subst :, :,$(d)))) $(subst |, ,$(filter-out $(filter-out :%,$(subst :, :,$(d))), $(subst :, ,$(d)))) --))
+# The actual check (kills make on errors)
+ifneq ($(CL_VARS),)
+$(CL_CHECK_VARS_COMMAND)
+endif
+
+# Now clean CL_VARS.
+# WI rules may add some additional vars to check.
+# Then they may define new CL_VARS and use use $(CL_CHECK_VARS_COMMAND)
+override CL_VARS :=
 
 
 # Architecture and OS are those we are using
@@ -58,6 +77,7 @@ endif
 
 override CL_ARCH := $(shell $(HELPER) get_arch)
 override CL_OS := $(shell $(HELPER) get_os)
+
 
 # Compiler defaults to GCC. Sun CC may be still used, if $(CL_COMP)=suncc
 # $(CL_COMP) should be 'gcc' or 'suncc'
@@ -73,7 +93,6 @@ override CL_OS := $(shell $(HELPER) get_os)
 #     if possible)
 
 ifdef CL_COMP
-override CL_TMP := $(shell $(HELPER) check_enum CL_COMP=$(CL_COMP) gcc suncc)
 CL_COMP_TMP := $(CL_COMP)
 else
 CL_COMP_TMP := any
@@ -149,8 +168,6 @@ ifeq ($(CL_COMP),suncc)
 CL_LTYPE = static
 endif
 endif
-
-override CL_TMP := $(shell $(HELPER) check_enum CL_LTYPE=$(CL_LTYPE) shared static)
 
 ifeq ($(CL_COMP)-$(CL_LTYPE),suncc-shared)
 override CL_TMP := $(shell $(HELPER) error Building shared libraries with suncc is not yet supported)
@@ -523,7 +540,7 @@ endif
 
 # Rebuild on changes of CL_WI_LIST or compiler flags
 # Rebuild on changes in WIs rules
-# Relink on changes of LDFLAGSu
+# Relink on changes of LDFLAGS
 # First, touch corresponding files in $(CL_BD) if parameters changed
 # (Use single complex shell command to make things faster)
 override CL_TMP := $(shell $(HELPER) touchap $(CL_BD) WILIST $(CL_WI_LIST) -- ALLCOMPILEFLAGS $(CFLAGS) $(CXXFLAGS) -- LINKFLAGS $(LDFLAGS))
@@ -555,7 +572,6 @@ endif  # CL_LOCALWORK
 override CL_WI_DIR := $(CL_MODULE)_$(CL_DIR_PARAMS)
 
 create_wi: $(ALWAYS)
-	@$(HELPER) check_vars CL_MODULE=$(CL_MODULE)
 	@echo
 	@echo Creating working installation $(CL_WI_DIR) ...
 	@echo
@@ -572,7 +588,6 @@ create_wi: $(ALWAYS)
 	@echo
 
 update_wi: $(ALWAYS)
-	@$(HELPER) check_vars CL_MODULE=$(CL_MODULE)
 	@if test -d $(CL_DIR)/$(CL_WI_DIR); then \
 	  echo; \
 	  echo Removing available working installation $(CL_WI_DIR) ...; \
@@ -787,3 +802,11 @@ clean: clean_subdirs $(CL_CLEAN) $(ALWAYS)
 	rm -rf $(CL_BD) $(CL_ALL_LIB_NAMES)
 
 endif
+
+
+# $(ALWAYS) macro - a rule that should be applied even if file exists
+#   ( usage:   xxx : $(ALWAYS) )
+
+ALWAYS = /file/that/never/exists
+
+$(ALWAYS):
