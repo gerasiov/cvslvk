@@ -109,7 +109,7 @@
 // Установка переменной conflicts в зависимости от текущей установки comp
 // и comp_param
 #define set_conflicts  { @\
-  if ( comp=="gcc" || comp=="gcc295" )  {conflicts = "gcc33" "gcc32 gcc296"} @\
+  if ( comp=="gcc" || comp=="gcc295" )  {conflicts = "gcc33 gcc32 gcc296"} @\
   else if ( comp=="gcc32" || comp == "gcc33" )  {conflicts = "gcc295 gcc gcc296"} @\
   else if ( comp=="gcc296" )  {conflicts = "gcc33" "gcc32 gcc295 gcc"} @\
   else {conflicts = ""} @\
