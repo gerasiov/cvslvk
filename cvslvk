@@ -344,14 +344,21 @@ setup_bd()
 
 
 # remove_old_symlinks <список CL_SYMLINKS>
+# Требуется удалить symlinks, указывающие куда-то в CL_DIR и отсутствующие в списке
 remove_old_symlinks()
 {
-  test $# -eq 0 && return
-
-  for l in $*; do
-    ln=`basename $l`
-    test -L "$ln" && rm -f $ln
-  done
+  ( ls -l | grep '^'$CL_DIR;
+    echo
+    echo $*
+  ) | awk '/^$/ {getline;
+	         for (i=1; i<=NF; i++) {
+		   n=split($i,a,"/")
+		   remove[a[n]]=0;
+		 }
+	         printf("rm -f");
+	         for (i in remove) if (remove[i]==1) printf(" "i)
+		 exit}
+	   {remove[$9]=1}' | sh
 }
 
 
