@@ -467,7 +467,7 @@ selfupdate()
   cd $CL_DIR/tmp/$LOGNAME
   cvs checkout cvslvk > /dev/null
   if test $? -ne 0; then rm -rf cvslvk; return 1; fi
-  install $CL_DIR/tmp/$LOGNAME/cvslvk
+  cvslvk/cvslvk install $CL_DIR/tmp/$LOGNAME/cvslvk
   rm -rf $CL_DIR/tmp/$LOGNAME/cvslvk
   return 0
 }
