@@ -1,0 +1,73 @@
+#!/bin/sh
+
+CVSGROUP=cvsusers
+
+choose_chgrp_and_chmod()
+{
+  clgroup=`ls -Lld $CL_DIR | awk '{print($4)}'`
+  if test "$clgroup" = "$CVSGROUP"; then
+    CHGRP=chgrp
+    CHMOD=chmod
+  else
+    CHGRP=true
+    CHMOD=true
+  fi
+}
+
+get_arch()
+{
+  case `uname -m` in
+    *86*)        echo x86   ;;
+    sun*|sparc)  echo sparc ;;
+    *)           echo error ;;
+  esac
+}
+
+get_os()
+{
+  case `uname -s` in
+    Linux|linux)  echo linux    ;;
+    SunOS)        echo solaris  ;;
+    *)            echo error ;;
+  esac
+}
+
+choose_chgrp_and_chmod
+ARCH=`get_arch`-`get_os`
+SOURCE=`pwd`
+cd $CL_DIR
+
+
+# Установка/обновление rules.cvslvk для PCCTS
+WINAME='pccts_'$ARCH'-1.33MR12b'
+if test -d $WINAME; then
+  cp $SOURCE/rules.cvslvk.pccts $WINAME/rules.cvslvk
+  touch $WINAME/NOREMOVE
+  $CHGRP $CVSGROUP $WINAME/*
+  $CHMOD g+rw $WINAME/*
+fi
+
+# Создание псевдомодуля lexyacc
+WINAME='lexyacc_'$ARCH
+mkdir $WINAME
+cp $SOURCE/rules.cvslvk.lexyacc $WINAME/rules.cvslvk
+touch $WINAME/REMOVE_ON_CVSLVK_UPDATE
+$CHGRP $CVSGROUP $WINAME/* $WINAME
+$CHMOD g+rw $WINAME/* $WINAME
+
+# Создание псевдомодулей для d99
+# Отличаются параметром (mtfloat,mtdouble,mtint) и зависят от d99-libmon
+# с тем же параметром и от mmt
+if ls -d 'd99-mmt_'$ARCH''* >/dev/null 2>/dev/null; then
+  for mt in mtfloat mtdouble mtint; do
+    if ls -d 'd99-libmon_'$ARCH''*''$mt''* >/dev/null 2>/dev/null; then
+      WINAME='d99_'$ARCH'-'$mt
+      mkdir $WINAME
+      echo d99-mmt > $WINAME/depend.cvslvk
+      echo d99-libmon_$mt >> $WINAME/depend.cvslvk
+      touch $WINAME/REMOVE_ON_CVSLVK_UPDATE
+      $CHGRP $CVSGROUP $WINAME/* $WINAME
+      $CHMOD g+rw $WINAME/* $WINAME
+    fi
+  done
+fi
