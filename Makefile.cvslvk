@@ -657,8 +657,6 @@ update_wi: $(ALWAYS)
 
 # Rules for building object files
 
-ifdef CL_LOCALWORK
-
 $(CL_BD)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ $<
 
@@ -677,10 +675,16 @@ $(CL_BD)/%.o: %.cc
 $(CL_BD)/%.o: %.C
 	$(CXX) $(CXXFLAGS) -o $@ $<
 
-endif
+
+# Make things like "make file.o" work
+%: $(CL_BD)/%
 
 
 # Install rules (all are used as the dependences of "install" rule)
+
+ifdef SUBDIRS
+override CL_INSTALL_PARTS += install_subdirs
+endif
 
 ifdef EXECUTABLE
 install_executable: $(ALWAYS)
@@ -760,10 +764,6 @@ install_scripts_wi: $(ALWAYS)
 
 override CL_INSTALL_PARTS += install_scripts_wi
 endif
-endif
-
-ifdef SUBDIRS
-override CL_INSTALL_PARTS += install_subdirs
 endif
 
 ifdef CL_INSTALL_WI
