@@ -80,7 +80,7 @@ WINAME='X_'$ARCH
 mkdir $WINAME
 touch $WINAME/REMOVE_ON_CVSLVK_UPDATE
 if test `get_os` = solaris; then
-  echo 'override INCLUDES += $(CL_WI)/include /usr/openwin/include' > $WINAME/rules.cvslvk
+  echo 'override INCLUDES += -I$(CL_WI)/include -I/usr/openwin/include' > $WINAME/rules.cvslvk
   echo 'override LDFLAGS += -L/usr/openwin/lib -lX11' >> $WINAME/rules.cvslvk
   mkdir -p $WINAME/include/X11
   for i in Xlib.h Xutil.h Xresource.h; do
@@ -89,7 +89,7 @@ if test `get_os` = solaris; then
   mkdir -p $WINAME/include/X11/ICE
   test -f /usr/openwin/include/X11/ICE/ICElib.h && sed 's/extern[ \t]*\(I[a-zA-Z0-9_]*[ \t]*(\)/extern int \1/' </usr/openwin/include/X11/ICE/ICElib.h >$WINAME/include/X11/ICE/ICElib.h
 else
-  echo 'override INCLUDES += /usr/X11R6/include' > $WINAME/rules.cvslvk
+  echo 'override INCLUDES += -I/usr/X11R6/include' > $WINAME/rules.cvslvk
   echo 'override LDFLAGS += -L/usr/X11R6/lib -lX11' >> $WINAME/rules.cvslvk
 fi
 $CHMOD g+rw `find $WINAME -print`
