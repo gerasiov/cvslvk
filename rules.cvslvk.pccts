@@ -38,4 +38,4 @@ $(CL_BD)/%.o: $(PCCTS_H)/%.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $<
 
 $(CL_BD)/%.deps: $(PCCTS_H)/%
-	@$(HELPER) depend $< $@ $(INCLUDES) $(DEFINES)
+	@$(CL_HELPER) depend $< $@ $(INCLUDES) $(DEFINES)
