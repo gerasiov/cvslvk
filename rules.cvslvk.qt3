@@ -4,6 +4,8 @@ override LDFLAGS += -L$(CL_WI)/lib -lqt-mt
 
 override UIC := $(CL_WI)/bin/uic
 override MOC := $(CL_WI)/bin/moc
+override LRELEASE := $(CL_WI)/bin/lrelease
+override LUPDATE := $(CL_WI)/bin/lupdate
 
 ifdef UIFILES
 override UIC_GEN_HEADERS := $(UIFILES:%.ui=$(CL_BD)/%.h)
