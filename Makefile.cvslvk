@@ -44,6 +44,11 @@ endif
 override CL_ARCH := $(shell $(HELPER) get_arch)
 override CL_OS := $(shell $(HELPER) get_os)
 
+# TEMPORARY: work around gcc 2.95.1 solaris/x86 bug
+ifeq ($(CL_ARCH)-$(CL_OS),x86-solaris)
+CL_GCC_DEBUG = -gstabs
+endif
+
 
 # Compiler defaults to GCC. Sun CC may be still used, if $(CL_COMP)=suncc
 # $(CL_COMP) should be 'gcc' or 'suncc'
@@ -485,6 +490,64 @@ $(CL_BD)/%.o: %.C
 endif
 
 
+# Install rules (all are used as the dependences of "install" rule)
+
+ifdef EXECUTABLE
+install_executable: $(ALWAYS)
+	mkdir -p $(CL_PREFIX)/bin
+	cp $(CL_BD)/$(EXECUTABLE) $(CL_PREFIX)/bin/
+
+override CL_INSTALL_PARTS += install_executable
+endif
+
+ifdef LIBRARY
+install_library: $(ALWAYS)
+	mkdir -p $(CL_PREFIX)/lib
+	cp $(CL_BD)/$(CL_LIBRARY_FNAME) $(CL_PREFIX)/lib/
+ifeq ($(CL_LTYPE),shared)
+ifneq ($(CL_LIBRARY_SONAME), $(CL_LIBRARY_FNAME))
+	(cd $(CL_PREFIX)/lib && ln -sf $(CL_LIBRARY_FNAME) $(CL_LIBRARY_SONAME))
+endif
+ifneq ($(CL_LIBRARY_CNAME), $(CL_LIBRARY_SONAME))
+	(cd $(CL_PREFIX)/lib && ln -sf $(CL_LIBRARY_SONAME) $(CL_LIBRARY_CNAME))
+endif
+endif
+
+override CL_INSTALL_PARTS += install_library
+endif
+
+ifdef EXPORT_INCLUDES
+install_includes: $(ALWAYS)
+	mkdir -p $(CL_PREFIX)/include
+	cp $(EXPORT_INCLUDES) $(CL_PREFIX)/include/
+
+override CL_INSTALL_PARTS += install_includes
+endif
+
+ifdef SCRIPTS
+install_scripts: $(ALWAYS)
+	mkdir -p $(CL_PREFIX)/bin
+	cp $(SCRIPTS) $(CL_PREFIX)/bin/
+
+override CL_INSTALL_PARTS += install_scripts
+endif
+
+ifdef SCRIPTS_WI
+ifdef CL_INSTALL_WI
+install_scripts_wi: $(ALWAYS)
+	mkdir -p $(CL_PREFIX)/bin
+	cp $(SCRIPTS_WI) $(CL_PREFIX)/bin/
+
+override CL_INSTALL_PARTS += install_scripts_wi
+endif
+endif
+
+ifdef SUBDIRS
+override CL_INSTALL_PARTS += install_subdirs
+endif
+
+install: $(CL_INSTALL_PARTS) $(ALWAYS)
+
 
 ifdef SUBDIRS
 
@@ -497,15 +560,13 @@ ifeq ($(EXECUTABLE)$(LIBRARY),)
 
 all: all_subdirs
 
-install: install_subdirs
-
 clean: $(CL_CLEAN) clean_subdirs
 
 endif
 
 else
 
-all_subdirs install_subdirs clean_subdirs:
+all_subdirs clean_subdirs:
 
 endif
 
@@ -523,14 +584,6 @@ ifdef CL_OPTIMIZE
 	strip $@
 endif
 
-install: all install_subdirs $(ALWAYS)
-	@$(HELPER) check_vars CL_PREFIX=$(CL_PREFIX)
-	mkdir -p $(CL_PREFIX)/bin
-	cp $(CL_BD)/$(EXECUTABLE) $(CL_PREFIX)/bin
-	if test -n "$(CL_SCRIPTS)"; then cp $(CL_SCRIPTS) $(CL_PREFIX)/bin; fi
-	if test -n "$(CL_INSTALL_WI)" -a -f rules.cvslvk; then cp rules.cvslvk $(CL_PREFIX); fi
-	if test -n "$(CL_INSTALL_WI)" -a -n "$(CL_SCRIPTS_WI)"; then cp $(CL_SCRIPTS_WI) $(CL_PREFIX)/bin; fi
-
 clean: $(CL_CLEAN) clean_subdirs $(ALWAYS)
 	rm -rf $(CL_BD)
 	rm -f $(EXECUTABLE)
@@ -547,21 +600,6 @@ $(CL_BD)/$(CL_LIBRARY_FNAME): $(CL_OBJECTS_ALL)
 ifdef CL_OPTIMIZE
 	strip -g $@
 endif
-
-install: all install_subdirs $(ALWAYS)
-	@$(HELPER) check_vars CL_PREFIX=$(CL_PREFIX)
-	mkdir -p $(CL_PREFIX)/lib $(CL_PREFIX)/include
-	cp $(CL_BD)/$(CL_LIBRARY_FNAME) $(CL_PREFIX)/lib
-ifeq ($(CL_LTYPE),shared)
-ifneq ($(CL_LIBRARY_SONAME), $(CL_LIBRARY_FNAME))
-	(cd $(CL_PREFIX)/lib && ln -sf $(CL_LIBRARY_FNAME) $(CL_LIBRARY_SONAME))
-endif
-ifneq ($(CL_LIBRARY_CNAME), $(CL_LIBRARY_SONAME))
-	(cd $(CL_PREFIX)/lib && ln -sf $(CL_LIBRARY_SONAME) $(CL_LIBRARY_CNAME))
-endif
-endif
-	cp $(EXPORT_INCLUDES) $(CL_PREFIX)/include
-	if test -n "$(CL_INSTALL_WI)" -a -f rules.cvslvk; then cp rules.cvslvk $(CL_PREFIX); fi
 
 clean: $(CL_CLEAN) clean_subdirs $(ALWAYS)
 	rm -rf $(CL_BD)
