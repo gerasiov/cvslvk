@@ -194,12 +194,29 @@ remove_wi()
   make_rules
 }
 
+
+selfupdate()
+{
+  FILES="Makefile.cvslvk cvslvk check_wi.awk find_wi.awk show_wi.awk"
+  mkdir -p $CL_DIR/tmp/$USER
+  cd $CL_DIR/tmp/$USER
+  cvs checkout cvslvk > /dev/null
+  cd cvslvk
+  cp $FILES $CL_DIR
+  cd $CL_DIR
+  chgrp cvsusers $FILES
+  chmod ug+w $FILES
+  rm -r $CL_DIR/tmp/$USER/cvslvk
+}
+
+
 command=$1
 shift
 
 case "$command" in
   check_vars|get_arch|get_os|make_rules|find_modules|\
-  show_wi|check_wi|depend|prepare_wi|complete_wi|remove_wi)
+  show_wi|check_wi|depend|prepare_wi|complete_wi|remove_wi|\
+  selfupdate)
     $command $*
     exit $?
     ;;
