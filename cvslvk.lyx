@@ -1,4 +1,4 @@
-#This file was created by <nikita> Wed Dec 15 18:55:03 1999
+#This file was created by <nikita> Fri Dec 17 19:02:47 1999
 #LyX 0.12 (C) 1995-1998 Matthias Ettrich and the LyX Team
 \lyxformat 2.15
 \textclass article
@@ -39,7 +39,7 @@
 \newline 
 
 \emph on 
-последнее изменение в этот документ внесено 15.12.1999
+последнее изменение в этот документ внесено 17.12.1999
 \newline 
 
 \newline 
@@ -1794,7 +1794,7 @@ Makefile
  в указанном порядке, начиная с 3-го места.
 \layout Subsection
 
-Использование одних модулей другими
+Модель использования модулей в системе cvslvk
 \layout Subsubsection
 
 Понятие модуля
@@ -1805,10 +1805,14 @@ Makefile
 модуля
 \emph toggle 
  является одним из основных понятий системы cvslvk.
- Это достаточно абстрактное понятие, определить его достаточно сложно.
+ Это достаточно абстрактное понятие, определить его сложно.
  В наиболее общем случае это некоторая совокупность файлов, в какой-то мере
  связанных между собой и в какой-то мере независимых от внешнего мира, которую
- можно как-то использовать.
+ можно как-то 
+\emph on 
+использовать
+\emph toggle 
+.
 \layout Standard
 
 В качестве примеров модулей можно привести: 
@@ -1869,7 +1873,7 @@ Makefile
 Рабочая инсталляция модуля
 \layout Standard
 
-Для того, чтобы можно было использовать некоторый модуль, в системе cvslvk
+Для того, чтобы в системе cvslvk можно было использовать некоторый модуль,
  должна присутствовать 
 \emph on 
 рабочая инсталляция
@@ -1883,7 +1887,593 @@ Makefile
 Одновременно в системе может присутствовать несколько рабочих инсталляций
  одного модуля.
  Например, если модуль представляет из себя библиотеку, то могут быть инсталляци
-и со статической и с динамической версиями этой библиотеки.
+и со статической и с динамической версиями этой библиотеки, или инсталляции,
+ собранные разными компиляторами (конкретный компилятор существенен для
+ Си++-библиотек), или инсталляции с различными пользовательскими параметрами.
+ Таким образом, имя рабочей инсталляции состоим из имени модуля и параметров.
+ Эти части имени разделяются символом подчеркивания.
+ Параметры разделяются дефисами и рассматриваются как неупорядоченное множество
+ строк.
+ 
+\layout Standard
+
+Например, рабочая инсталляция может иметь имя
+\layout LyX-Code
+
+libmon_sparc-solaris-gcc-shared-mtfloat-solthread-optimized
+\layout Standard
+
+Имя модуля здесь -- 
+\family typewriter 
+libmon
+\family default 
+.
+ Имеется 7 параметров рабочей инсталляции.
+ Из них три системных обязательных -- архитектура 
+\family typewriter 
+sparc
+\family default 
+, операционная система 
+\family typewriter 
+solaris
+\family default 
+ и вид сборки 
+\family typewriter 
+optimized
+\family default 
+, два системных необязательных -- компилятор gcc и тип библиотеки shared,
+ и два пользовательских -- строки 
+\family typewriter 
+mtfloat
+\family default 
+ и 
+\family typewriter 
+solthread
+\family default 
+.
+\layout Standard
+
+В текущей версии системы cvslvk рабочие инсталляции располагаются в подкаталогах
+ каталоги системы 
+\family typewriter 
+$CL_DIR
+\family default 
+, причем имя подкаталога и считается именем инсталляции и должно удовлетворять
+ описанным соглашениям.
+\layout Standard
+
+Рабочие инсталляции могут быть созданы при помощи системы cvslvk -- в этом
+ случае параметры сборки автоматически становятся параметрами рабочей инсталляци
+и.
+ Но можно создавать рабочие инсталляции и вручную, поместив в каталог 
+\family typewriter 
+$CL_DIR
+\family default 
+ соответствующий подкаталог и зарегисирировав инсталляцию командой 
+\family typewriter 
+cvslvk
+\protected_separator 
+make_rules
+\family default 
+.
+\layout Subsubsection
+
+Требование на использование модуля
+\layout Standard
+
+Система выберет конкретную рабочую инсталляцию для использования в соответствии
+ с 
+\emph on 
+требованием на использование модуля
+\emph toggle 
+.
+ 
+\layout Standard
+
+Требование состоит из имени модуля и, возможно, параметров рабочей инсталляции.
+ Параметры в требовании рассматриваются как неупорядоченное множество строк
+ (возможно, пустое).
+ Для удовлетворения требования будет выбрана некоторая инсталляция модуля
+ с указанным именем, множество параметров которой включает (в смысле теории
+ множеств) множество параметров в требовании.
+ 
+\layout Standard
+
+Параметры, соответствующие текущей архитектуре и операционной системе, автоматич
+ески добавляются в требование.
+\layout Standard
+
+В случае, если имеется несколько рабочих инсталляций, удовлетворяющих требование
+, то будет выбрана одна из них.
+ Параметры 
+\family typewriter 
+gcc
+\family default 
+, 
+\family typewriter 
+optimized
+\family default 
+ и 
+\family typewriter 
+shared
+\family default 
+ повышают приоритет конкретной инсталляции в этом выборе соответственно
+ на 4, 2 и 1; если получаются инсталляции с одинаковым приоритетом, то выбираетс
+я 
+\begin_inset Quotes eld
+\end_inset 
+
+первая попавшаяся
+\begin_inset Quotes erd
+\end_inset 
+
+ из них.
+\layout Subsubsection
+
+Семантика использования модуля: файл rules.cvslvk
+\layout Standard
+
+После того, как система принимает решение об использовании конкретной рабочей
+ инсталляции, она автоматически включает в 
+\family typewriter 
+Makefile
+\family default 
+ файл 
+\family typewriter 
+rules.cvslvk
+\family default 
+, предоставляемый модулем.
+ В этом файле могут задаваться дополнительные переменные и правила.
+ 
+\layout Standard
+
+Рассмотрим случай, когда модуль представляет из себя библиотеку.
+\layout Standard
+
+Для корректного использования библиотеки необходимо добавить к ключам компиляции
+ ключ 
+\family typewriter 
+-I<
+\family default 
+путь-к-include-файлам
+\family typewriter 
+> 
+\family default 
+и ключам компоновки ключи 
+\family typewriter 
+-L<
+\family default 
+путь-к-файлу-библиотеки
+\family typewriter 
+>
+\protected_separator 
+-l<
+\family default 
+имя-библиотеки
+\family typewriter 
+>
+\family default 
+.
+ Пусть библиотека называется 
+\family typewriter 
+mylib
+\family default 
+, ее include-файлы находятся в подкаталоге 
+\family typewriter 
+include/
+\family default 
+ рабочей инсталляции, а сама библиотека libmylib.so находится в подкаталоге
+ 
+\family typewriter 
+lib/
+\family default 
+ рабочей инсталляции.
+\layout Standard
+
+В момент включения файла 
+\family typewriter 
+rules.cvslvk
+\family default 
+ переменная 
+\family typewriter 
+CL_WI
+\family default 
+ будет содержать путь до рабочей инсталляции.
+ Соответственно, нам надо добавить в переменную 
+\family typewriter 
+INCLUDES
+\family default 
+ ключ 
+\family typewriter 
+-I$(CL_WI)/include
+\family default 
+, а в переменную 
+\family typewriter 
+LDFLAGS
+\family default 
+ -- ключи 
+\family typewriter 
+-L$(CL_WI)/lib
+\protected_separator 
+-lxxx
+\family default 
+, где 
+\family typewriter 
+xxx
+\family default 
+ -- имя библиотеки.
+ Однако, непосредственно сделать это при помощи операции 
+\family typewriter 
++=
+\family default 
+ нельзя.
+\layout Standard
+\pextra_type 1 \pextra_width 1cm
+
+
+\size small 
+В 
+\family typewriter 
+GNU Makefile
+\family default 
+-е подстановка значений переменных может быть двух видов -- поздняя и немедленна
+я.
+\begin_float footnote 
+\layout Standard
+
+В более простых 
+\family typewriter 
+make
+\family default 
+-ах подстановка всегда 
+\emph on 
+поздняя
+\emph toggle 
+.
+\end_float 
+
+\size small 
+ Их различие видно из следующего примера.
+\layout LyX-Code
+\align block \pextra_type 1 \pextra_width 1cm
+
+
+\size small 
+X = xxx-$(Y) 
+\protected_separator 
+ 
+\protected_separator 
+ 
+\protected_separator 
+X := xxx-$(Y)
+\layout LyX-Code
+\align block \pextra_type 1 \pextra_width 1cm
+
+
+\size small 
+Y = yyy 
+\protected_separator 
+ 
+\protected_separator 
+ 
+\protected_separator 
+ 
+\protected_separator 
+ 
+\protected_separator 
+ Y = yyy
+\layout Standard
+\pextra_type 1 \pextra_width 1cm
+
+
+\size small 
+Вопрос: чему будет равно значение переменной 
+\family typewriter 
+X
+\family default 
+ (переменная 
+\family typewriter 
+Y
+\family default 
+ не была определена выше).
+ Ответ: в первом случае (слева) строке 
+\family typewriter 
+xxx-yyy
+\family default 
+, во втором случае (справа) строке 
+\family typewriter 
+xxx-
+\family default 
+.
+ 
+\layout Standard
+\pextra_type 1 \pextra_width 1cm
+
+
+\size small 
+В первом случае для переменной 
+\family typewriter 
+X
+\family default 
+ имеет место поздняя подстановка.
+ В первой строке запоминается, что в переменной 
+\family typewriter 
+X
+\family default 
+ используется значение переменной 
+\family typewriter 
+Y
+\family default 
+, подстановки значения переменной 
+\family typewriter 
+Y
+\family default 
+ не производится.
+ Если переменная 
+\family typewriter 
+X
+\family default 
+ сама будет использоваться в определениях других переменных, подстановки
+ значения также не произойдет.
+ Подстановка значения осуществляется позже, когда переменная 
+\family typewriter 
+X
+\family default 
+ будет использоваться в правилах.
+ Причем подстановка произойдет по окончании чтения Makefile-а, т.е.
+ переменные могут переопределяться и ниже по тексту, чем указаны правила.
+\layout Standard
+\pextra_type 1 \pextra_width 1cm
+
+
+\size small 
+Во втором случае подстановка значения производится немедленно.
+ Этого требует операция 
+\family typewriter 
+:=
+\family default 
+.
+\layout Standard
+
+Переменная 
+\family typewriter 
+CL_WI
+\family default 
+ требует немедленной подстановки ее значения, т.к.
+ позже, при подключении других рабочих инсталляций, это значение изменится.
+ Однако, пользоваться операцией 
+\family typewriter 
+:=
+\family default 
+ в определении переменных 
+\family typewriter 
+INCLUDES
+\family default 
+, 
+\family typewriter 
+DEFINES
+\family default 
+ и 
+\family typewriter 
+LDFLAGS
+\family default 
+ нельзя: в системе cvslvk используется поздняя подстановка в обработке этих
+ переменных.
+ Поэтому правильный файл 
+\family typewriter 
+rules.cvslvk
+\family default 
+ для библиотеки выглядит следующим образом:
+\layout LyX-Code
+
+override MYLIB_INCLUDES := -I$(CL_WI)/include
+\layout LyX-Code
+
+override MYLIB_LDFLAGS := -L$(CL_WI)/lib -lmylib
+\layout LyX-Code
+
+override INCLUDES += $(MYLIB_INCLUDES)
+\layout LyX-Code
+
+override LDFLAGS += $(MYLIB_LDFLAGS)
+\layout Standard
+
+Операция 
+\family typewriter 
+override
+\family default 
+ служит для переопределения переменной даже если она была определена выше
+ по тексту или в командной строке.
+\newline 
+
+\layout Standard
+
+В файле 
+\family typewriter 
+rules.cvslvk
+\family default 
+ могут быть любые конструкции 
+\family typewriter 
+GNU
+\protected_separator 
+Makefile
+\family default 
+-а.
+ Например, там могут определяться переменные для использования в других
+ модулях.
+ Из-за поздней подстановки значений данные будут корректно переданы независимо
+ от порядка подключения инсталляций.
+ Однако, следует быть осторожным при применении условных конструкций 
+\family typewriter 
+Makefile
+\family default 
+-а типа 
+\family typewriter 
+ifdef
+\family default 
+: в них проверяется текущее состояние переменных, поэтому не следует в них
+ использовать переменные, определяемых в других рабочих инсталляциях, т.к.
+ они могут быть еще не определены.
+\layout Subsubsection
+
+Зависимости между модулями
+\layout Standard
+
+Модули могут зависеть друг от друга.
+ Некоторый модуль может объявить, что для его использования необходимо также
+ использовать некоторый другой модуль (или модули), т.е.
+ представить дополнительные требования на использование.
+ Эти требования могут добвалять параметры к уже имеющимся требованиям (при
+ этом множества параметров объединяются) или требовать новый модуль.
+ Различные рабочие инсталляции одного модуля могут иметь разные требования.
+\layout Standard
+
+При подключении модулей система cvslvk попытается удовлетворить все возникающие
+ требования.
+ Если в какой-то момент этого не получится, т.е.
+ не окажется рабочей инсталляции с соответствующими параметрами, то будет
+ произведен откат и попытка использовать другие рабочие инсталляции для
+ удовлетворения предыдущих требований.
+ Фактически осуществляется поиск вглубь.
+ Если поиск завершится неудачей, т.е.
+ все требования удовлетворить не удастся, то процесс сборки каталога будет
+ аварийно завершен.
+\layout Standard
+
+Имеется возможность просмотреть этот процесс при помощи команды 
+\family typewriter 
+make
+\protected_separator 
+show_wi
+\family default 
+.
+\layout Standard
+
+Такой параметризованный механизм зависимости между модулями позволяет, в
+ частности, добиться согласованных параметров различных подключаемых модулей.
+ Например, один из параметров модуля 
+\family typewriter 
+libmon
+\family default 
+ -- библиотеки среды прогона DYANA -- определяет тип модельного времени.
+ Библиотечная модель 
+\family typewriter 
+Ethernet
+\family default 
+ может работать с разными типами модельного времени (и соответственно тоже
+ имеет этот параметр).
+ Однако, необходимо соответствие между типами модельного времени в этих
+ библиотеках, т.е.
+ совпадение параметров.
+ Более того, пользователь может и не знать про существование этого параметра
+ и соответственно про необходимость указанного согласования.
+ 
+\layout Standard
+
+Решается эта проблема при помощи введения зависимости каждой инсталляции
+ модуля 
+\family typewriter 
+Ethernet
+\family default 
+ от модуля 
+\family typewriter 
+libmon
+\family default 
+ с соответствующим значением параметра.
+ Тогда требование модуля 
+\family typewriter 
+Ethernet
+\family default 
+ всегда автоматически наложит требование на совпадение параметра.
+ При этом конкретное значение параметра может оказаться любым -- были бы
+ только доступны инсталляции 
+\family typewriter 
+libmon
+\family default 
+ и 
+\family typewriter 
+Ethernet
+\family default 
+ с этим значением параметра.
+ В дальнейшем пользователю может понадобиться конкретный тип модельного
+ времени.
+ Тогда он укажет его в требовании, например 
+\family typewriter 
+Ethernet_mtdouble
+\family default 
+.
+ Теперь будут подключаться рабочие инсталляции с конкретным значением параметра
+ -- но по-прежнему согласованные.
+\layout Standard
+
+Еще одна возможность механизма зависимостей -- подключение совокупности
+ модулей по одному требованию.
+ Например, можно сознать пустой модуль с именем 
+\family typewriter 
+DYANA
+\family default 
+, который зависит от всех компонентов среды.
+ Тогда требование использования этого модуля автоматически подключит все
+ компоненты (причем их согласованные версии, что будет обеспечено другими
+ зависимостями).
+\layout Standard
+
+Список зависимостей находится врабочей инсталляции в файле с именем 
+\family typewriter 
+depend.cvslvk
+\family default 
+.
+ Формат тот же что у требований на использование: 
+\family typewriter 
+<
+\family default 
+имя
+\family typewriter 
+>
+\family default 
+ или 
+\family typewriter 
+<
+\family default 
+имя
+\family typewriter 
+>_<
+\family default 
+параметры
+\family typewriter 
+>
+\family default 
+.
+ Параметры разделяются дефисами.
+ Требования разделяются пробелами или переводами строки.
+\layout Subsection
+
+Использование модулей при сборке каталога
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_USE_MODULES
+\begin_deeper 
+\layout Standard
+
+В этой переменной указывается разделенный пробелами список требований на
+ использование модулей.
+ Для каждого требования будет подключена удовлетворяющая его рабочая инсталляция.
+ Также возможно будут подключены дополнительные рабочие инсталляции для
+ удовлетворения зависимостей.
+\layout Standard
+
+В случае невозможности удовлетворения зависимостей сборка каталога будет
+ аварийно прервана.
+\layout Standard
+
+Команда make
+\protected_separator 
+show_wi выдаст список действий, выполняемых при удовлетворе
+\end_deeper 
 \layout Section
 
 Сообщения об ошибках
