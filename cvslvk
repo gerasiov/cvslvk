@@ -263,19 +263,21 @@ remove_wi()
   cd $CL_DIR
   test $# -eq 0 && return 0
 
+  res=0
   for i in $*; do
     if test ! -d $i; then
       echo "No such working installation $i" 1>&2
-      return 1;
+      res=1
     fi
     if test -f $i/NOREMOVE; then
       echo "$i/NOREMOVE file exists - skipping this WI"
-      return 1
+      res=1
     fi
     rm -rf $i
   done
 
   make_rules
+  return res
 }
 
 
