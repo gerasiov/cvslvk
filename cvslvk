@@ -653,7 +653,12 @@ compile()
   fi
   dep="$target.deps"
   if test "" = "$CL_VERBOSE"; then
-    echo "Compiling $source using $comp ..."
+    locale 2>/dev/null | awk -F '(=|")+' '
+      $1=="LC_MESSAGES" && $2=="ru_RU.KOI8-R" {
+        print("Компиляция '"$source"' при помощи '"$comp"' ...")
+        f=1
+      }
+      END { if (f!=1) print("Compiling '"$source"' using '"$comp"' ...") }'
   else
     echo "$comp $options -o $target $source"
   fi
@@ -679,7 +684,12 @@ link()
 {
   target="$1"; shift
   if test "" = "$CL_VERBOSE"; then
-    echo "Linking $target ..."
+    locale 2>/dev/null | awk -F '(=|")+' '
+      $1=="LC_MESSAGES" && $2=="ru_RU.KOI8-R" {
+        print("Сборка '"$target"' ...")
+        f=1
+      }
+      END { if (f!=1) print("Linking '"$target"' ...") }'
   else
     echo "$*"
   fi
