@@ -144,14 +144,15 @@ make_rules()
     echo "$d `cat $d/depend.cvslvk 2>/dev/null | tr '\n' ' '`" >>  $WILIST-$postfix
   fi; done
   chmod 644 $WILIST-* 2>/dev/null
-  $CHGRP $CVSGROUP $WILIST-* 2>/dev/null
-  $CHMOD g+w $WILIST-* 2>/dev/null
 
   for i in $WILIST-*; do
     cache=$PROCESSWICACHE-`basename $i | cut -f 2- -d-`
     touch $cache
     chmod 666 $cache
   done
+
+  $CHGRP $CVSGROUP $WILIST-* $PROCESSWICACHE-* 2>/dev/null
+  $CHMOD g+w $WILIST-* 2>/dev/null
 }
 
 
