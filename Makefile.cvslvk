@@ -79,7 +79,8 @@ endif
 
 # Now clean CL_VARS.
 # WI rules may add some additional vars to check.
-# Then they may define new CL_VARS and use $(CL_CHECK_VARS_COMMAND)
+# Then they may define new CL_VARS that will be checked later.
+# They even may cause immidiate ckeck via $(CL_CHECK_VARS_COMMAND)
 override CL_VARS :=
 
 
@@ -274,10 +275,14 @@ endif
 # $(CL_COMP), $(CL_LTYPE), $(CL_BD) are already computed, so may be used but not
 #  changed. That means that no build parameters may come from WIs
 
-ifdef CL_LOCALWORK
 include $(CL_DIR)/rules.cvslvk
-endif
 
+
+# Check WI variables if required
+
+ifneq ($(CL_VARS),)
+$(CL_CHECK_VARS_COMMAND)
+endif
 
 # Compiler flags for debugging and optimizing
 # By default, everything is built with debug information
