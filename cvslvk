@@ -162,7 +162,8 @@ make_rules()
 #   возможный нулевой параметр - in_clean если не нужно убивать make по ошибкам
 #   первый параметр: yes или unknown
 #   второй параметр: gcc, suncc или any
-#   возврат: первое слово - _suncc_, _gcc_ или _any_
+#   возврат: первое слово - comp_param_needed или comp_param_not_needed
+#            второе - gcc, suncc или any
 #            дальше - список примененных WI
 process_wi()
 {

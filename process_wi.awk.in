@@ -108,8 +108,8 @@
 // Установка переменной conflicts в зависимости от текущей установки comp
 // и comp_param
 #define set_conflicts  { @\
-  if ( (comp_param=="need") && (comp=="gcc") )  {conflicts = "suncc"} @\
-  else if ( (comp_param=="need") && (comp=="suncc") )  {conflicts = "gcc"} @\
+  if ( comp=="gcc" )  {conflicts = "suncc"} @\
+  else if ( comp=="suncc" )  {conflicts = "gcc"} @\
   else {conflicts = ""} @\
   } @\
 
@@ -302,17 +302,27 @@ END  {
     exit 1;
     }
 
-  if ( (comp_param=="need") && (comp=="any") )  comp = "gcc";
-  if ( comp_param!="need" )  comp = "any";
-
   if ( verbose )  {
     printf ( "\n" );
     if ( comp_param=="need" )
-      print ( "Compiler build parameter should be " comp );
+      print ( "Compiler build parameter is needed" );
     else
       print ( "Compiler build parameter is not needed" );
     }
-  else  printf ( comp );
+  else  {
+    if ( comp_param=="need" )
+      printf ( "comp_param_needed " );
+    else
+      printf ( "comp_param_not_needed " )
+    }
+
+  if ( verbose )  {
+    if ( comp=="any" )
+      print ( "Any compiler may be used" );
+    else
+      print ( "Compiler should be " comp );
+    }
+  else printf ( comp );
 
   if ( verbose )  print ( "Use working installations:" );
   for ( i=1; i<=nreq; i++ )  {
