@@ -97,11 +97,12 @@ make_rules()
 
 find_modules()
 {
+  if test "$1" = ""; then return 0; fi
   cdp=`echo $1 | cut -d- -f1-2`  # arch-os
   odp=`echo $1 | cut -d- -f3-`   # все остальное
   shift
   cd $CL_DIR
-  for ref; do
+  for ref in *; do
     ref_mod=`echo $ref | awk -F_ '{print($1)}'`
     ref_ver=`echo $ref | awk -F_ '{print($2)}'`
     ref_bld=`echo $ref | awk -F_ '{print($3)}'`
