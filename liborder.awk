@@ -24,7 +24,7 @@ BEGIN  {
  # Удаляем ограничения, которые не задействованы (требование алгоритма)
   for (order in orders)  {
     split ( order, a, "@" );
-    if ( (libs[a[1]]!=1) && (libs[a[2]]!=1) )  {orders[order]=0}
+    if ( (libs[a[1]]!=1) || (libs[a[2]]!=1) )  {orders[order]=0}
     }
  # Всего надо разместить NF библиотек
   for ( i=1; i<=NF; i++ )  {
