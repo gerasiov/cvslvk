@@ -320,38 +320,6 @@ get_bd_for_clean()
 }
 
 
-# depend <имя входного файла> <имя выходного файла> <cpp> <параметры для cpp>
-depend()
-{
-  file=$1;  dep=$2;  cpp=$3;  shift 3
-
-  echo "Calculating dependences for $file ..."
-
-  bd=`dirname $dep`
-  if test `basename $file .c`.c = `basename $file`; then
-    flags="$* `cat $bd/SYS_MKDEP_FLAGS_C 2>/dev/null`"
-  else
-    flags="$* `cat $bd/SYS_MKDEP_FLAGS_CXX 2>/dev/null`"
-  fi
-
-  eval $cpp -MM $flags $file > $dep.tmp
-  if test $? -ne 0; then
-    printf $dep': $(ALWAYS)\n\n' > $dep
-    rm -f $dep.tmp;
-    return 1;
-  fi
-  (
-    printf "`dirname $dep`/"; sed 's/.mm.o:/.o:/' $dep.tmp
-    echo
-    sed 's@.*:\(.*\)@'$dep':\1@' $dep.tmp
-    echo
-    sed 's/.*:[ ]*\(.*\)/\1/'  $dep.tmp | tr '\n' ' ' | tr -d '\\'; echo ":"; echo
-  ) > $dep
-  rm -f $dep.tmp
-  return 0
-}
-
-
 # setup_bd <имя каталога сборки>
 setup_bd()
 {
@@ -382,8 +350,7 @@ remove_old_symlinks()
 
   for l in $*; do
     ln=`basename $l`
-    lv=`ls -l $ln 2>/dev/null | awk '{print($11)}'`
-    test "$l" != "$lv" && rm -f $ln
+    test -L "$ln" && rm -f $ln
   done
 }
 
@@ -399,38 +366,6 @@ cleanall()
       rm -rf $symlinks $d
     fi
   done
-}
-
-
-# make_sys_mkdep_flags_c <CL_BD> <CL_COMP> <SYS_CFLAGS>
-make_sys_mkdep_flags_c()
-{
-  bd=$1
-  comp=`get_comp_execs $2 | cut -d' ' -f1`
-  shift 2
-  cd $bd
-  echo > cvslvk-test.c
-  $comp -v -E $* cvslvk-test.c 2>&1 | grep /cpp | tr ' ' '\n' |\
-    grep "^-D" | grep -v __STDC_HOSTED__ |\
-    tr '\n' ' ' | awk -f $CL_DIR/cppargs.awk > SYS_MKDEP_FLAGS_C
-  rm -f cvslvk-test.c
-  return 0
-}
-
-
-# make_sys_mkdep_flags_cxx <CL_BD> <CL_COMP> <SYS_CXXFLAGS>
-make_sys_mkdep_flags_cxx()
-{
-  bd=$1
-  comp=`get_comp_execs $2 | cut -d' ' -f2`
-  shift 2
-  cd $bd
-  echo > cvslvk-test.cpp
-  $comp -v -E $* cvslvk-test.cpp 2>&1 | grep /cpp | tr ' ' '\n' |\
-    grep "^-D" | grep -v __STDC_HOSTED__ |\
-    tr '\n' ' ' | awk -f $CL_DIR/cppargs.awk > SYS_MKDEP_FLAGS_CXX
-  rm -f cvslvk-test.cpp
-  return 0
 }
 
 
@@ -690,6 +625,55 @@ show_ab()
   echo
 }
 
+
+# compile [nowall] <source> <target> <compiler> <options>
+# Одновременно вычисляются зависимости; пишется файл <target>.deps.
+# Если установлена переменная CL_VERBOSE, то выдаются полная командная строка
+# компиляции, иначе - только строка "Compiling <source> ..."
+compile()
+{
+  source="$1"; target="$2"; comp="$3"; shift 3
+  if test "$1" = "nowall"; then
+    shift
+    options="`echo $* | sed s/-Wall//g`"
+  else
+    options="$*"
+  fi
+  dep="$target.deps"
+  if test "" = "$CL_VERBOSE"; then
+    echo "Compiling $source using $comp ..."
+  else
+    echo "$comp $options -o $target $source"
+  fi
+  DEPENDENCIES_OUTPUT="$dep.tmp $target" $comp $options -o "$target" "$source" || return 1
+  tr '\n' ' ' < $dep.tmp | sed 's/[^ ]*://g; s/[\\]//g; s/$/:/' > $dep.tmp2
+  echo >> $dep.tmp
+  cat $dep.tmp2 >> $dep.tmp
+  echo >> $dep.tmp
+  rm -f $dep.tmp2
+  if diff $dep $dep.tmp >/dev/null 2>&1; then
+    rm -f $dep.tmp
+  else
+    rm -f $dep
+    mv $dep.tmp $dep
+  fi
+  return 0
+}
+
+# link <target> command
+# Команда должна быть указана посностью (в т.ч. с повторением target)
+# Данная функция используется только для выдачи
+link()
+{
+  target="$1"; shift
+  if test "" = "$CL_VERBOSE"; then
+    echo "Linking $target ..."
+  else
+    echo "$*"
+  fi
+  $*
+}
+
 command=$1
 if test "$command" = ""; then
   echo "cvslvk: usage: cvslvk command [parameters]"
@@ -699,12 +683,9 @@ shift
 
 case "$command" in
   check_vars|error|get_arch|get_os|make_rules|setup_bd|remove_old_symlinks|\
-  cleanall|make_sys_mkdep_flags_c|make_sys_mkdep_flags_cxx|\
-  process_wi|show_wi|get_bd_for_clean|depend|liborder|touchap|\
+  cleanall|process_wi|show_wi|get_bd_for_clean|liborder|touchap|\
   before_create_wi|before_install_wi|complete_wi|remove_wi|\
-  install|\
-  build|show_ab|\
-  get_comp_defaults|get_comp_execs)
+  install|build|show_ab|compile|link|get_comp_defaults|get_comp_execs)
     $command $*
     exit $?
     ;;
