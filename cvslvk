@@ -219,7 +219,7 @@ depend()
     echo
     sed 's@.*:\(.*\)@'$dep':\1@' $dep.tmp
     echo
-    sed 's/.*:[ ]*\(.*\)/\1/'  $dep.tmp | tr '\n' ' '; echo ":"; echo
+    sed 's/.*:[ ]*\(.*\)/\1/'  $dep.tmp | tr '\n' ' ' | tr -d '\\'; echo ":"; echo
   ) > $dep
   rm -f $dep.tmp
   return 0
