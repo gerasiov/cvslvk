@@ -1,0 +1,360 @@
+# The include-makefile for CVS-LVK projects.
+
+
+HELPER = $(CL_DIR)/cvslvk
+
+
+# CL_DEFAULT_GOAL - what to make when "make" is run with no parameters
+#   Defaults to "all".
+
+ifndef CL_DEFAULT_GOAL
+CL_DEFAULT_GOAL = all
+endif
+
+cl_default_goal: $(CL_DEFAULT_GOAL)
+
+
+# Default settings
+#
+# Architecture and OS are those we are using
+
+override CL_ARCH := $(shell $(HELPER) get_arch)
+override CL_OS := $(shell $(HELPER) get_os)
+
+# Compiler defaults to GCC. Sun CC may be still used, if $(CL_COMP)=suncc
+
+ifndef CL_COMP
+CL_COMP = gcc
+endif
+
+ifeq ($(CL_COMP), g++)
+override CL_COMP = gcc
+endif
+ifeq ($(CL_COMP), CC)
+override CL_COMP = suncc
+endif
+ifeq ($(CL_COMP), cc)
+override CL_COMP = suncc
+endif
+
+ifeq ($(CL_COMP), gcc)
+override CC = gcc
+override CXX = g++
+endif
+ifeq ($(CL_COMP), suncc)
+override CC = cc
+override CXX = CC
+endif
+
+# Linker defaults to c++ compiler
+# $(LD) is predefined, so we use a wrapper
+ifndef CL_LD
+CL_LD = $(CXX)
+endif
+override LD := $(CL_LD)
+
+# Flags for debugging and optimizing
+# By default, everything is built with debug information
+# If CL_NDEBUG is set, everything will be built with no debug information
+# If CL_OPTIMIZE is set, everything will be built with optimizations AND
+# without debug information (optimization + gebug information is useless)
+# For debugging with gcc, $(CL_GCC_DEBUG) is used, defaults to -g
+# For debugging with suncc, $(CL_SUNCC_DEBUG) is used, defaults to -g
+# For optimizing with gcc, $(CL_GCC_OPTIMIZE) is used, defaults to -O2 -DNDEBUG
+# For optimizing with suncc, $(CL_SUNCC_OPTIMIZE) is used, defaults to -O -DNDEBUG
+
+override CFLAGS = -c
+override CXXFLAGS = -c
+
+ifndef CL_GCC_DEBUG
+CL_GCC_DEBUG = -g
+endif
+ifndef CL_SUNCC_DEBUG
+CL_SUNCC_DEBUG = -g
+endif
+
+ifndef CL_NDEBUG
+ifndef CL_OPTIMIZE
+ifeq ($(CL_COMP), gcc)
+override CFLAGS += $(CL_GCC_DEBUG)
+override CXXFLAGS += $(CL_GCC_DEBUG)
+endif
+ifeq ($(CL_COMP), suncc)
+override CFLAGS += $(CL_SUNCC_DEBUG)
+override CXXFLAGS += $(CL_SUNCC_DEBUG)
+endif
+endif
+endif
+
+ifndef CL_GCC_OPTIMIZE
+CL_GCC_OPTIMIZE = -O2 -DNDEBUG
+endif
+ifndef CL_SUNCC_OPTIMIZE
+CL_SUNCC_OPTIMIZE = -O -DNDEBUG
+endif
+
+ifdef CL_OPTIMIZE
+ifeq ($(CL_COMP), gcc)
+override CFLAGS += $(CL_GCC_OPTIMIZE)
+override CXXFLAGS += $(CL_GCC_OPTIMIZE)
+endif
+ifeq ($(CL_COMP), suncc)
+override CFLAGS += $(CL_SUNCC_OPTIMIZE)
+override CXXFLAGS += $(CL_SUNCC_OPTIMIZE)
+endif
+endif
+
+# Additional flags may be passed via $(CL_GCC_FLAGS) for gcc and via
+# $(CL_SUNCC_FLAGS) for Sun CC
+
+ifeq ($(CL_COMP), gcc)
+ifdef CL_GCC_OFLAGS
+override CFLAGS += $(CL_GCC_FLAGS)
+override CXXFLAGS += $(CL_GCC_FLAGS)
+endif
+endif
+ifeq ($(CL_COMP), suncc)
+ifdef CL_SUNCC_OFLAGS
+override CFLAGS += $(CL_SUNCC_FLAGS)
+override CXXFLAGS += $(CL_SUNCC_FLAGS)
+endif
+endif
+
+
+# ALWAYS macro - a rule that should be always applied
+#   ( usage:   xxx : $(ALWAYS) )
+
+ALWAYS = /etc/file_that_never_exists
+
+$(ALWAYS):
+
+
+# Parameter check subsystem
+
+# Required variables, directory parameters, and required modules
+# are checked in a shell command before any rules are applied.
+# If something wrong, make process is interrupted from $(HELPER) via kill.
+
+# Variable check subsystem
+# By default, the variables used in check_dir (see below), are checked.
+# If some others should be also checked, then should be added to $(CL_VARS)
+# Example:  CL_VARS = MYVAR=$(MYVAR) MYVAR2=$(MYVAR2)
+
+ifdef CL_PARAM_COMP
+override CL_VARS += CL_COMP=$(CL_COMP)
+endif
+ifdef CL_PARAM_LTYPE
+override CL_VARS += CL_LTYPE=$(CL_LTYPE)
+endif
+ifdef CL_PARAM_OTHERP
+override CL_VARS += CL_OTHERP=$(CL_OTHERP)
+endif
+
+override CL_TMP := $(shell $(HELPER) check_vars $(CL_VARS))
+
+
+# Build directory parameters.
+# All generated files will be placed into a subdir
+#
+# The combination of variables that are used to find out build parameters
+# is the following.
+# Always CL_ARCH and CL_OS are used, togather with optimization and debugging
+# flags.
+# Optionally, the following may be used:
+#   if CL_PARAM_COMP is defined, then CL_COMP is used
+#   if CL_PARAM_LTYPE is defined, then CL_LTYPE is used
+#   if CL_PARAM_OTHERP is defined, then CL_OTHERP is used
+# To remove stored directory parameters, "make cleanup" should be used.
+# "cleanup" depends in $(CL_CLEAN), that defaults to "clean"
+# Make cleanup also removes all .depend files
+
+override CL_DIR_PARAMS := $(CL_ARCH)-$(CL_OS)
+
+ifdef CL_PARAM_COMP
+override CL_TMP := $(CL_DIR_PARAMS)
+override CL_DIR_PARAMS := $(CL_TMP)-$(CL_COMP)
+endif
+ifdef CL_PARAM_LTYPE
+override CL_TMP := $(CL_DIR_PARAMS)
+override CL_DIR_PARAMS := $(CL_TMP)-$(CL_LTYPE)
+endif
+ifdef CL_PARAM_OTHERP
+override CL_TMP := $(CL_DIR_PARAMS)
+override CL_DIR_PARAMS := $(CL_TMP)-$(CL_OTHERP)
+endif
+
+ifdef CL_OPTIMIZE
+override CL_DIR_PARAMS := $(CL_DIR_PARAMS)-optimized
+else
+ifndef CL_NDEBUG
+override CL_DIR_PARAMS := $(CL_DIR_PARAMS)-debug
+endif
+endif
+
+# Now $(CL_DIR_PARAMS) is the parameter string
+
+override CL_BD := $(CL_DIR_PARAMS)
+override CL_TMP := $(shell mkdir -p $(CL_BD))  # Create build directory
+
+# Since some include files may be generated, we want to add $(CL_BD) to
+# include search path. -I. is needed because without it, includes are searched
+# in -I's only
+
+override INCLUDES := $(INCLUDES) -I. -I$(CL_BD)
+
+
+# Find the available module installations and replace user references by
+# actual installations. Then include definitions for used modules
+
+override CL_MODULES_WI := $(shell $(HELPER) find_modules $(CL_DIR_PARAMS) $(CL_USE_MODULES))
+
+$(CL_DIR)/rules.cvslvk:
+	@$(HELPER) make_rules
+
+include $(CL_DIR)/rules.cvslvk
+
+
+# 'show_wi' rule - will show what working installes are being used
+
+show_wi: $(ALWAYS)
+	@$(HELPER) show_wi $(CL_USE_MODULES) -- $(CL_MODULES_WI)
+
+# If the rule is not 'show_wi', abort if wi's are not available
+
+ifndef CL_NO_CHECKS
+ifneq ($(MAKECMDGOALS),show_wi)
+override CL_TMP := $(shell $(HELPER) check_wi $(CL_USE_MODULES) -- $(CL_MODULES_WI))
+endif
+endif
+
+
+# Now we can add $(INCLUDES) and $(DEFINES) to $(C{XX}FLAGS)
+
+override CXXFLAGS += $(INCLUDES)
+override CXXFLAGS += $(DEFINES)
+
+# Create $(CL_SOURCES_ALL) and $(CL_OBJECTS_ALL)
+# Assumptions:
+# $(SOURCES) contains user sources
+# $(CL_SOURCES_NU) and $(CL_OBJECTS_NU) contain non-user sources and objects
+# The later is not automatically generated because the method differs.
+#
+# $(CL_SOURCES_NU) should be before $(SOURCES), because generated headers
+# may be used when dependences are calculated for user files
+
+override OBJECTS := $(SOURCES:%=$(CL_BD)/%)
+override OBJECTS := $(OBJECTS:.cpp=.o)
+override OBJECTS := $(OBJECTS:.cc=.o)
+override OBJECTS := $(OBJECTS:.C=.o)
+
+override CL_SOURCES_ALL := $(CL_SOURCES_NU) $(SOURCES)
+override CL_OBJECTS_ALL := $(CL_OBJECTS_NU) $(OBJECTS)
+
+
+# Autodepend rules
+# No dependences needed when making $(CL_NODEP_RULES) - e.g. clean, show_wi
+
+override DEPS := $(SOURCES:%=$(CL_BD)/%.deps)
+override CL_DEPS_ALL := $(CL_DEPS_NU) $(DEPS)
+
+$(CL_BD)/%.deps: %
+	@$(HELPER) depend $< $@ $(INCLUDES) $(DEFINES)
+
+$(CL_BD)/%.deps: $(CL_BD)/%
+	@$(HELPER) depend $< $@ $(INCLUDES) $(DEFINES)
+
+CL_NODEP_RULES += clean show_wi
+
+ifneq ($(MAKECMDGOALS),)
+ifeq ($(filter-out $(CL_NODEP_RULES),$(MAKECMDGOALS)),)
+CL_NODEP_WORKED = 1
+endif
+endif
+
+ifndef CL_NODEP_WORKED
+
+$(CL_DIR)/Makefile.cvslvk: $(CL_DEPS_ALL)
+
+-include $(CL_BD)/*.deps
+
+endif
+
+
+# Rule to create working installation.
+# $(CL_MODULE) is the module name
+# $(CL_WI_VERSION) is the wi version, defaults to 'unknown'
+# $(CL_WI_INFO) is the third part of the wi name, defaults to $(CL_DIR_PARAMS)
+# Sets $(CL_PREFIX) and uses make install
+
+ifndef CL_WI_VERSION
+CL_WI_VERSION := unknown
+endif
+ifndef CL_WI_INFO
+CL_WI_INFO := $(CL_DIR_PARAMS)
+endif
+
+override CL_WI_DIR := $(CL_MODULE)_$(CL_WI_VERSION)_$(CL_WI_INFO)
+
+create_wi: all
+	@echo
+	@echo Creating working installation $(CL_WI_DIR) ...
+	@echo
+	@$(HELPER) check_vars CL_MODULE=$(CL_MODULE)
+	@$(HELPER) prepare_wi $(CL_WI_DIR)
+	$(MAKE) install CL_PREFIX=$(CL_DIR)/$(CL_WI_DIR) CL_INSTALL_WI=1
+	@$(HELPER) complete_wi $(CL_WI_DIR)
+	@echo
+
+# Rules for building object files
+
+$(CL_BD)/%.o: %.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+$(CL_BD)/%.o: $(CL_BD)/%.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+$(CL_BD)/%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $<
+
+$(CL_BD)/%.o: $(CL_BD)/%.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $<
+
+$(CL_BD)/%.o: %.cc
+	$(CXX) $(CXXFLAGS) -o $@ $<
+
+$(CL_BD)/%.o: %.C
+	$(CXX) $(CXXFLAGS) -o $@ $<
+
+
+# Rules for single-executable makefiles
+
+ifdef SINGLE_EXECUTABLE
+
+all: $(SINGLE_EXECUTABLE)
+
+$(SINGLE_EXECUTABLE): $(CL_BD)/$(SINGLE_EXECUTABLE)
+	ln -sf $(CL_BD)/$(SINGLE_EXECUTABLE) $(SINGLE_EXECUTABLE)
+
+$(CL_BD)/$(SINGLE_EXECUTABLE): $(CL_OBJECTS_ALL)
+	$(LD) $(CL_OBJECTS_ALL) $(LDFLAGS) -o $@ 
+
+install: $(ALWAYS)
+	@$(HELPER) check_vars CL_PREFIX=$(CL_PREFIX)
+	mkdir -p $(CL_PREFIX)/bin
+	cp $(CL_BD)/$(SINGLE_EXECUTABLE) $(CL_PREFIX)/bin
+	if test -n "$(CL_SCRIPTS)"; then cp $(CL_SCRIPTS) $(CL_PREFIX)/bin; fi
+	if test -n "$(CL_INSTALL_WI)" -a -f rules.cvslvk; then cp rules.cvslvk $(CL_PREFIX); fi
+
+override CL_CLEAN += clean_se
+
+clean_se: $(ALWAYS)
+	rm -f $(SINGLE_EXECUTABLE)
+
+endif
+
+
+# The most general clean rule :-)
+# However, $(CL_CLEAN) may point to something additional
+
+clean: $(CL_CLEAN) $(ALWAYS)
+	rm -rf $(CL_BD)
