@@ -1,4 +1,4 @@
-#This file was created by <nikita> Wed Dec 22 18:55:23 1999
+#This file was created by <nikita> Thu Dec 23 19:50:05 1999
 #LyX 0.12 (C) 1995-1998 Matthias Ettrich and the LyX Team
 \lyxformat 2.15
 \textclass article
@@ -39,7 +39,7 @@
 \newline 
 
 \emph on 
-последнее изменение в этот документ внесено 22.12.1999
+последнее изменение в этот документ внесено 23.12.1999
 \newline 
 
 \newline 
@@ -735,7 +735,19 @@ SOURCES
 \newline 
 В этой переменной перечисляется список исходных файлов, расположенных в
  рабочем каталоге.
- В этом списке могут быть перемешаны файлы на языках Си, Си++ и mm-языке.
+ В этом списке могут быть перемешаны файлы на языках Си, Си++ и mm-языке
+\begin_float footnote 
+\layout Standard
+
+Последнее -- при использовании соответствующих модулей (см.
+ раздел 
+\begin_inset LatexCommand \ref{sec: modules}
+
+\end_inset 
+
+)
+\end_float 
+.
  Файлы на языке Си должны иметь имена, заканчивающиеся на 
 \family typewriter 
 .c
@@ -757,14 +769,6 @@ SOURCES
 .mm
 \family default 
 .
-\begin_float footnote 
-\layout Standard
-
-Эта явная поддержка не означает, то система специально предназначена для
- среды DYANA.
- Позже все зависимости то mm-языка будут полностью перенесены в соответствующий
- модуль.
-\end_float 
  Для каждого типа файлов будет автоматически выбран соответствующий компилятор.
 \layout Itemize
 
@@ -3797,6 +3801,15 @@ GNU
 Makefile
 \family default 
 -а -- этот язык достаточно богат.
+\layout Standard
+
+Эти же переменные и команды в принципе можно использовать в 
+\family typewriter 
+Makefile
+\family default 
+-е в рабочем каталоге.
+ Только определять переменные при этом следует выше включения $(CL_DIR)/Makefile.
+cvslvk, а правила -- ниже включения.
 \layout Itemize
 
 
@@ -3862,8 +3875,393 @@ CL_OBJECTS_NU
 .
 \layout Standard
 
-Например
+Например, библиотека 
+\family typewriter 
+Qt
+\family default 
+ требует подключения к исполняемому файлу дополнительных объектных файлов,
+ сгенерированных на основе некоторых include-файлов.
+ Добиться этого можно следующей конструкцией в файле 
+\family typewriter 
+rules.cvslvk
+\family default 
+ (предполагается, что в переменной 
+\family typewriter 
+MOC_HEADERS
+\family default 
+ перечислены include-файлы, требующие препроцессирования при помощи программы
+ 
+\family typewriter 
+moc
+\family default 
+):
+\layout LyX-Code
+
+$(CL_BD)/%.moc.cpp : %.h
+\layout LyX-Code
+
+
+\protected_separator 
+ 
+\protected_separator 
+ 
+\protected_separator 
+ 
+\protected_separator 
+ moc <$ -o $@
+\layout LyX-Code
+
+override CL_OBJECTS_NU += $(MOC_HEADERS:%.h=$(CL_BD)/%.moc.cpp)
 \end_deeper 
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_DEPS_NU
+\newline 
+
+\family default 
+\series default 
+Содержит список дополнительных файлов зависимостей.
+\begin_deeper 
+\layout Standard
+
+Каждому файлу, для которого следует вычислять зависимости (обычно каждому
+ исходному файлу), соответствует файл зависимостей.
+ Файл зависимостей включается в 
+\family typewriter 
+Makefile
+\family default 
+ и задает зависимости одного исходного файла от других файлов.
+ Файлы зависимостей вычисляются автоматически и кладутся в подкаталог сборки;
+ их имена получаются из соответствующих имен исходных файлов при помощи
+ добавления суффикса 
+\family typewriter 
+.deps
+\family default 
+.
+\layout Standard
+
+По умолчанию список требуемых файлов зависимостей получается из переменной
+ 
+\family typewriter 
+SOURCES
+\family default 
+.
+ Однако, если некоторые файлы генерируются, то для вычисления их зависимостей
+ следует добавить соответствующие имена в переменную 
+\family typewriter 
+CL_DEPS_NU
+\family default 
+.
+\layout Standard
+
+В рассмотренном выше примере для вычисления зависимостей файлов, генерируемых
+ программой moc, можно написать
+\layout LyX-Code
+
+override CL_DEPS_NU += $(MOC_HEADERS:%.h=$(CL_BD)/%.moc.cpp.deps)
+\layout Standard
+
+В систему cvslvk встроены шаблонные правила для создания .deps-файлов из
+ файлов, расположенных в рабочем каталоге и в каталоге сборки.
+ При этом используется Си-препроцессор с ключем 
+\family typewriter 
+-MM
+\family default 
+.
+ При использовании компилятора 
+\family typewriter 
+gcc
+\family default 
+ (
+\family typewriter 
+CL_COMP
+\family default 
+=
+\family typewriter 
+gcc
+\family default 
+) Си-препроцессору передаются все неявные макросы, которые ему передаются
+ при компиляции.
+ Для компиляторов Sun (
+\family typewriter 
+CL_COMP
+\family default 
+=
+\family typewriter 
+suncc
+\family default 
+) передача неявных макросов в данной версии системы cvslvk не реализована.
+\layout Standard
+
+В случае, если файл, по которому надо вычислять зависимости, находится где-либо
+ кроме рабочего каталога и каталога сборки, то необходимо написать шаблонное
+ правило для вычисления файлов зависимостей.
+ Команда, требуемая для вычисления зависимостей, доступна через 
+\series bold 
+переменную 
+\family typewriter 
+CL_DEPEND_COMMAND
+\family default 
+\series default 
+.
+\begin_float footnote 
+\end_deeper 
+\layout Standard
+
+На самом деле эта переменная определяется позже включения файлов 
+\family typewriter 
+rules.cvslvk
+\family default 
+.
+ Тут используется механизм поздней подстановки.
+\end_float 
+ Таким образом, например, для вычисления зависимостей файлов, лежащих в
+ каталоге 
+\family typewriter 
+$(PACKAGEDIR)
+\family default 
+, следует написать в файле 
+\family typewriter 
+rules.cvslvk
+\family default 
+ шаблонное правило
+\begin_deeper 
+\layout LyX-Code
+
+$(CL_BD)/%.deps: $(PACKAGEDIR)/%
+\layout LyX-Code
+
+
+\protected_separator 
+ 
+\protected_separator 
+ 
+\protected_separator 
+ 
+\protected_separator 
+ $(CL_DEPEND_COMMAND)
+\end_deeper 
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_PRE_DEPEND
+\newline 
+
+\family default 
+\series default 
+Содержит список файлов (или целей 
+\family typewriter 
+make
+\family default 
+), которые требуется создать перед вычислением зависимостей.
+\begin_deeper 
+\layout Standard
+
+В случаях, когда include-файлы создаются, зависимости не могут быть корректно
+ вычислены до их создания.
+ Более того, текущая версия системы cvslvk не может всегда автоматически
+ отловить эту ситуацию, т.к.
+ файлы зависимостей могут быть еще не созданы.
+ Для корректной обработки этой ситуации введена переменная 
+\family typewriter 
+CL_PRE_DEPEND
+\family default 
+.
+ 
+\layout Standard
+
+Например, средство генерации парсера по грамматике 
+\family typewriter 
+yacc
+\family default 
+ (или его аналог 
+\family typewriter 
+bison
+\family default 
+) создает кроме собственно кода парсера 
+\family typewriter 
+y.tab.c
+\family default 
+ еще и include-файл 
+\family typewriter 
+y.tab.h
+\family default 
+.
+ Для корректной обработки зависисмостей следует добавить 
+\family typewriter 
+$(CL_BD)/y.tab.c.deps
+\family default 
+ в переменную 
+\family typewriter 
+CL_DEPS_NU
+\family default 
+, и зависимости для файла 
+\family typewriter 
+y.tab.c
+\family default 
+ будут своевременно вычислены; при этом будет обнаружено отсутствие или
+ устаревание файла 
+\family typewriter 
+y.tab.c
+\family default 
+ и при необходимости он будет (пере)создан.
+ Однако, порядок вычисления зависимостей не определен, и, возможно, система
+ попытается вычислить зависимости для какого-нибудь другого файла раньше.
+ Если этот файл включает 
+\family typewriter 
+y.tab.h
+\family default 
+, то произойдет ошибка при сборке зависимостей (т.к.
+ файла 
+\family typewriter 
+y.tab.h
+\family default 
+ еще не будет), и сборка каталога будет аварийно остановлена.
+ 
+\layout Standard
+
+Чтобы описанная ситуация не произошла, следует включить файл 
+\family typewriter 
+y.tab.h
+\family default 
+ в список 
+\family typewriter 
+CL_PRE_DEPEND
+\family default 
+.
+\end_deeper 
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_DEPEND_COMMAND
+\family default 
+\series default 
+ 
+\series bold 
+
+\newline 
+Переменная: 
+\family typewriter 
+CL_C_COMPILE_COMMAND
+\family default 
+
+\newline 
+Переменная: 
+\family typewriter 
+CL_CPP_COMPILE_COMMAND
+\family default 
+\series default 
+ 
+\begin_deeper 
+\layout Standard
+
+Эти переменные содержат соответственно команды вычичления зависимости одного
+ файла, компиляции одного Си-файла и компиляции одного Си++-файла.
+ Используются эти переменные тогда, когда по какой-либо причине не срабатывают
+ встроенные в систему cvslvk шаблонные правила, например когда исходные
+ файлы расположены вне рабочего каталога и каталога сборки.
+ Эти переменные предназначены для написания шаблонных правил следующего
+ вида:
+\layout LyX-Code
+
+$(CL_BD)/%.o: $(MYDIR)/%.c
+\layout LyX-Code
+
+
+\protected_separator 
+ 
+\protected_separator 
+ 
+\protected_separator 
+ 
+\protected_separator 
+ $(CL_C_COMPILE_COMMAND)
+\end_deeper 
+\layout Itemize
+
+Имеется команда для аварийной остановки сборки каталога с выдачей сообщения.
+ Она выглядит следующим образом:
+\begin_deeper 
+\layout LyX-Code
+
+override CL_TMP := $(shell $(CL_HELPER) error <сообщение>)
+\layout Standard
+
+Суть этой конструкции -- безусловный вызов 
+\family typewriter 
+shell
+\family default 
+-команды 
+\family typewriter 
+$(CL_HELPER)
+\protected_separator 
+error
+\family default 
+, параметром которой является сообщение об ошибки.
+ Безусловность вызова обеспечивается применением конструкций 
+\family typewriter 
+override
+\family default 
+ и 
+\family typewriter 
+:=
+\family default 
+.
+\layout Standard
+
+Сообщение не должно содержать скобок и управляющих символов 
+\family typewriter 
+shell
+\family default 
+-а.
+\layout Standard
+
+Эту команду рекомендуется использовать всегда, когда обнаружены некорректные
+ ситуации, например неверные значения переменных.
+\end_deeper 
+\layout Itemize
+
+Имеются дополнительные возможности проверки корректной установки переменных.
+ См.
+ раздел 
+\begin_inset LatexCommand \ref{sec: env}
+
+\end_inset 
+
+.
+\layout Itemize
+
+Имеется возможность управления порядком подключения библиотек.
+ См.
+ раздел 
+\begin_inset LatexCommand \ref{sec: liborder}
+
+\end_inset 
+
+.
+\layout Itemize
+
+Для использования модуля после сборки каталога в файле rules.cvslvk может
+ быть определена 
+\series bold 
+переменная 
+\family typewriter 
+CL_SYMLINKS
+\family default 
+\series default 
+.
+ В ней указываются полные пути до файлов (например, в рабочей инсталляции),
+ символьные ссылки на которые следует создать в рабочем каталоге.
 \layout Subsubsection
 
 Удаление рабочих инсталляций
@@ -3915,16 +4313,199 @@ remove_wi
  списки обновляются автоматически.
 \layout Subsection
 
-Сборка библиотек
+Работа с библиотеками
+\layout Standard
+
+Для сборки библиотек в системе cvslvk имеется специальный режим, включаемый
+ при помощи определения 
+\series bold 
+переменной 
+\family typewriter 
+LIBRARY
+\family default 
+\series default 
+.
+ В этом режиме из исходных файлов, указанных в переменной 
+\family typewriter 
+SOURCES
+\family default 
+, и, возможно, дополнительных объектных файлов, указанных в переменной 
+\family typewriter 
+CL_OBJECTS_NU
+\family default 
+, собирается библиотека.
+\layout Subsubsection
+
+Разделяемые и статические библиотеки
+\layout Standard
+
+Библиотеки в UNIX-е могут быть статические и разделяемые.
+ 
+\layout Standard
+
+Статические библиотеки представляют из себя просто набор объектных файлов,
+ которые подключаются к испольняемому файлу на этапе компоновки, если в
+ них определены функции или глобальные переменные, к которым имеются обращения
+ в ранее подключенных объектных файлах.
+ Соответственно, код из этих объектных файлов физически копируется в каждый
+ исполняемый файл, скомпонованный с библиотекой, приводя к перерасходу дискового
+ пространства.
+\layout Standard
+
+Разделяемые библиотеки представляют из себя структуры, загружаемые в память
+ при запуске программы или даже позже.
+ Современные версии ОС UNIX обеспечивают прозрачное использование разделяемых
+ библиотек -- любые функции и/или данные могут быть помещены в разделяемую
+ библиотеку 
+\emph on 
+без каких-либо дополнительных усилий программиста
+\emph toggle 
+, тем самым экономя место на диске и позволяя исправлять в них ошибки 
+\emph on 
+без перетрансляции использующих их программ
+\emph toggle 
+.
+\layout Standard
+
+Единственное достоинство статических библиотек заключается в том, что скомпонова
+нные с ними исполняемые файлы 
+\begin_inset Quotes eld
+\end_inset 
+
+самодостаточны
+\begin_inset Quotes erd
+\end_inset 
+
+ -- для их запуска не требуется каких-либо внешних по отношениюк ним объектов
+ и/или настроек.
+ Если же файл скомпонован с разделяемой библиотекой, то необходимо обеспечить,
+ чтобы библиотека с указанным именем была 
+\emph on 
+найдена
+\emph toggle 
+ при каждом записке исполняемого файла, и чтобы она была при этом 
+\emph on 
+двоично совместима
+\emph toggle 
+ с использованной при компоновке библиотекой.
+ При этом вовсе не обязательно использовать в точности ту же библиотеку,
+ что использовалась при компоновке.
+ Например, после компоновки в библиотеки могла быть исправлена ошибка, и
+ после этого программа немедленно начнет использовать исправленную версию
+ библиотеки.
+\layout Standard
+
+Система cvslvk скрывает практически все технические детали, связанные с
+ использованием разделяемых библиотек.
+ По умолчанию все создаваемые библиотеки разделяемые.
+ Единственное что требуется от пользользователей -- следить за сохранением
+ двоичной совместимости и при нарушении таковой изменять 
+\emph on 
+имя класса совместимости
+\emph toggle 
+ библиотеки.
+\layout Subsubsection
+
+Три имени разделяемой библиотеки в ОС UNIX
+\layout Standard
+
+В общем случае разделяемая библиотека имеет три имени (хотя некоторые из
+ них могут совпадать) -- полное имя библиотеки, 
+\emph on 
+имя класса совместимости
+\emph toggle 
+ и 
+\emph on 
+имя для компоновщика
+\emph toggle 
+.
+ Обычно (хотя и не обязательно) эти имена различаются только уточнениями
+ номеров версий.
+ Например, полное имя библиотеки может быть 
+\family typewriter 
+libqt.so.1.44
+\family default 
+, имя класса совместимости -- 
+\family typewriter 
+libqt.so.1
+\family default 
+, имя для компоновщика -- 
+\family typewriter 
+libqt.so
+\family default 
+.
+ 
+\layout Standard
+
+Смысл этих имен заключается в следующем.
+ Файл с именем библиотеки содержит конкретную версию библиотеки.
+ Имя класса совместимости прописывается в исполняемый файл -- по этому имени
+ библиотека будет загружаться при записке использующего ее исполняемого
+ файла.
+ Файл с именем класса совместимости обычно представляет из себя символьную
+ ссылку на библиотеку конкретной версии.
+ Наконец, имя для комполовщика должно быть всегда обинаковым -- 
+\family typewriter 
+lib<
+\family default 
+имя
+\family typewriter 
+>.so
+\family default 
+.
+ Файл с таким именем ищется по ключу 
+\family typewriter 
+-l<
+\family default 
+имя
+\family typewriter 
+>
+\family default 
+ компоновщика.Обычно это также бывает символьная ссылка.
+\layout Standard
+
+При исправлении ошибки изменяется можно истинное имя файла, но не менять
+ имя класса совместимости.
+ Соответственно исполняемые файлы, скомпонованные ранее, будут по-прежнему
+ находить требуемую библиотеку.
+ При помощи переключения символьной ссылки с одного варианта библиотеки
+ на другой можно запускать файл с той или другой версией библиотеки.
+ В принципе, полное имя библиотеки может совпадать с именем класса совместимости.
+\layout Standard
+
+Если изменение в библиотеке таково, что потеряна двоичная совместимость
+ (например, изменен прототип какой-либо функции), то использовать старые
+ исполняемые файлы с новой библиотекой невозможно.
+ Тогда следует изменить имя класса совместимости.
+ Теперь старые исполняемые файлы могут продолжать использовать старую библиотеку
+, а новые будут использовать новую.
+ Для обеспечения последнего следует переключить ссылку с именем библиотеки
+ для компоновщика на файл с новой версией библиотеки.
+\layout Subsubsection
+
+Сборка библиотек в системе cvslvk
+\layout Subsubsection
+
+Использоваение библиотек.
 \layout Subsection
 
 Дополнительные возможности
 \layout Subsubsection
 
 Проверка переменных среды
+\begin_inset LatexCommand \label{sec: env}
+
+\end_inset 
+
+
 \layout Subsubsection
 
 Управление порядком библиотек
+\begin_inset LatexCommand \label{sec: liborder}
+
+\end_inset 
+
+
 \layout Subsubsection
 
 Блокировка вычисления зависимостей
@@ -3937,4 +4518,7 @@ remove_wi
 \layout Section
 
 Известные ошибки и недоработки
+\layout Section
+
+Описание стандартных псевдомодулей
 \the_end
