@@ -253,15 +253,17 @@ process_wi()
 # gcc33 and gcc32 are compatable.
 # Try to use gcc33 if any of those is suggested, and revert to 32 if it is not
 # available
-    echo $res | ( read p1 comp rest;
-                  if test "$comp" = "gcc33" -o "$comp" = "gcc32"; then
-		    if test -n "`which gcc-3.3`"; then
-		      comp=gcc33
-		    elif test -n "`which gcc-3.2`"; then
-		      comp=gcc32
+    echo $res | ( read p1 ncomp rest;
+		  if test "$comp" = "any"; then
+                    if test "$ncomp" = "gcc33" -o "$ncomp" = "gcc32"; then
+		      if test -n "`which gcc-3.3`"; then
+		        ncomp=gcc33
+		      elif test -n "`which gcc-3.2`"; then
+		        ncomp=gcc32
+		      fi
 		    fi
 		  fi
-		  echo $p1 $comp $rest )
+		  echo $p1 $ncomp $rest )
     return
   fi
 
