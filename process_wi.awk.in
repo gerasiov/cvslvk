@@ -108,8 +108,8 @@
 // Установка переменной conflicts в зависимости от текущей установки comp
 // и comp_param
 #define set_conflicts  { @\
-  if ( comp=="gcc" )  {conflicts = "suncc"} @\
-  else if ( comp=="suncc" )  {conflicts = "gcc"} @\
+  if ( (comp_param=="need") && (comp=="gcc") )  {conflicts = "suncc"} @\
+  else if ( (comp_param=="need") && (comp=="suncc") )  {conflicts = "gcc"} @\
   else {conflicts = ""} @\
   } @\
 
