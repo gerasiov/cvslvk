@@ -217,16 +217,8 @@ make_rules()
     test "`basename $i`" = "`basename $i .tmp`" -a ! -f $i.tmp && rm -f $i;
   done
   for i in $WILIST-*.tmp; do mv $i `basename $i .tmp`; done
-  rm -f $PROCESSWICACHE-*
   chmod 644 $WILIST-* 2>/dev/null
 
-  for i in $WILIST-*; do
-    cache=$PROCESSWICACHE-`basename $i | cut -f 2- -d-`
-    touch $cache
-    chmod 666 $cache
-  done
-
-  $CHGRP $CVSGROUP $WILIST-* $PROCESSWICACHE-* 2>/dev/null
   $CHMOD g+w $WILIST-* 2>/dev/null
 }
 
@@ -244,20 +236,13 @@ process_wi()
 
   postfix=`get_arch`-`get_os`
   key="$*"
-  cache=$PROCESSWICACHE-$postfix
   wilist=$WILIST-$postfix
 
-  res=`awk -F: '{if($1=="'"$key"'") print($2)}' $cache 2>/dev/null`
-  if test "$res" != ""; then echo $res; return; fi
 
   needcomp="$1"; comp="$2"; shift; shift
   command="(echo $*; echo quiet $needcomp $comp; cat $wilist 2>/dev/null) | awk -f $CL_DIR/process_wi.awk"
   if eval $command >/dev/null; then
     res=`eval $command`;
-    echo "$key:$res" >> $cache 2>/dev/null
-    choose_chgrp_and_chmod
-    $CHGRP $CVSGROUP $cache 2>/dev/null
-    $CHMOD 666 $cache 2>/dev/null
     echo $res
     return
   fi
