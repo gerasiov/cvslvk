@@ -243,6 +243,7 @@ END  {
    // Первый же кандидат, в параметры которого входит компилятор, устанавливает
    // comp_param="need" и comp=<использованный компилятор>
     find_comp_name ( candp[n], tmpcomp );
+    if ( tmpcomp == "gcc" )  tmpcomp = "gcc295"
     if ( tmpcomp != "" )  {
       comp_param="need"; comp=tmpcomp;  set_conflicts;
       if ( verbose && (save_cp[n-1]!="need") )
