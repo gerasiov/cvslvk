@@ -225,6 +225,7 @@ make_rules()
   for i in $WILIST-*.tmp; do mv $i `basename $i .tmp`; done
   chmod 644 $WILIST-* 2>/dev/null
 
+  $CHGRP $CVSGROUP $WILIST-*
   $CHMOD g+w $WILIST-* 2>/dev/null
 }
 
