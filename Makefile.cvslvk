@@ -621,6 +621,8 @@ override ALL_SUBDIRS =
 override CLEANALL_SUBDIRS = 
 endif # SUBDIRS
 
+all : $(ALL_SUBDIRS)
+
 
 ifdef EXECUTABLE
 
@@ -633,7 +635,7 @@ $(CL_SL_NAMES):
 override CL_CLEAN_FILES += $(CL_SL_NAMES)
 endif
 
-all: $(ALL_SUBDIRS) $(EXECUTABLE) $(CL_SL_NAMES)
+all: $(EXECUTABLE) $(CL_SL_NAMES)
 
 # This is ugly because causes a relink on every make invocation,
 # but seems to be only way to fix parallel makes with internal libraries
@@ -667,7 +669,7 @@ override CL_ALL_LIB_NAMES += $(CL_LIBRARY_CNAME)
 endif
 endif
 
-all: $(ALL_SUBDIRS) $(CL_ALL_LIB_NAMES)
+all: $(CL_ALL_LIB_NAMES) $(CL_SL_NAMES)
 
 $(CL_ALL_LIB_NAMES): $(CL_ALL_LIB_NAMES:%=$(CL_BD)/%)
 	rm -f $@ && ln -s $(CL_BD)/$@ .
