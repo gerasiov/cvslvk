@@ -49,6 +49,7 @@ endif
 override CL_VARS := $(CL_VARS)
 override INCLUDES := $(INCLUDES)
 override DEFINES := $(DEFINES)
+override LDFLAGS := $(LDFLAGS)
 override CL_GCC_DEBUG := $(CL_GCC_DEBUG)
 override CL_GCC_OPTIMIZE := $(CL_GCC_OPTIMIZE)
 override CL_SUNCC_DEBUG := $(CL_SUNCC_DEBUG)
@@ -65,6 +66,8 @@ override CL_GCC_CFLAGS := $(CL_GCC_CFLAGS)
 override CL_GCC_CXXFLAGS := $(CL_GCC_CXXFLAGS)
 override CL_SUNCC_CFLAGS := $(CL_SUNCC_CFLAGS)
 override CL_SUNCC_CXXFLAGS := $(CL_SUNCC_CXXFLAGS)
+override CL_SYMLINKS := $(CL_SYMLINKS)
+override CL_LIBORDER := $(CL_LIBORDER)
 
 
 # Variable check subsystem
@@ -86,7 +89,7 @@ override CL_CHECK_VARS_COMMAND = override CL_VARS := $(if $(CL_VARS),$(shell $(C
 # The actual check
 $(CL_CHECK_VARS_COMMAND)
 # WI rules may define new CL_VARS that will be checked later.
-# They even may cause immidiate ckeck via $(CL_CHECK_VARS_COMMAND)
+# They even may cause immidiate check via $(CL_CHECK_VARS_COMMAND)
 
 
 # Architecture and OS are those we are using
@@ -153,7 +156,7 @@ override CL_WI_LIST := $(filter-out gcc suncc any comp_param_needed comp_param_n
 # Building shared libraries with suncc is not yet supported
 # (suncc seems to have problems with static constructors in shared libs)
 
-override CL_BTYPE := $(if $(CL_OPTIMIZED),optimized,$(if $(CL_NDEBUG),ndebug,debug))
+override CL_BTYPE := $(if $(CL_OPTIMIZE),optimized,$(if $(CL_NDEBUG),ndebug,debug))
 override CL_LTYPE := $(if $(CL_LTYPE),$(CL_LTYPE),$(if $(filter gcc,$(CL_COMP)),shared,static))
 
 ifeq ($(CL_COMP)-$(CL_LTYPE),suncc-shared)
@@ -179,7 +182,7 @@ endif
 override CL_DIR_PARAMS := $(CL_ARCH)-$(CL_OS)
 
 ifdef LIBRARY
-ifeq ($(filter %.c,$(SOURCES)),)
+ifneq ($(filter-out %.c,$(SOURCES)),)
 CL_PARAM_COMP = 1
 endif
 endif
@@ -225,12 +228,27 @@ include $(CL_DIR)/rules.cvslvk
 endif
 
 
+# We are going to use $(CL_COMP) as part of variable names.
+# But $(CL_COMP) is lowercase, and variable names are uppercase.
+# So we will use CL_COMPC instead
+
+override CL_COMPC_gcc := GCC
+override CL_COMPC_suncc := SUNCC
+override CL_COMPC := $(CL_COMPC_$(CL_COMP))
+
+
 # Set C and C++ compilers and linker
 # Linker defaults to C compiler if all $(SOURCES) are .c files, and to
 # C++ compiler otherwise
 
-override CC := $(if $(filter gcc,$(CL_COMP)),gcc,cc)
-override CXX := $(if $(filter gcc,$(CL_COMP)),g++,CC)
+override CC_GCC := gcc
+override CC_SUNCC := cc
+override CC := $(CC_$(CL_COMPC))
+
+override CXX_GCC := g++
+override CXX_SUNCC := CC
+override CXX := $(CXX_$(CL_COMPC))
+
 override LD := $(if $(filter-out %.c, $(SOURCES)),$(CXX),$(CC))
 
 
@@ -255,15 +273,15 @@ endif
 ifeq ($(CL_BTYPE),debug)
 CL_GCC_DEBUG ?= -g
 CL_SUNCC_DEBUG ?= -g
-override CFLAGS += $(CL_$(CL_COMP)_DEBUG)
-override CXXFLAGS += $(CL_$(CL_COMP)_DEBUG)
+override CFLAGS += $(CL_$(CL_COMPC)_DEBUG)
+override CXXFLAGS += $(CL_$(CL_COMPC)_DEBUG)
 endif
 
 ifeq ($(CL_BTYPE),optimized)
 CL_GCC_OPTIMIZE ?= -O2
 CL_SUNCC_OPTIMIZE ?= -O
-override CFLAGS += $(CL_$(CL_COMP)_OPTIMIZE)
-override CXXFLAGS += $(CL_$(CL_COMP)_OPTIMIZE)
+override CFLAGS += $(CL_$(CL_COMPC)_OPTIMIZE)
+override CXXFLAGS += $(CL_$(CL_COMPC)_OPTIMIZE)
 endif
 
 # Additional defines for debugging and optimizing
@@ -291,10 +309,10 @@ endif
 endif
 
 ifeq ($(CL_BTYPE),optimized)
-override DEFINES += $(CL_DEFINES_OPTIMIZE)$(CL_DEFINES_OPTIMIZE_$(CL_COMP))
+override DEFINES += $(CL_DEFINES_OPTIMIZE)$(CL_DEFINES_OPTIMIZE_$(CL_COMPC))
 endif
 ifeq ($(CL_BTYPE),debug)
-override DEFINES += $(CL_DEFINES_OPTIMIZE)$(CL_DEFINES_DEBUG_$(CL_COMP))
+override DEFINES += $(CL_DEFINES_OPTIMIZE)$(CL_DEFINES_DEBUG_$(CL_COMPC))
 endif
 
 
@@ -306,8 +324,8 @@ endif
 # $(CL_SUNCC_CFLAGS) for cc
 # $(CL_SUNCC_CXXFLAGS) for CC
 
-override CFLAGS += $(CL_CC_CFLAGS)$(CL_$(CL_COMP)_CFLAGS)
-override CXXFLAGS += $(CL_CC_CXXFLAGS)$(CL_$(CL_COMP)_CXXFLAGS)
+override CFLAGS += $(CL_CC_CFLAGS)$(CL_$(CL_COMPC)_CFLAGS)
+override CXXFLAGS += $(CL_CC_CXXFLAGS)$(CL_$(CL_COMPC)_CXXFLAGS)
 
 
 # Library building tools
@@ -320,17 +338,15 @@ ifdef LIBRARY
 # used. $(LIBRARY_VERSION) will be built into soname
 
 ifeq ($(CL_LTYPE),shared)
-CL_LIBRARY_CNAME = lib$(LIBRARY).so
+override CL_LIBRARY_CNAME := lib$(LIBRARY).so
+override CL_LIBRARY_SONAME := lib$(LIBRARY).so
+override CL_LIBRARY_FNAME := lib$(LIBRARY).so
 ifdef LIBRARY_VERSION
-CL_LIBRARY_SONAME = lib$(LIBRARY).so.$(LIBRARY_VERSION)
+override CL_LIBRARY_SONAME := $(CL_LIBRARY_SONAME).$(LIBRARY_VERSION)
+override CL_LIBRARY_FNAME := $(CL_LIBRARY_FNAME).$(LIBRARY_VERSION)
 ifdef LIBRARY_REVISION
-CL_LIBRARY_FNAME = lib$(LIBRARY).so.$(LIBRARY_VERSION).$(LIBRARY_REVISION)
-else
-CL_LIBRARY_FNAME = lib$(LIBRARY).so.$(LIBRARY_VERSION)
+override CL_LIBRARY_FNAME := $(CL_LIBRARY_FNAME).$(LIBRARY_REVISION)
 endif
-else
-CL_LIBRARY_SONAME = lib$(LIBRARY).so
-CL_LIBRARY_FNAME = lib$(LIBRARY).so
 endif
 # We support only gcc.
 # We use -h instead of -soname because we want sun ld to work
@@ -340,18 +356,13 @@ CL_MKLIB := $(LD) -shared -Wl,-h,$(CL_LIBRARY_SONAME) -o
 endif
 
 ifeq ($(CL_LTYPE),static)
-CL_LIBRARY_FNAME = lib$(LIBRARY).a
-ifeq ($(CL_COMP),gcc)
-CL_MKLIB := ar cr
-endif
-ifeq ($(CL_COMP),suncc)
-ifeq ($(LD),CC)
+override CL_LIBRARY_FNAME := lib$(LIBRARY).a
+ifeq ($(CL_COMP)-$(LD),suncc-CC)
 # Here we want $(INCLUDES) and $(DEFINES) to be substituted later, so we use
 # = instead on :=
-CL_MKLIB = CC -xar -ptr$(CL_BD) $(DEFINES) $(INCLUDES) -o
+override CL_MKLIB = CC -xar -ptr$(CL_BD) $(DEFINES) $(INCLUDES) -o
 else
-CL_MKLIB := ar cr
-endif
+override CL_MKLIB := ar cr
 endif
 endif
 
@@ -361,16 +372,12 @@ endif  # ifdef LIBRARY
 # RPATH flag differs between gcc and suncc
 # (not all gcc revisions understand -R: linux one doesn't)
 
-ifeq ($(CL_COMP),gcc)
-override CL_RPATH_FLAG := -Wl,-R
-endif
-ifeq ($(CL_COMP),suncc)
-override CL_RPATH_FLAG := -R
-endif
+override CL_RPATH_FLAG_GCC := -Wl,-R
+override CL_RPATH_FLAG_SUNCC := -R
+override CL_RPATH_FLAG := $(CL_RPATH_FLAG_$(CL_COMPC))
 
 
 # Split LDFLAGS into -L..., -l... and others
-
 override CL_LDFLAGS_DIRS := $(filter -L%,$(LDFLAGS))
 override CL_LDFLAGS_LIBS := $(filter -l%,$(LDFLAGS))
 override CL_LDFLAGS_OTHER := $(filter-out $(CL_LDFLAGS_DIRS) $(CL_LDFLAGS_LIBS),$(LDFLAGS))
@@ -395,14 +402,13 @@ override CL_LDFLAGS_LIBS := $(foreach x,$(sort $(CL_LDFLAGS_LIBS)),$(findstring 
 
 ifneq ($(CL_USE_IL),)
 # Do NOT add subdirs for install or clean
-ifeq ($(filter install clean,$(MAKECMDGOALS)),)
+ifeq ($(filter install clean cleanall,$(MAKECMDGOALS)),)
 override SUBDIRS := $(CL_USE_IL) $(filter-out $(CL_USE_IL),$(SUBDIRS))
 endif
 # includes may be just added to $(INCLUDES)
 override INCLUDES += $(CL_USE_IL:%=-I%)
 # -l flags also may be just added to $(CL_LDFLAGS_LIBS)
-override CL_IL_LIBS_TMP := $(notdir $(CL_USE_IL))
-override CL_LDFLAGS_LIBS += $(CL_IL_LIBS_TMP:%=-l%)
+override CL_LDFLAGS_LIBS += $(patsubst %,-l%,$(notdir $(CL_USE_IL)))
 # -L flags can't be just added because of rpath logic, so we use $(CL_LDFLAGS_OTHER)
 override CL_IL_DIRS := $(CL_USE_IL:%=-L%)
 override CL_PWD := $(shell pwd)
@@ -421,6 +427,10 @@ endif
 
 # Compute the final LDFLAGS (with compiler-dependent RPATH functionality)
 override LDFLAGS := $(CL_LDFLAGS_DIRS) $(CL_LDFLAGS_DIRS:-L%=$(CL_RPATH_FLAG)%) $(CL_LDFLAGS_LIBS) $(CL_LDFLAGS_OTHER)
+
+
+# Reorder includes so that WI includes are always before other includes
+override INCLUDES := -I. -I$(CL_BD) $(filter $(CL_DIR)/%,$(INCLUDES)) $(filter-out $(CL_DIR)/% -I. -I$(CL_BD),$(INCLUDES))
 
 
 # Add $(INCLUDES) and $(DEFINES) to $(C{XX}FLAGS)
@@ -466,7 +476,6 @@ override CL_DEPEND_COMMAND = @$(CL_HELPER) depend $< $@ $(INCLUDES) $(DEFINES)
 
 $(CL_BD)/%.deps: %
 	$(CL_DEPEND_COMMAND)
-
 $(CL_BD)/%.deps: $(CL_BD)/%
 	$(CL_DEPEND_COMMAND)
 

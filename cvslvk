@@ -130,7 +130,7 @@ make_rules()
       dir=`dirname $i`
       echo >> $RULES_CVSLVK_TMP
       echo 'ifneq ($(filter '$dir',$(CL_WI_LIST)),)' >> $RULES_CVSLVK_TMP
-      echo 'override CL_WI = $(CL_DIR)'/$dir >> $RULES_CVSLVK_TMP
+      echo 'override CL_WI := $(CL_DIR)'/$dir >> $RULES_CVSLVK_TMP
       echo '-include $(CL_DIR)/'$i >> $RULES_CVSLVK_TMP
       echo 'endif' >> $RULES_CVSLVK_TMP
     fi
