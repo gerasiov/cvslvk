@@ -633,5 +633,6 @@ endif
 
 clean: $(CL_CLEAN) clean_subdirs $(ALWAYS)
 	rm -rf $(CL_BD)
+	rm -f $(CL_LIBRARY_FNAME) $(CL_LIBRARY_SONAME) $(CL_LIBRARY_CNAME)
 
 endif
