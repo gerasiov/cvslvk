@@ -23,29 +23,30 @@ BEGIN  {
   for ( i=1; i<=NF; i++ )  { libs[$i]=1 }
  # Всего надо разместить NF библиотек
   for ( i=1; i<=NF; i++ )  {
-   # Находим библиотеку, перед которой ничего не должно быть.
-    for (lib in libs)  {
-      if ( libs[lib]!=1 )  continue;   # Будь он проклят, SUN awk !..
-      cand=lib;
+   # Находим библиотеку, после которой ничего не должно быть.
+   # Пытаемся максимально сохранить исходный порядок
+    for (j=NF; j>=1; j--)  {
+      if ( libs[$j]!=1 )  continue;
+      cand=$j;
       for (order in orders)  {
         if ( orders[order]!=1 )  continue;   # Будь он проклят, SUN awk !..
         split ( order, a, "@" );
-	if ( a[2]==lib )  {cand=""; break}
+	if ( a[1]==cand )  {cand=""; break}
 	}
       if ( cand!="" )  break;
       }
-   # Если такой нет, значит требования противоречивы.
+   # Если не нашли, значит требования противоречивы.
     if ( cand=="" )
       { print ( "Unresolvable library order requirements: " allreq );  exit 1; }
    # Добавляем выбранную библиотеку в список
-    if ( res=="" )  {res=cand}  else {res=res" "cand}
+    if ( res=="" )  {res=cand}  else {res=cand" "res}
    # Удаляем размещенную библиотеку из исходного списка
-    libs[cand]=0;   # Будь он проклят, SUN awk !..
-   # Удаляем все требования, где эта библиотека первая (они уже выполнены)
+    libs[cand]=0;
+   # Удаляем все требования, где эта библиотека вторая (они уже выполнены)
     for (order in orders)  {
       if ( orders[order]!=1 )  continue;   # Будь он проклят, SUN awk !..
       split ( order, a, "@" );
-      if ( a[1]==cand )  {orders[order]=0}
+      if ( a[2]==cand )  {orders[order]=0}  # Ну ведь красивее было бы с delete ...
       }
     }
  # Размещение удачно
