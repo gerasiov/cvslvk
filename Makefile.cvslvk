@@ -403,18 +403,18 @@ endif  # ifndef CL_NODEP_WORKED
 
 # Rule to create and update working installation.
 # $(CL_MODULE) is the module name
-# $(CL_WI_VERSION) is the wi version, defaults to 'unknown'
-# $(CL_WI_INFO) is the third part of the wi name, defaults to $(CL_DIR_PARAMS)
+# $(CL_VERSION) is the wi version, defaults to 'unknown'
+# $(CL_INFO) is the third part of the wi name, defaults to $(CL_DIR_PARAMS)
 # Sets $(CL_PREFIX) and uses make install
 
-ifndef CL_WI_VERSION
-CL_WI_VERSION := unknown
+ifndef CL_VERSION
+CL_VERSION := unknown
 endif
-ifndef CL_WI_INFO
-CL_WI_INFO := $(CL_DIR_PARAMS)
+ifndef CL_INFO
+CL_INFO := $(CL_DIR_PARAMS)
 endif
 
-override CL_WI_DIR := $(CL_MODULE)_$(CL_WI_VERSION)_$(CL_WI_INFO)
+override CL_WI_DIR := $(CL_MODULE)_$(CL_VERSION)_$(CL_INFO)
 
 create_wi: $(ALWAYS)
 	@$(HELPER) check_vars CL_MODULE=$(CL_MODULE)
