@@ -22,8 +22,15 @@ kill_make()
 }
 
 if test ! -f $CL_DIR/Makefile.cvslvk; then
-  echo 'CL_DIR is not set' 1>&2
-  exit 1
+  if test "$1" == "selfupdate"; then
+    if test "$CL_DIR" == ""; then
+    echo 'CL_DIR is not set' 1>&2
+    exit 1
+    fi
+  else
+    echo '$CL_DIR/Makefile.cvslvk doesnt exist: maybe CL_DIR is not set?' 1>&2
+    exit 1
+  fi
 fi
 
 if test "$CL_VERBOSE" != ""; then echo $* 1>&2; fi
@@ -220,7 +227,7 @@ selfupdate()
   cd $CL_DIR/tmp/$USER
   cvs checkout cvslvk > /dev/null
   cd cvslvk
-  cp $Makefile.cvslvk cvslvk *.awk $CL_DIR/
+  cp Makefile.cvslvk cvslvk *.awk $CL_DIR/
   cd $CL_DIR
   chgrp $CVSGROUP $FILES
   chmod ug+w $FILES
