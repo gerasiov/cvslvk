@@ -512,7 +512,7 @@ endif
 # Relink on changes of LDFLAGS and libraries
 # First, touch corresponding files in $(CL_BD) if parameters changed
 # (Use single complex shell command to make things faster)
-override CL_TMP := $(shell $(CL_HELPER) touchap $(CL_BD) WILIST $(CL_DIR) : $(CL_WI_LIST) -- ALLCOMPILEFLAGS $(CFLAGS) $(CXXFLAGS) -- LINKFLAGS $(words $(CL_OBJECTS_ALL)) files; $(LDFLAGS))
+override CL_TMP := $(shell $(CL_HELPER) touchap $(CL_BD) WILIST $(CL_DIR) : $(CL_WI_LIST) -- ALLCOMPILEFLAGS $(CFLAGS) $(CXXFLAGS) -- LINKFLAGS $(words $(CL_OBJECTS_ALL)) $(LDFLAGS))
 $(CL_OBJECTS_ALL) $(CL_DEPS_ALL) : $(CL_BD)/WILIST $(CL_BD)/ALLCOMPILEFLAGS $(filter $(CL_WI_LIST:%=$(CL_DIR)/%/rules.cvslvk),$(wildcard $(CL_DIR)/*/rules.cvslvk))
 ifneq ($(EXECUTABLE),)
 override CL_TMP := $(filter -L%, $(LDFLAGS))
