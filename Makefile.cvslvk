@@ -102,10 +102,6 @@ endif
 # To check variables, set CL_VARS. The format is the following:
 # CL_VARS = MYVAR=$(MYVAR) MYVAR2=$(MYVAR2) ...
 
-ifdef CL_PARAM_OTHERP
-override CL_VARS += CL_OTHERP=$(CL_OTHERP)
-endif
-
 ifneq ($(CL_VARS),)
 override CL_TMP := $(shell $(HELPER) check_vars $(CL_VARS))
 endif
@@ -124,7 +120,7 @@ endif
 #
 # CL_LTYPE is used, if CL_PARAM_LTYPE is defined, or if we are building library
 #
-# CL_OTHERP is used, if CL_PARAM_OTHERP is defined
+# CL_OTHERP is used if defined
 
 override CL_DIR_PARAMS := $(CL_ARCH)-$(CL_OS)
 
@@ -149,7 +145,7 @@ ifdef CL_PARAM_LTYPE
 override CL_DIR_PARAMS := $(CL_DIR_PARAMS)-$(CL_LTYPE)
 endif
 
-ifdef CL_PARAM_OTHERP
+ifdef CL_OTHERP
 override CL_DIR_PARAMS := $(CL_DIR_PARAMS)-$(CL_OTHERP)
 endif
 
@@ -353,7 +349,9 @@ show_wi: $(ALWAYS)
 
 ifdef CL_LOCALWORK
 ifneq ($(MAKECMDGOALS),show_wi)
+ifneq ($(MAKECMDGOALS),clean)
 override CL_TMP := $(shell $(HELPER) check_wi $(CL_USE_MODULES) -- $(CL_MODULES_WI))
+endif
 endif
 endif
 
@@ -433,14 +431,7 @@ endif  # CL_LOCALWORK
 # Sets $(CL_PREFIX) and uses make install
 
 
-ifndef CL_VERSION
-CL_VERSION := unknown
-endif
-ifndef CL_INFO
-CL_INFO := $(CL_DIR_PARAMS)
-endif
-
-override CL_WI_DIR := $(CL_MODULE)_$(CL_VERSION)_$(CL_INFO)
+override CL_WI_DIR := $(CL_MODULE)_$(CL_DIR_PARAMS)
 
 create_wi: $(ALWAYS)
 	@$(HELPER) check_vars CL_MODULE=$(CL_MODULE)

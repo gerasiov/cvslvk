@@ -153,7 +153,7 @@ need_comp_param()
 }
 
 # find_modules $CL_DIR_PARAMS <список обращений>
-# Формат именования инсталляций: <модуль>_<версия>_<параметры-сборки>
+# Формат именования инсталляций: <модуль>_<параметры>
 # Выдает в stdout в соответствующем порядке список инсталляций, для
 # не найденных - NONE
 
@@ -166,17 +166,12 @@ find_modules()
   cd $CL_DIR
   for ref in $*; do
     ref_mod=`echo $ref | awk -F_ '{print($1)}'`
-    ref_ver=`echo $ref | awk -F_ '{print($2)}'`
-    ref_bld=`echo $ref | awk -F_ '{print($3)}'`
-    if test "$ref_ver" = "" -o "$ref_ver" = "any"; then
-      list=$ref_mod'_'*'_'$cdp*;
-    else
-      list=$ref_mod'_'$ref_ver'_'$cdp*;
-    fi
+    ref_par=`echo $ref | awk -F_ '{print($2)}'`
+    list=$ref_mod'_'$cdp*;
     if test ! -d `echo $list | cut -d" " -f1`; then
       echo NONE
     else
-      (echo $ref_bld; echo $odp; echo $list) | awk -f $CL_DIR/find_wi.awk
+      (echo $ref_par; echo $odp; echo $list | tr ' ' '\n') | awk -F- -f $CL_DIR/find_wi.awk
     fi
   done
 }
@@ -293,8 +288,8 @@ selfupdate()
   cd cvslvk
   cp Makefile.cvslvk cvslvk *.awk $CL_DIR/
   cd $CL_DIR
-  $CHGRP $CVSGROUP *
-  $CHMOD ug+w *
+  $CHGRP $CVSGROUP * 2>/dev/null
+  $CHMOD ug+w * 2>/dev/null
   rm -r $CL_DIR/tmp/$USER/cvslvk
   make_rules
 }
