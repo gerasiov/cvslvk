@@ -208,9 +208,19 @@ depend()
   cpp=cpp
   file=$1;  dep=$2;  shift 2
   echo "Calculating dependences for $file ..."
-  (printf "%s `dirname $dep`/" $dep; $cpp -MM $* $file) > $dep.tmp
-  if test $? -ne 0; then rm -f $dep $dep.tmp; return 1; fi
-  sed s/.mm.o:/.o:/ $dep.tmp > $dep
+  $cpp -MM $* $file > $dep.tmp
+  if test $? -ne 0; then
+    printf $dep': $(ALWAYS)\n\n' > $dep
+    rm -f $dep.tmp;
+    return 1;
+  fi
+  (
+    printf "`dirname $dep`/"; sed 's/.mm.o:/.o:/' $dep.tmp
+    echo
+    sed 's@.*:\(.*\)@'$dep':\1@' $dep.tmp
+    echo
+    sed 's/.*:[ ]*\(.*\)/\1/'  $dep.tmp | tr '\n' ' '; echo ":"; echo
+  ) > $dep
   rm -f $dep.tmp
   return 0
 }
