@@ -203,10 +203,11 @@ depend()
   cpp=cpp
   file=$1;  dep=$2;  shift 2
   echo "Calculating dependences for $file ..."
-  (printf "%s `dirname $dep`/" $dep; $cpp -MM $* $file ) | sed s/.mm.o:/.o:/ > $dep
-  res=$?
-  if test $res -ne 0; then rm -f $dep; fi
-  return $res
+  (printf "%s `dirname $dep`/" $dep; $cpp -MM $* $file) > $dep.tmp
+  if test $? -ne 0; then rm -f $dep $dep.tmp; return 1; fi
+  sed s/.mm.o:/.o:/ $dep.tmp > $dep
+  rm -f $dep.tmp
+  return 0
 }
 
 
