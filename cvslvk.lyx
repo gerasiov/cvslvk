@@ -1,4 +1,4 @@
-#This file was created by <nikita> Tue Dec 14 20:09:29 1999
+#This file was created by <nikita> Wed Dec 15 18:55:03 1999
 #LyX 0.12 (C) 1995-1998 Matthias Ettrich and the LyX Team
 \lyxformat 2.15
 \textclass article
@@ -39,7 +39,7 @@
 \newline 
 
 \emph on 
-последнее изменение в этот документ внесено 14.12.1999
+последнее изменение в этот документ внесено 15.12.1999
 \newline 
 
 \newline 
@@ -717,13 +717,87 @@ Makefile
  образом.
 \layout Subsubsection
 
+Что и из чего собирать
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+SOURCES
+\family default 
+\series default 
+
+\newline 
+В этой переменной перечисляется список исходных файлов, расположенных в
+ рабочем каталоге.
+ В этом списке могут быть перемешаны файлы на языках Си, Си++ и mm-языке.
+ Файлы на языке Си должны иметь имена, заканчивающиеся на 
+\family typewriter 
+.c
+\family default 
+, файлы на языке Си++ -- имена, заканчивающиеся на 
+\family typewriter 
+.cpp
+\family default 
+, 
+\family typewriter 
+.cc
+\family default 
+ или 
+\family typewriter 
+.C
+\family default 
+, файлы на mm-языке -- имена, заканчивающиеся на 
+\family typewriter 
+.mm
+\family default 
+.
+\begin_float footnote 
+\layout Standard
+
+Эта явная поддержка не означает, то система специально предназначена для
+ среды DYANA.
+ Позже все зависимости то mm-языка будут полностью перенесены в соответствующий
+ модуль.
+\end_float 
+ Для каждого типа файлов будет автоматически выбран соответствующий компилятор.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+EXECUTABLE
+\family default 
+\series default 
+
+\newline 
+Переключает систему cvslvk в режим сборки исполняемого файла, и задает имя
+ исполняемого файла.
+\begin_deeper 
+\layout Standard
+
+Кроме режима сборки исполняемого файла, в системе cvslvk имеется режим сборки
+ библиотеки, описанный ниже.
+\end_deeper 
+\layout Standard
+
+В простейшем случае ничего, кроме определения этих двух переменных, не требуется.
+ Остальные переменные предназначены для тонкого управления сборкой или для
+ подключения дополнительных возможностей системы cvslvk.
+\layout Subsubsection
+
 Выбор компилятора
 \layout Itemize
 
+
+\series bold 
 Переменная: 
 \family typewriter 
 CL_COMP
 \family default 
+\series default 
 
 \newline 
 Возможные значения: 
@@ -765,6 +839,1051 @@ Makefile
  строки или не задавать вообще (в большинстве случаев система cvslvk обеспечит
  выбор правильного компилятора).
 \end_deeper 
+\layout Subsubsection
+
+Отладка ИЛИ оптимизация
+\layout Standard
+
+Если программа
+\begin_float footnote 
+\layout Standard
+
+Здесь и далее -- строго говоря, программа или библиотека
+\end_float 
+ собирается с целью ее 
+\emph on 
+отладки
+\emph toggle 
+, то ее следует собирать 
+\emph on 
+с отладочной информацией
+\emph toggle 
+ -- дополнительных данных, которые позволят отладчику работать с именами
+ переменных, строками исходных текстов программы и т.п., а не с числовыми
+ адресами.
+\layout Standard
+
+Если программа собирается с целью ее 
+\emph on 
+использования
+\emph toggle 
+, то ее следует собирать 
+\emph on 
+с оптимизацией
+\emph toggle 
+ -- при этом значительно увеличится скорость ее работы.
+\layout Standard
+
+
+\emph on 
+Стандартной ошибкой
+\emph toggle 
+ является сборка программы с отладочной информацией И с оптимизацией.
+ Так делать 
+\emph on 
+не следует
+\emph toggle 
+.
+ Программу, собранную с оптимизацией, отлаживать неудобно.
+ Например, из-за имеющих место при оптимизации перестановок кода такое стандартн
+ое действие отладчика, как выполнить одну строку программы, становится невозможн
+ым (на практике оно приводит к загадочным прыжкам точки выполнения вверх-вниз
+ по телу программы).
+ Если же в данный момент программу отлаживать не предполагается, то отладочная
+ информация только резко увеличит размер исполняемого файла и замедлит его
+ старт.
+\layout Standard
+
+Система cvslvk строго разделяет сборки с отладочной информацией и с оптимизацией.
+ По умолчанию осуществляется сборка с отладочной информацией и без оптимизации,
+ т.е.
+ программа подготавливается к отладке.
+ Другой вариант сборки -- с оптимизацией и без отладочной информации --
+ включается при помощи параметров сборки.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_OPTIMIZE
+\begin_deeper 
+\layout Standard
+
+Если эта переменная определена, то включается режим сборки с оптимизацией
+ (и без отладочной информации).
+ Рекомендуется использовать эту переменную только в командной строке 
+\family typewriter 
+make
+\family default 
+.
+\end_deeper 
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_NDEBUG
+\begin_deeper 
+\layout Standard
+
+Если эта переменная определена, и не определена переменная
+\series bold 
+ 
+\family typewriter 
+\series default 
+CL_OPTIMIZE
+\family default 
+, то включается режим сборки без отладочной информации и без оптимизации.
+ 
+\emph on 
+Этот режим 
+\begin_inset Quotes eld
+\end_inset 
+
+на крайний случай
+\begin_inset Quotes erd
+\end_inset 
+
+ -- его следует использовать вместо 
+\family typewriter 
+CL_OPTIMIZE
+\family default 
+ только если последний по какой-либо причине не работает (например, из-за
+ ошибки в компиляторе).
+\end_deeper 
+\layout Standard
+
+Для включения отладочной информации или оптимизации компиляторам необходимо
+ передать некоторые ключи командной строки.
+ И отладочная информация, и оптимизация бывают разными (и соответственно
+ могут включаться разными ключами).
+ В большинстве случаев можно использовать режимы, принятые по умолчанию,
+ однако иногда могут понадобиться и другие -- тогда следует определить в
+ 
+\family typewriter 
+Makefile
+\family default 
+-е одну или несколько из слудующих переменных.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_GCC_DEBUG
+\newline 
+
+\family default 
+\series default 
+Значение по умолчанию: 
+\family typewriter 
+-g
+\newline 
+
+\family default 
+Указывает флаги, передаваемые компиляторам 
+\family typewriter 
+gcc
+\family default 
+ и 
+\family typewriter 
+g++
+\family default 
+, для сборки с отладочной информацией.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_SUNCC_DEBUG
+\newline 
+
+\family default 
+\series default 
+Значение по умолчанию: 
+\family typewriter 
+-g
+\newline 
+
+\family default 
+Указывает флаги, передаваемые компиляторам фирмы Sun, для сборки с отладочной
+ информацией.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_GCC_OPTIMIZE
+\newline 
+
+\family default 
+\series default 
+Значение по умолчанию: 
+\family typewriter 
+-O2
+\newline 
+
+\family default 
+Указывает флаги, передаваемые компиляторам 
+\family typewriter 
+gcc
+\family default 
+ и 
+\family typewriter 
+g++
+\family default 
+, для сборки с оптимизацией.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_SUNCC_OPTIMIZE
+\newline 
+
+\family default 
+\series default 
+Значение по умолчанию: 
+\family typewriter 
+-O2
+\newline 
+
+\family default 
+Указывает флаги, передаваемые компиляторам фирмы Sun, для сборки с оптимизацией.
+\layout Standard
+
+Значения переменных 
+\family typewriter 
+CL_GCC_DEBUG
+\family default 
+ и 
+\family typewriter 
+CL_GCC_OPTIMIZE
+\family default 
+ будут автоматически использованы когда используется компиляторы GNU, значения
+ переменных 
+\family typewriter 
+CL_SUNCC_DEBUG
+\family default 
+ и 
+\family typewriter 
+CL_SUNCC_OPTIMIZE
+\family default 
+ -- когда используются компиляторы Sun.
+\layout Subsubsection
+
+Стандартные флаги компилятора -- DEFINES и INCLUDES
+\layout Standard
+
+Часто используемыми флагами Си- и Си++-компиляторов являются макросы препроцессо
+ра, определяемые в командной строке (флаг
+\protected_separator 
+
+\family typewriter 
+-D
+\family default 
+) и пути для поиска файлов, включаемых директивой препроцессора 
+\family typewriter 
+#inсlude
+\family default 
+ (флаг
+\protected_separator 
+
+\family typewriter 
+-I
+\family default 
+).
+\layout Standard
+
+В системе cvslvk эти флаги заносятся в соответствующие переменные, описанные
+ ниже.
+ Формат совпадает с форматом командной строки компиляторов, например: 
+\family typewriter 
+-I/usr/local/package/include
+\family default 
+, 
+\family typewriter 
+-DXXX
+\family default 
+, 
+\family typewriter 
+-DYYY=yyy
+\family default 
+.
+\begin_float footnote 
+\layout Standard
+
+На самом деле, описанное ниже разбиение флагов по переменным -- не более
+ чем соглашение, для удобства.
+ В принципе, никто не мешает ставить, например, флаги 
+\family typewriter 
+-I
+\family default 
+ в переменную 
+\family typewriter 
+DEFINES
+\family default 
+ или 
+\family typewriter 
+-D
+\family default 
+ в переменную 
+\family typewriter 
+CL_GCC_DEBUG
+\family default 
+.
+\end_float 
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+INCLUDES
+\newline 
+
+\family default 
+\series default 
+Предназначена для флагов 
+\family typewriter 
+-I
+\family default 
+, указывающих пути для поиска include-файлов.
+ 
+\newline 
+Следует иметь в виду, что если include-файлы относятся к используемым модулям,
+ то явно устанавливать путь к ним в этой переменной не надо -- это будет
+ сделано автоматически при подключении модуля.
+ На практике, переменную 
+\family typewriter 
+INCLUDES
+\family default 
+ надо устанавливать только когда используемся что-то внешнее по отношению
+ к системе cvslvk
+\begin_float footnote 
+\layout Standard
+
+т.е.
+ не оформленное в виде ее модуля или псевдомодуля.
+ Подробнее см.
+ ниже
+\end_float 
+.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+DEFINES
+\family default 
+\series default 
+
+\newline 
+Предназначена для флагов 
+\family typewriter 
+-D
+\family default 
+, определяющих макросы Си-препроцессора из командной строки компилятора.
+\newline 
+В эту переменную следует заносить макросы, используемые файлами в рабочем
+ каталоге.
+ Если макросы требуются используемому модулю, то они будут добавлены автоматичес
+ки при подключении этого модуля.
+\layout Standard
+
+Флаги, указанные в переменных 
+\family typewriter 
+INCLUDES
+\family default 
+ и 
+\family typewriter 
+DEFINES
+\family default 
+, будут переданы любому компиляторы в любом режиме.
+ Имеется еще несколько переменных для флагов, используемых только в конкретных
+ вариантах сборки.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_DEFINES_DEBUG
+\family default 
+\series default 
+
+\newline 
+Макросы, указанные в этой переменной, будут переданы любому компилятору
+ при сборке с отладочной информацией.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_DEFINES_DEBUG_GCC
+\family default 
+\series default 
+
+\newline 
+Макросы, указанные в этой переменной, будут переданы компиляторам GNU при
+ сборке с отладочной информацией.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_DEFINES_DEBUG_SUNCC
+\family default 
+\series default 
+
+\newline 
+Макросы, указанные в этой переменной, будут переданы компиляторам фирмы
+ Sun при сборке с отладочной информацией.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_DEFINES_OPTIMIZE
+\family default 
+\series default 
+
+\newline 
+Макросы, указанные в этой переменной, будут переданы любому компилятору
+ при сборке с оптимизацией.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_DEFINES_OPTIMIZE_GCC
+\family default 
+\series default 
+
+\newline 
+Макросы, указанные в этой переменной, будут переданы компиляторам GNU при
+ сборке с оптимизацией.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_DEFINES_OPTIMIZE_SUNCC
+\family default 
+\series default 
+
+\newline 
+Макросы, указанные в этой переменной, будут переданы компиляторам фирмы
+ Sun при сборке с оптимизацией.
+\layout Standard
+
+Значения по умолчанию следующие.
+ Если не определена ни одна из переменных 
+\family typewriter 
+CL_DEFINES_DEBUG
+\family default 
+, 
+\family typewriter 
+CL_DEFINES_DEBUG_GCC
+\family default 
+ и 
+\family typewriter 
+CL_DEFINES_DEBUG_SUNCC
+\family default 
+, то принимается значение по умолчанию 
+\family typewriter 
+CL_DEFINES_DEBUG
+\family default 
+=
+\family typewriter 
+-DDEBUG
+\family default 
+.
+ Если определена хоть одна из этих трех переменных (хотя бы на пустую строку),
+ то других определений не добавляется.
+ Аналогично, если не определена ни одна из переменных 
+\family typewriter 
+CL_DEFINES_OPTIMIZE
+\family default 
+, 
+\family typewriter 
+CL_DEFINES_OPTIMIZE_GCC
+\family default 
+ и 
+\family typewriter 
+CL_DEFINES_OPTIMIZE_SUNCC
+\family default 
+, то принимается значение по умолчанию 
+\family typewriter 
+CL_DEFINES_DEBUG
+\family default 
+=
+\family typewriter 
+-DDEBUG
+\family default 
+, а если хоть одна из этих трех переменных определена, то других определений
+ не добавляется.
+\layout Standard
+
+
+\emph on 
+Замечание: специальных переменных для режима 
+\family typewriter 
+CL_NDEBUG
+\family default 
+ не предусмотрено.
+ Если ситуация требует использования этого режима (что бывает крайне редко),
+ то требуемые флаги можно вычислить непосредственно в 
+\family typewriter 
+Makefile
+\family default 
+-е.
+\layout Subsubsection
+
+Прочие флаги компиляторов
+\layout Standard
+
+Кроме перечисленных выше, в системе cvslvk для передачи флагов компиляторам
+ определены следующие переменные.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_CC_CFLAGS
+\family default 
+\series default 
+
+\newline 
+Флаги, указанные в этой переменной, будут переданы любому компилятору Си
+ в любом режиме.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_CC_CXXFLAGS
+\family default 
+\series default 
+
+\newline 
+Флаги, указанные в этой переменной, будут переданы любому компилятору Си++
+ в любом режиме.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_GCC_CFLAGS
+\family default 
+\series default 
+
+\newline 
+Флаги, указанные в этой переменной, будут переданы компилятору GNU С любом
+ режиме.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_GCC_CXXFLAGS
+\family default 
+\series default 
+
+\newline 
+Флаги, указанные в этой переменной, будут переданы компилятору GNU С++ любом
+ режиме.
+ В этой переменной, в частности, можно задавать режим работы 
+\family typewriter 
+g++
+\family default 
+ с template-ами, если режим по умолчанию по каким-либо причинам неприемлим.
+\begin_float footnote 
+\layout Standard
+
+Работа Sun CC c template-ами всегда обеспечивается автоматически при помощи
+ добавления в его командную строку ключа 
+\family typewriter 
+-ptr$(CL_BD)
+\family default 
+, где 
+\family typewriter 
+$(CL_BD)
+\family default 
+ -- имя каталога сборки.
+ Этот флаг добавляется и при компиляции, и при компоновке.
+ В будущем возможно будет даны средства управления Sun-овскими template-ами.
+\end_float 
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_SUNCC_CFLAGS
+\family default 
+\series default 
+
+\newline 
+Флаги, указанные в этой переменной, будут переданы компилятору Sun С любом
+ режиме.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_SUNCC_CXXFLAGS
+\family default 
+\series default 
+
+\newline 
+Флаги, указанные в этой переменной, будут переданы компилятору Sun С++ любом
+ режиме.
+\layout Standard
+
+Если переменных, определенных в системе cvslvk, оказывается недостаточно,
+ всегда можно в 
+\family typewriter 
+Makefile
+\family default 
+-е определить новые переменные и описать условия их использования.
+\layout Subsubsection
+
+Флаги компоновки
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+LDFLAGS
+\begin_deeper 
+\layout Standard
+
+Эта переменная содержит флаги, передаваемые компоновщику при сборке исполняемого
+ файла.
+ В большинстве случаев она будет установлена автоматически.
+ Ручная установка требуется только если подключаются библиотеки, не включенные
+ в модули или псевдомодули системы cvslvk и не подключаемые автоматически
+ этими модулями.
+\layout Standard
+
+Переменная 
+\family typewriter 
+LDFLAGS
+\family default 
+ подвергается достаточно сложной обработке (см.
+ техническое описание системы).
+ В частности, пути до всех использованных динамических библиотек прописываются
+ в исполняемый файл, что обеспечивает корректное их нахождение без установки
+ 
+\family typewriter 
+LD_LIBRARY_PATH
+\family default 
+.
+\layout Standard
+
+Сейчас предполагается, что пользователь будет использовать эту переменную
+ только для передачи флагов 
+\family typewriter 
+-L
+\family default 
+ (пути для поиска библиотек) и 
+\family typewriter 
+-l
+\family default 
+ (имена библиотек).
+ Другие флаги не обрабатываются, а просто передаются компоновщику.
+ Насколько это совместимо с обработкой флагов 
+\family typewriter 
+-l
+\family default 
+ и 
+\family typewriter 
+-L
+\family default 
+ -- неизвестно.
+ Поэтому не рекомендуется добавлять другие флаги в 
+\family typewriter 
+LDFLAGS
+\family default 
+ без крайней надобности, а если появятся непонятные ошибки при компоновке
+ или запуске программ -- удалить эти флаги.
+\layout Standard
+
+В будущих версиях системы работа с 
+\family typewriter 
+LDFLAGS
+\family default 
+ будет расширена.
+\end_deeper 
+\layout Subsection
+
+Сборка подкаталогов
+\layout Standard
+
+Как было замечено выше, в рабочем каталоге могут быть подкаталоги, которые
+ тоже требуют сборки.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+SUBDIRS
+\begin_deeper 
+\layout Standard
+
+Эта переменная содержит разделенный пробелами список подкаталогов рабочего
+ каталога, которые также подлежат сборке при сборке рабочего каталога.
+ В каждом из этих подкаталогов в порядке, в котором они перечислены в переменной
+ будет вызвана команда 
+\family typewriter 
+make
+\family default 
+ с теми же параметрами, с какими она была вызвана пользователем в рабочем
+ каталоге.
+ Только после этого будет осуществлена сборка текущего каталога.
+ 
+\layout Standard
+
+Если сборка какого-либо из подкаталогов закончится ошибкой, то процесс будет
+ остановлен.
+ Сборка следующих подкаталогов (и текущего каталога) осуществлена не будет.
+\end_deeper 
+\layout Standard
+
+Возможна ситуация, когда в текущем каталоге в 
+\family typewriter 
+Makefile
+\family default 
+-е не определяется ничего, кроме переменной 
+\family typewriter 
+SUBDIRS
+\family default 
+.
+ Тогда сборка текущего каталога сводится только к сборке подкаталогов.
+\layout Subsection
+
+Параметры сборки
+\layout Standard
+
+Система cvslvk позволяет собирать каталог с различными параметрами и обеспечивае
+т раздельное хранение объектных файлов и других генерируемых файлов, соответству
+ющих различным параметрам сборки.
+\layout Standard
+
+Генерируемые файлы, соответствующие конкретному набору значений параметров
+ сборки, помещаются в 
+\emph on 
+подкаталог сборки
+\emph toggle 
+.
+ Имя каталога сборки представляет из себя разделенные дефисами значения
+ параметров сборки.
+ 
+\layout Standard
+
+Исполняемый файл или библиотека, собираемый в текущем каталоге, также помещается
+ в соответствующий подкаталог сборки.
+ В текущий каталог помещается символьная ссылки на него.
+ Если программа собрана с несколькими различными наборами значений параметров
+ сборки (и в соответствующих подкаталогах сборки лежат в т.ч.
+ исполняемые файлы), то команда make, которая должна вызвать сборку с одним
+ из этих наборов параметров, просто переставит символьную ссылку в текущем
+ каталоге на ранее собранный исполняемый файл, соответствующий затребованным
+ параметрам сборки.
+ Пересборка будет запущена только если этот файл устарел (т.е.
+ какой-то из исходных файлов новее его).
+\layout Standard
+
+Всегда присутствуют следующие параметры сборки:
+\layout Itemize
+
+Архитектура машины, на которой осуществляется сборка.
+ Определяется автоматически.
+ Возможные значения в текущей версии системы -- 
+\family typewriter 
+x86
+\family default 
+ и 
+\family typewriter 
+sparc
+\family default 
+.
+ В имени каталога сборки этот параметр будет на первом месте.
+\layout Itemize
+
+Операционная система, на которой осуществляется сборка.
+ Определяется автоматически.
+ Возможные значения в текущей версии системы -- 
+\family typewriter 
+linux
+\family default 
+ и 
+\family typewriter 
+solaris
+\family default 
+.
+ В имени каталога этот параметр будет на втором месте.
+\layout Itemize
+
+Вариант сборки: 
+\family typewriter 
+debug
+\family default 
+, 
+\family typewriter 
+optimized
+\family default 
+ или 
+\family typewriter 
+ndebug
+\family default 
+.
+ Устанавливается автоматически в зависимости от переменных 
+\family typewriter 
+CL_OPTIMIZE
+\family default 
+ и 
+\family typewriter 
+CL_NDEBUG
+\family default 
+.
+ В имени каталога этот параметр будет на последнем месте.
+\layout Standard
+
+Также могут присутствовать следующие параметры сборки:
+\layout Itemize
+
+Компилятор.
+ Возможные значения в текущей версии системы -- 
+\family typewriter 
+gcc
+\family default 
+ и 
+\family typewriter 
+suncc
+\family default 
+.
+ Конкретное значение берется из 
+\series bold 
+переменной 
+\family typewriter 
+CL_COMP
+\family default 
+\series default 
+ (т.е.
+ значение по умолчанию -- 
+\family typewriter 
+gcc
+\family default 
+).
+ 
+\begin_deeper 
+\layout Standard
+
+Компилятор считается параметром сборки, если выполняется как минимум одно
+ из следующих условий:
+\layout Itemize
+
+установлена 
+\series bold 
+переменная 
+\family typewriter 
+CL_PARAM_COMP
+\family default 
+\series default 
+,
+\layout Itemize
+
+в текущем каталоге собирается библиотека на языке Си++,
+\layout Itemize
+
+в текущем каталоге используется внешний модуль, среди параметров которого
+ присутствует компилятор.
+\end_deeper 
+\layout Itemize
+
+Тип библиотеки.
+ Возможные значения -- 
+\family typewriter 
+shared
+\family default 
+ и 
+\family typewriter 
+static
+\family default 
+.
+ Конкретное значение берется из 
+\series bold 
+переменной 
+\family typewriter 
+CL_LTYPE
+\family default 
+\series default 
+ (т.е.
+ значение по умолчанию -- 
+\family typewriter 
+shared
+\family default 
+).
+\begin_deeper 
+\layout Standard
+
+Тип библиотеки считается параметром сборки, если выполняется как минимум
+ одно из следующих условий:
+\layout Itemize
+
+установлена переменная 
+\family typewriter 
+CL_PARAM_LTYPE
+\family default 
+,
+\layout Itemize
+
+в текущем каталоге собирается библиотека.
+\end_deeper 
+\layout Itemize
+
+Любые пользовательские параметры.
+\begin_deeper 
+\layout Standard
+
+Если установлена 
+\series bold 
+переменная 
+\family typewriter 
+CL_PARAM_OTHER
+\family default 
+\series default 
+, то ее содержимое рассматривается как разделенный дефисами список пользовательс
+ких параметров сборки.
+\layout Standard
+
+Значение переменной 
+\family typewriter 
+CL_PARAM_OTHER
+\family default 
+ рекомендуется вычислять в 
+\family typewriter 
+Makefile
+\family default 
+-е в зависимости от параметров командной строки, с разумными значениями
+ по умолчанию.
+\end_deeper 
+\layout Standard
+
+При составлении имени каталога сборки перечисленные параметры включаются
+ в указанном порядке, начиная с 3-го места.
+\layout Subsection
+
+Использование одних модулей другими
+\layout Subsubsection
+
+Понятие модуля
+\layout Standard
+
+Понятие 
+\emph on 
+модуля
+\emph toggle 
+ является одним из основных понятий системы cvslvk.
+ Это достаточно абстрактное понятие, определить его достаточно сложно.
+ В наиболее общем случае это некоторая совокупность файлов, в какой-то мере
+ связанных между собой и в какой-то мере независимых от внешнего мира, которую
+ можно как-то использовать.
+\layout Standard
+
+В качестве примеров модулей можно привести: 
+\layout Itemize
+
+отдельную программу, 
+\layout Itemize
+
+совокупность программ, 
+\layout Itemize
+
+библиотеку с набором include-файлов, 
+\layout Itemize
+
+средство создания парсера по грамматике,
+\layout Standard
+
+и т.д.
+\layout Standard
+
+Могут быть модули, которые сначала требуется собрать и только потом можно
+ использовать.
+ Могут быть модули, готовые к использованию немедленно (например, совокупности
+ скриптов).
+ Если модуль необходимо собрать, то эта сборка может быть осуществлена при
+ помощи системы cvslvk, или же какими-то иными средствами.
+\layout Subsubsection
+
+Понятие использования модуля
+\layout Standard
+
+При сборке каталога в системе cvslvk может быть затребовано 
+\emph on 
+использование
+\emph toggle 
+ некоторых модулей.
+ 
+\layout Standard
+
+Каждый модуль 
+\begin_inset Quotes eld
+\end_inset 
+
+знает
+\begin_inset Quotes erd
+\end_inset 
+
+, что значит его использовать.
+ Т.е.
+ он предоставляет системе cvslvk некоторый интерфейс, через который определяется
+ семантика использования этого модуля.
+\layout Standard
+
+Модуль может быть использован как в процессе сборки каталога, так и при
+ запуске и работе собранной программы.
+\layout Subsubsection
+
+Рабочая инсталляция модуля
+\layout Standard
+
+Для того, чтобы можно было использовать некоторый модуль, в системе cvslvk
+ должна присутствовать 
+\emph on 
+рабочая инсталляция
+\emph toggle 
+ этого модуля.
+ Рабочая инсталляция представляет из себя инсталляцию иерархии файлов, из
+ которых состоит модуль, в каталоге с определенным именем, расположенном
+ в определенном месте.
+\layout Standard
+
+Одновременно в системе может присутствовать несколько рабочих инсталляций
+ одного модуля.
+ Например, если модуль представляет из себя библиотеку, то могут быть инсталляци
+и со статической и с динамической версиями этой библиотеки.
 \layout Section
 
 Сообщения об ошибках
