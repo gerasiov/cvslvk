@@ -143,9 +143,15 @@ make_rules()
     postfix=`echo $d | cut -f2 -d_ | cut -f1-2 -d-`
     echo "$d `cat $d/depend.cvslvk 2>/dev/null | tr '\n' ' '`" >>  $WILIST-$postfix
   fi; done
-  chmod u+r $WILIST-* 2>/dev/null
+  chmod 644 $WILIST-* 2>/dev/null
   $CHGRP $CVSGROUP $WILIST-* 2>/dev/null
-  $CHMOD 664 $WILIST-* 2>/dev/null
+  $CHMOD g+w $WILIST-* 2>/dev/null
+
+  for i in $WILIST-*; do
+    cache=$PROCESSWICACHE-`basename $i | cut -f 2- -d-`
+    touch $cache
+    chmod 666 $cache
+  done
 }
 
 
@@ -168,7 +174,10 @@ process_wi()
   command="(echo $*; echo quiet $needcomp $comp; cat $wilist 2>/dev/null) | awk -f $CL_DIR/process_wi.awk"
   if eval $command >/dev/null; then
     res=`eval $command`;
-    echo "$key:$res" >> $cache
+    echo "$key:$res" >> $cache 2>/dev/null
+    choose_chgrp_and_chmod
+    $CHGRP $CVSGROUP $cache 2>/dev/null
+    $CHMOD 666 $cache 2>/dev/null
     echo $res
     return
   fi
