@@ -250,7 +250,7 @@ override CXX_GCC := g++
 override CXX_SUNCC := CC
 override CXX := $(CXX_$(CL_COMPC))
 
-override LD := $(if $(filter-out %.c, $(SOURCES)),$(CXX),$(CC))
+override LD := $(if $(filter-out %.c, $(SOURCES))$(CL_FORCE_CPLUSPLUS),$(CXX),$(CC))
 
 
 # Compiler flags for debugging and optimizing
