@@ -275,7 +275,6 @@ endif
 ifeq ($(CL_BTYPE),debug)
 override CL_GCC_DEBUG := $(if $(CL_GCC_DEBUG),$(CL_GCC_DEBUG),-g)
 override CL_SUNCC_DEBUG := $(if $(CL_SUNCC_DEBUG),$(CL_SUNCC_DEBUG),-g)
-$(warning CL_$(CL_COMPC)_DEBUG)
 override CFLAGS += $(CL_$(CL_COMPC)_DEBUG)
 override CXXFLAGS += $(CL_$(CL_COMPC)_DEBUG)
 endif
