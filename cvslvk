@@ -202,6 +202,21 @@ show_wi()
 }
 
 
+# get_bd_for_clean <вычисленный BD> <значение CL_COMP>
+# Используется с целью угадать CL_BD когда не работала логика WI
+get_bd_for_clean()
+{
+  if test -d $1; then echo $1; return; fi
+
+  part3=`echo $1 | sed 's/[^-]*-[^-]*-\([^-]*\).*/\1/'`
+  if test part3 = "gcc" -o part3 = "suncc"; then
+    echo $1; return
+  fi
+
+  echo $1 | sed 's/\([^-]*-[^-]*\)\(.*\)/\1-'$2'\2/'; return
+}
+
+
 # depend <имя входного файла> <имя выходного файла> <параметры для cpp>
 depend()
 {
@@ -363,7 +378,7 @@ shift
 
 case "$command" in
   check_vars|check_enum|error|get_arch|get_os|make_rules|\
-  process_wi|show_wi|depend|\
+  process_wi|show_wi|get_bd_for_clean|depend|\
   before_create_wi|before_install_wi|complete_wi|remove_wi|\
   selfupdate)
     $command $*

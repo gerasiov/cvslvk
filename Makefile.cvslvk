@@ -209,8 +209,6 @@ endif
 
 # Now $(CL_DIR_PARAMS) is the parameter string
 
-override CL_BD := $(CL_DIR_PARAMS)
-
 # Since WI logic don't work on 'make clean' (because we want 'make clean' to
 # work even when there are WI errors), $(CL_BD) may be set incorrectly.
 # When CL_PARAM_COMP is not set, comp will be not in $(CL_BD), but it *may*
@@ -219,17 +217,13 @@ override CL_BD := $(CL_DIR_PARAMS)
 # with suncc. Hopefully this is correct.
 
 ifeq ($(MAKECMDGOALS),clean)
-ifdef CL_PARAM_COMP
-override CL_BD_CLEAN := $(CL_BD)
-else
-override CL_BD_CLEAN := $(shell echo $(CL_BD) | sed 's/\([^-]*-[^-]*\)\(-.*\)/\1\2 \1-gcc\2 \1-suncc\2/')
-endif
-endif
-
-
+override CL_BD := $(shell $(HELPER) get_bd_for_clean $(CL_DIR_PARAMS) $(CL_COMP))
 ifdef CL_LOCALWORK
+override CL_BD := $(CL_DIR_PARAMS)
 override CL_TMP := $(shell mkdir -p $(CL_BD))  # Create the build directory
 endif
+endif
+
 
 # Since some include files may be generated, we want to add $(CL_BD) to
 # include search path. -I. is needed because without it, includes are searched
@@ -713,7 +707,7 @@ ifdef CL_OPTIMIZE
 endif
 
 clean: clean_subdirs $(CL_CLEAN) $(ALWAYS)
-	rm -rf $(CL_BD_CLEAN) $(EXECUTABLE) $(CL_SL_NAMES)
+	rm -rf $(CL_BD) $(EXECUTABLE) $(CL_SL_NAMES)
 
 endif
 
@@ -753,6 +747,6 @@ endif
 endif
 
 clean: clean_subdirs $(CL_CLEAN) $(ALWAYS)
-	rm -rf $(CL_BD_CLEAN) $(CL_ALL_LIB_NAMES)
+	rm -rf $(CL_BD) $(CL_ALL_LIB_NAMES)
 
 endif
