@@ -521,7 +521,7 @@ endif
 
 ifdef EXECUTABLE
 
-all: $(EXECUTABLE)
+all: $(EXECUTABLE) all_subdirs
 
 $(EXECUTABLE): $(CL_BD)/$(EXECUTABLE)
 	ln -sf $(CL_BD)/$(EXECUTABLE) $(EXECUTABLE)
@@ -532,7 +532,7 @@ ifdef CL_OPTIMIZE
 	strip $@
 endif
 
-install: all $(ALWAYS)
+install: all install_subdirs $(ALWAYS)
 	@$(HELPER) check_vars CL_PREFIX=$(CL_PREFIX)
 	mkdir -p $(CL_PREFIX)/bin
 	cp $(CL_BD)/$(EXECUTABLE) $(CL_PREFIX)/bin
@@ -540,7 +540,7 @@ install: all $(ALWAYS)
 	if test -n "$(CL_INSTALL_WI)" -a -f rules.cvslvk; then cp rules.cvslvk $(CL_PREFIX); fi
 	if test -n "$(CL_INSTALL_WI)" -a -n "$(CL_SCRIPTS_WI)"; then cp $(CL_SCRIPTS_WI) $(CL_PREFIX)/bin; fi
 
-clean: $(CL_CLEAN) $(ALWAYS)
+clean: $(CL_CLEAN) clean_subdirs $(ALWAYS)
 	rm -rf $(CL_BD)
 	rm -f $(EXECUTABLE)
 
@@ -549,7 +549,7 @@ endif
 
 ifdef LIBRARY
 
-all: $(CL_BD)/$(CL_LIBRARY_FNAME)
+all: $(CL_BD)/$(CL_LIBRARY_FNAME) all_subdirs
 
 $(CL_BD)/$(CL_LIBRARY_FNAME): $(CL_OBJECTS_ALL)
 	$(CL_MKLIB) $@ $(CL_OBJECTS_ALL)
@@ -557,7 +557,7 @@ ifdef CL_OPTIMIZE
 	strip -g $@
 endif
 
-install: all $(ALWAYS)
+install: all install_subdirs $(ALWAYS)
 	@$(HELPER) check_vars CL_PREFIX=$(CL_PREFIX)
 	mkdir -p $(CL_PREFIX)/lib $(CL_PREFIX)/include
 	cp $(CL_BD)/$(CL_LIBRARY_FNAME) $(CL_PREFIX)/lib
@@ -572,7 +572,7 @@ endif
 	cp $(EXPORT_INCLUDES) $(CL_PREFIX)/include
 	if test -n "$(CL_INSTALL_WI)" -a -f rules.cvslvk; then cp rules.cvslvk $(CL_PREFIX); fi
 
-clean: $(CL_CLEAN) $(ALWAYS)
+clean: $(CL_CLEAN) clean_subdirs $(ALWAYS)
 	rm -rf $(CL_BD)
 
 endif
