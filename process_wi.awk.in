@@ -284,7 +284,7 @@ END  {
 	    }
 	  break;
 	  }
-      if ( (j<=nreq) || (vip==0) )  break;
+      if ( j<=nreq)  continue;
       if ( verbose )
         print ( bindent "Adding new module requirement " cr[i] );
       nreq++;

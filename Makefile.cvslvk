@@ -443,7 +443,10 @@ endif
 
 ifdef CL_LOCALWORK
 ifeq ($(filter install clean cleanall,$(MAKECMDGOALS)),)
--include $(addsuffix .deps, $(CL_OBJECTS_ALL))
+override CL_DEPS_TO_INCLUDE := $(addsuffix .deps, $(CL_OBJECTS_ALL))
+ifneq ($(CL_DEPS_TO_INCLUDE),)
+-include $(CL_DEPS_TO_INCLUDE)
+endif
 endif
 endif
 
