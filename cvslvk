@@ -265,7 +265,6 @@ remove_wi()
     return 1;
   fi
 
-  echo $1/*
   if test -f $1/NOREMOVE; then
     echo "NOREMOVE file exists in this working installation"
     return 1
