@@ -13,7 +13,8 @@ RULES_CVSLVK_TMP=$CL_DIR/rules.cvslvk.tmp  # Временная копия того же файла
 # Группа пользователей CVS
 CVSGROUP=cvsusers
 
-MAKEPID=`ps -l | awk "{if (\$4==$$) {print($5)}}"`
+MYPID=$$
+MAKEPID=`ps -l | awk '{if ($4=="'$MYPID'") {print($5)}}'`
 kill_make() { kill $MAKEPID; exit 1; }
 
 if test ! -f $CL_DIR/Makefile.cvslvk; then
@@ -207,6 +208,7 @@ selfupdate()
   chgrp cvsusers $FILES
   chmod ug+w $FILES
   rm -r $CL_DIR/tmp/$USER/cvslvk
+  make_rules
 }
 
 
