@@ -74,7 +74,7 @@ endif
 
 # Now clean CL_VARS.
 # WI rules may add some additional vars to check.
-# Then they may define new CL_VARS and use use $(CL_CHECK_VARS_COMMAND)
+# Then they may define new CL_VARS and use $(CL_CHECK_VARS_COMMAND)
 override CL_VARS :=
 
 
@@ -118,13 +118,14 @@ ifeq ($(MAKECMDGOALS),show_wi)
 override CL_TMP := $(shell $(CL_HELPER) show_wi $(CL_COMP_PARAM_TMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
 endif
 
-# We want "make clean" to work even when WIs are not available
+# We want "make clean" and "make cleanall" to work even when WIs are not available
 # So we process this case separately.
-ifeq ($(MAKECMDGOALS),clean)
+ifneq ($(filter clean cleanall,$(MAKECMDGOALS)),)
 override CL_TMP := $(shell $(CL_HELPER) process_wi in_clean $(CL_COMP_PARAM_TMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
 else
 override CL_TMP := $(shell $(CL_HELPER) process_wi $(CL_COMP_PARAM_TMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
 endif
+
 ifeq ($(filter gcc,$(CL_TMP)),gcc)
 override CL_PARAM_COMP := 1
 override CL_COMP := gcc
@@ -243,9 +244,14 @@ endif
 ifeq ($(MAKECMDGOALS),clean)
 override CL_BD := $(shell $(CL_HELPER) get_bd_for_clean $(CL_DIR_PARAMS) $(CL_COMP))
 else
+ifeq ($(MAKECMDGOALS),cleanall)
+override CL_BD := NONE
+else
 override CL_BD := $(CL_DIR_PARAMS)
 ifdef CL_LOCALWORK
-override CL_TMP := $(shell mkdir -p $(CL_BD))  # Create the build directory
+# Create the build directory and remove symlinks to other BDs
+override CL_TMP := $(shell mkdir -p $(CL_BD); touch $(CL_BD)/CVSLVK_BUILD_DIR; $(CL_HELPER) remove_other_bd_links $(CL_BD))
+endif
 endif
 endif
 
@@ -266,8 +272,8 @@ endif
 # without debug information (optimization + gebug information is useless)
 # For debugging with gcc, $(CL_GCC_DEBUG) is used, defaults to -g
 # For debugging with suncc, $(CL_SUNCC_DEBUG) is used, defaults to -g
-# For optimizing with gcc, $(CL_GCC_OPTIMIZE) is used, defaults to -O2 -DNDEBUG
-# For optimizing with suncc, $(CL_SUNCC_OPTIMIZE) is used, defaults to -O -DNDEBUG
+# For optimizing with gcc, $(CL_GCC_OPTIMIZE) is used, defaults to -O2
+# For optimizing with suncc, $(CL_SUNCC_OPTIMIZE) is used, defaults to -O
 
 override CFLAGS = -c
 override CXXFLAGS = -c
@@ -301,10 +307,10 @@ endif
 endif
 
 ifndef CL_GCC_OPTIMIZE
-CL_GCC_OPTIMIZE = -O2 -DNDEBUG
+CL_GCC_OPTIMIZE = -O2
 endif
 ifndef CL_SUNCC_OPTIMIZE
-CL_SUNCC_OPTIMIZE = -O -DNDEBUG
+CL_SUNCC_OPTIMIZE = -O
 endif
 
 ifdef CL_OPTIMIZE
@@ -318,52 +324,65 @@ override CXXFLAGS += $(CL_SUNCC_OPTIMIZE)
 endif
 endif
 
+# Additional defines for debugging and optimizing
+# $(CL_DEFINES_DEBUG) - defaults to "-DDEBUG" if no one of DEBUG vars is set
+# $(CL_DEFINES_OPTIMIZE)- defaults to "-DNDEBUG" if no one of DEBUG vars is set
+# $(CL_DEFINES_DEBUG_GCC)
+# $(CL_DEFINES_OPTIMIZE_GCC)
+# $(CL_DEFINES_DEBUG_SUNCC)
+# $(CL_DEFINES_OPTIMIZE_SUNGCC)
+
+ifeq ($(CL_DEFINES_DEBUG)$(CL_DEFINES_DEBUG_GCC)$(CL_DEFINES_DEBUG_SUNCC),)
+CL_DEFINES_DEBUG = -DDEBUG
+endif
+ifeq ($(CL_DEFINES_OPTIMIZE)$(CL_DEFINES_OPTIMIZE_GCC)$(CL_DEFINES_OPTIMIZE_SUNCC),)
+CL_DEFINES_OPTIMIZE = -DNDEBUG
+endif
+
+ifdef CL_OPTIMIZE
+
+override DEFINES += $(CL_DEFINES_OPTIMIZE)
+ifeq ($(CL_COMP),gcc)
+override DEFINES += $(CL_DEFINES_OPTIMIZE_GCC)
+endif
+ifeq ($(CL_COMP),suncc)
+override DEFINES += $(CL_DEFINES_OPTIMIZE_SUNCC)
+endif
+
+else
+ifndef CL_NDEBUG
+
+override DEFINES += $(CL_DEFINES_DEBUG)
+ifeq ($(CL_COMP),gcc)
+override DEFINES += $(CL_DEFINES_DEBUG_GCC)
+endif
+ifeq ($(CL_COMP),suncc)
+override DEFINES += $(CL_DEFINES_DEBUG_SUNCC)
+endif
+
+endif
+endif
+
+
 # Additional compiler flags may be passed via the following variables:
-# $(CL_CC_FLAGS) for any compiler
 # $(CL_CC_CFLAGS) for any C compiler
 # $(CL_CC_CXXFLAGS) for any C++ compiler
-# $(CL_GCC_FLAGS) for gcc and g++
 # $(CL_GCC_CFLAGS) for gcc
 # $(CL_GCC_CXXFLAGS) for g++
-# $(CL_SUNCC_FLAGS) for cc and CC
 # $(CL_SUNCC_CFLAGS) for cc
 # $(CL_SUNCC_CXXFLAGS) for CC
 
-ifdef CL_CC_FLAGS
-override CFLAGS += $(CL_CC_FLAGS)
-override CXXFLAGS += $(CL_CC_FLAGS)
-endif
-ifdef CL_CC_CFLAGS
 override CFLAGS += $(CL_CC_CFLAGS)
-endif
-ifdef CL_CC_CXXFLAGS
 override CXXFLAGS += $(CL_CC_CXXFLAGS)
-endif
 
 ifeq ($(CL_COMP),gcc)
-ifdef CL_GCC_FLAGS
-override CFLAGS += $(CL_GCC_FLAGS)
-override CXXFLAGS += $(CL_GCC_FLAGS)
-endif
-ifdef CL_GCC_CFLAGS
 override CFLAGS += $(CL_GCC_CFLAGS)
-endif
-ifdef CL_GCC_CXXFLAGS
 override CXXFLAGS += $(CL_GCC_CXXFLAGS)
-endif
 endif
 
 ifeq ($(CL_COMP),suncc)
-ifdef CL_SUNCC_FLAGS
-override CFLAGS += $(CL_SUNCC_FLAGS)
-override CXXFLAGS += $(CL_SUNCC_FLAGS)
-endif
-ifdef CL_SUNCC_CFLAGS
 override CFLAGS += $(CL_SUNCC_CFLAGS)
-endif
-ifdef CL_SUNCC_CXXFLAGS
 override CXXFLAGS += $(CL_SUNCC_CXXFLAGS)
-endif
 endif
 
 
@@ -514,13 +533,29 @@ ifdef CL_LOCALWORK
 override DEPS := $(SOURCES:%=$(CL_BD)/%.deps)
 override CL_DEPS_ALL := $(CL_DEPS_NU) $(DEPS)
 
+# There is a problem that we can't just call "cpp -MM" because at least gcc
+# passes to cpp tons of defined.
+# We will save some flags in $(CL_BD)/SYS_MKDEP_FLAGS_C{XX}
+# Currently this is done correctly for gcc only (using gcc -v)
+
+override CL_SYS_CFLAGS := $(filter-out -I% -D% -c,$(CFLAGS))
+$(CL_BD)/SYS_MKDEP_FLAGS_C:
+	@$(CL_HELPER) make_sys_mkdep_flags_c $(CL_BD) $(CL_COMP) $(CL_SYS_CFLAGS)
+
+override CL_SYS_CXXFLAGS := $(filter-out -I% -D% -c,$(CXXFLAGS))
+$(CL_BD)/SYS_MKDEP_FLAGS_CXX:
+	@$(CL_HELPER) make_sys_mkdep_flags_cxx $(CL_BD) $(CL_COMP) $(CL_SYS_CXXFLAGS)
+
+$(CL_DEPS_ALL): $(CL_BD)/SYS_MKDEP_FLAGS_C $(CL_BD)/SYS_MKDEP_FLAGS_CXX
+
+
 $(CL_BD)/%.deps: %
 	@$(CL_HELPER) depend $< $@ $(INCLUDES) $(DEFINES)
 
 $(CL_BD)/%.deps: $(CL_BD)/%
 	@$(CL_HELPER) depend $< $@ $(INCLUDES) $(DEFINES)
 
-CL_NODEP_RULES += clean create_wi update_wi install
+CL_NODEP_RULES += clean cleanall create_wi update_wi install
 
 ifneq ($(MAKECMDGOALS),)
 ifeq ($(filter-out $(CL_NODEP_RULES),$(MAKECMDGOALS)),)
@@ -659,6 +694,11 @@ ifndef INTERNAL_LIBRARY
 	(cd $(CL_PREFIX)/lib && rm -f $(CL_LIBRARY_CNAME) && ln -s $(CL_LIBRARY_SONAME) $(CL_LIBRARY_CNAME))
 endif
 endif
+ifdef INTERNAL_LIBRARY
+ifdef OPTIMIZE
+	strip $(CL_PREFIX)/lib/$(CL_LIBRARY_FNAME)
+endif
+endif
 
 override CL_INSTALL_PARTS += install_library
 endif # shared
@@ -726,25 +766,17 @@ install: all $(CL_INSTALL_PARTS) $(ALWAYS)
 
 
 ifdef SUBDIRS
-
-all_subdirs install_subdirs clean_subdirs: $(ALWAYS)
+all_subdirs install_subdirs clean_subdirs cleanall_subdirs: $(ALWAYS)
 	for dir in $(SUBDIRS); do \
 	  (cd $$dir && $(MAKE) `echo $@ | cut -d_ -f1`) || exit 1; \
 	done
-
+override CL_CLEAN := clean_subdirs $(CL_CLEAN)
 ifeq ($(EXECUTABLE)$(LIBRARY),)
-
 all: all_subdirs
-
-clean: $(CL_CLEAN) clean_subdirs
-
 endif
-
-else
-
-all_subdirs clean_subdirs:
-
-endif
+else # No SUBDIRS
+all_subdirs cleanall_subdirs:
+endif # SUBDIRS
 
 
 ifdef EXECUTABLE
@@ -752,7 +784,9 @@ ifdef EXECUTABLE
 ifneq ($(CL_SYMLINKS),)
 override CL_SL_NAMES := $(notdir $(CL_SYMLINKS))
 $(CL_SL_NAMES):
+	@echo $(CL_SL_NAMES) > $(CL_BD)/SYMLINKS 2>/dev/null || true
 	rm -f $(CL_SL_NAMES) && ln -s $(CL_SYMLINKS) .
+override CL_CLEAN_FILES += $(CL_SL_NAMES)
 endif
 
 all: all_subdirs $(EXECUTABLE) $(CL_SL_NAMES)
@@ -766,8 +800,7 @@ ifdef CL_OPTIMIZE
 	strip $@
 endif
 
-clean: clean_subdirs $(CL_CLEAN) $(ALWAYS)
-	rm -rf $(CL_BD) $(EXECUTABLE) $(CL_SL_NAMES)
+override CL_CLEAN_FILES += $(EXECUTABLE)
 
 endif
 
@@ -791,9 +824,6 @@ $(CL_ALL_LIB_NAMES): $(CL_ALL_LIB_NAMES:%=$(CL_BD)/%)
 
 $(CL_BD)/$(CL_LIBRARY_FNAME): $(CL_OBJECTS_ALL)
 	$(CL_MKLIB) $@ $(CL_OBJECTS_ALL)
-ifdef CL_OPTIMIZE
-	strip -g $@
-endif
 
 ifeq ($(CL_LTYPE),shared)
 ifneq ($(CL_LIBRARY_SONAME), $(CL_LIBRARY_FNAME))
@@ -806,7 +836,25 @@ $(CL_BD)/$(CL_LIBRARY_CNAME): $(CL_BD)/$(CL_LIBRARY_SONAME)
 endif
 endif
 
-clean: clean_subdirs $(CL_CLEAN) $(ALWAYS)
-	rm -rf $(CL_BD) $(CL_ALL_LIB_NAMES)
+override CL_CLEAN_FILES += $(CL_ALL_LIB_NAMES)
 
 endif
+
+
+# The generic "clean" rule
+# Uses $(CL_CLEAN) as a list of additional rules and $(CL_CLEAN_FILES) as a list
+# for "rm -rf"
+
+ifneq ($(MAKECMDGOALS),cleanall)
+override CL_CLEAN_FILES := $(CL_BD) $(CL_CLEAN_FILES)
+endif
+
+clean: $(CL_CLEAN) $(ALWAYS)
+	rm -rf $(CL_CLEAN_FILES)
+
+# "cleanall" rule - removes ALL build directories
+# Those are identified via stamp files
+
+cleanall: cleanall_subdirs $(CL_CLEAN) $(ALWAYS)
+	rm -rf $(CL_CLEAN_FILES)
+	@$(CL_HELPER) cleanall

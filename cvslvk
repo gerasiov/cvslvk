@@ -238,8 +238,17 @@ depend()
 {
   cpp=cpp
   file=$1;  dep=$2;  shift 2
+
   echo "Calculating dependences for $file ..."
-  $cpp -MM $* $file > $dep.tmp
+
+  bd=`dirname $dep`
+  if test `basename $file .c`.c = `basename $file`; then
+    flags="$* `cat $bd/SYS_MKDEP_FLAGS_C 2>/dev/null`"
+  else
+    flags="$* `cat $bd/SYS_MKDEP_FLAGS_CXX 2>/dev/null`"
+  fi
+
+  $cpp -MM $flags $file > $dep.tmp
   if test $? -ne 0; then
     printf $dep': $(ALWAYS)\n\n' > $dep
     rm -f $dep.tmp;
@@ -253,6 +262,70 @@ depend()
     sed 's/.*:[ ]*\(.*\)/\1/'  $dep.tmp | tr '\n' ' ' | tr -d '\\'; echo ":"; echo
   ) > $dep
   rm -f $dep.tmp
+  return 0
+}
+
+
+# remove_other_bd_links <имя каталога сборки>
+remove_other_bd_links()
+{
+  ls -l | awk '{ if (NF==11) {
+		   if ( split ( $11,a,"/" ) == 2 ) {
+		     if ( (a[1] != "'$1'") && (a[2] == $9) ) {
+		       print ( "rm -f " $9 );
+		       }
+		     }
+		   }
+		}' | sh
+}
+
+
+# cleanall
+cleanall()
+{
+  for i in */CVSLVK_BUILD_DIR; do
+    if test -f $i; then
+      d=`dirname $i`
+      symlinks=`cat $d/SYMLINKS 2>/dev/null`
+      echo rm -rf $symlinks $d
+      rm -rf $symlinks $d
+    fi
+  done
+}
+
+
+# make_sys_mkdep_flags_c <CL_BD> <gcc>|<suncc> <SYS_CFLAGS>
+make_sys_mkdep_flags_c()
+{
+  bd=$1; comp=$2; shift 2
+  cd $bd
+  if test "x$comp" != "xgcc"; then
+    touch SYS_MKDEP_FLAGS_C
+  else
+    echo > cvslvk-test.c
+    gcc -v -E $* cvslvk-test.c 2>&1 | grep /cpp | tr ' ' '\n' |\
+      egrep -v "/cpp|^cvslvk-test.cpp|^-v|^-lang" |\
+      tr '\n' ' ' > SYS_MKDEP_FLAGS_C
+    rm -f cvslvk-test.c
+  fi
+  return 0
+}
+
+
+# make_sys_mkdep_flags_cxx <CL_BD> <gcc>|<suncc> <SYS_CXXFLAGS>
+make_sys_mkdep_flags_cxx()
+{
+  bd=$1; comp=$2; shift 2
+  cd $bd
+  if test "x$comp" != "xgcc"; then
+    touch SYS_MKDEP_FLAGS_CXX
+  else
+    echo > cvslvk-test.cpp
+    g++ -v -E $* cvslvk-test.cpp 2>&1 | grep /cpp | tr ' ' '\n' |\
+      egrep -v "/cpp|^cvslvk-test.cpp|^-v|^-lang" |\
+      tr '\n' ' ' > SYS_MKDEP_FLAGS_CXX
+    rm -f cvslvk-test.cpp
+  fi
   return 0
 }
 
@@ -434,7 +507,8 @@ fi
 shift
 
 case "$command" in
-  check_vars|error|get_arch|get_os|make_rules|\
+  check_vars|error|get_arch|get_os|make_rules|remove_other_bd_links|cleanall|\
+  make_sys_mkdep_flags_c|make_sys_mkdep_flags_cxx|\
   process_wi|show_wi|get_bd_for_clean|depend|liborder|touchap|\
   before_create_wi|before_install_wi|complete_wi|remove_wi|\
   selfupdate)
