@@ -16,7 +16,7 @@ CVSGROUP=cvsusers
 MYPID=$$
 kill_make()
 {
-  MAKEPID=`ps -l | awk '{if ($4=="'$MYPID'") {print($5)}}'`
+  MAKEPID=`(echo $MYPID; ps -l) | awk -f $CL_DIR/getppid.awk`
   kill $MAKEPID;
   exit 1;
 }
@@ -205,14 +205,13 @@ remove_wi()
 
 selfupdate()
 {
-  FILES="Makefile.cvslvk cvslvk check_wi.awk find_wi.awk show_wi.awk"
   mkdir -p $CL_DIR/tmp/$USER
   chgrp $CVSGROUP $CL_DIR/tmp 2>/dev/null
   chmod 775 $CL_DIR/tmp 2>/dev/null
   cd $CL_DIR/tmp/$USER
   cvs checkout cvslvk > /dev/null
   cd cvslvk
-  cp $FILES $CL_DIR
+  cp $Makefile.cvslvk cvslvk *.awk $CL_DIR/
   cd $CL_DIR
   chgrp $CVSGROUP $FILES
   chmod ug+w $FILES
