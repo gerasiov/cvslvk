@@ -506,7 +506,7 @@ ifneq ($(CL_PRE_DEPEND),)
 $(CL_DEPS_ALL): $(CL_PRE_DEPEND)
 endif
 
-override CL_DEPS_TO_INCLUDE := $(filter $(CL_DEPS_ALL),$(wildcard $(CL_BD)/*.deps))
+override CL_DEPS_TO_INCLUDE := $(filter $(CL_DEPS_ALL),$(wildcard $(CL_BD)/*.deps) $(wildcard $(CL_BD)/.*.deps))
 ifneq ($(CL_DEPS_TO_INCLUDE),)
 include $(CL_DEPS_TO_INCLUDE)
 endif
