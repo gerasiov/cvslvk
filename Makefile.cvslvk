@@ -293,7 +293,7 @@ endif
 # We support only gcc
 override CFLAGS += -fPIC
 override CXXFLAGS += -fPIC
-CL_MKLIB := $(LD) -shared -Wl,-soname,$(CL_LIBRARY_SONAME) -o
+CL_MKLIB := $(LD) -shared -Wl,-h,$(CL_LIBRARY_SONAME) -o
 endif
 
 ifeq ($(CL_LTYPE),static)
