@@ -476,6 +476,7 @@ install()
  # Собственно установка
   rm -f $CL_DIR/*.awk $CL_DIR/Makefile.cvslvk $CL_DIR/cvslvk
   cp Makefile.cvslvk cvslvk getppid.awk process_wi.awk liborder.awk $CL_DIR/
+  rm -f process_wi.awk
  # Удаление устаревших псевдомодулей
   for i in $CL_DIR/*/REMOVE_ON_CVSLVK_UPDATE; do
     test -f $i && rm -rf `dirname $i`
