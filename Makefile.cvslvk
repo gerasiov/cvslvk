@@ -4,14 +4,9 @@
 override CL_HELPER := $(CL_DIR)/cvslvk
 
 
-# $(CL_DEFAULT_GOAL) - what to make when "make" is run with no parameters
-# Defaults to "all".
+# Set default goal immidiatly, to make it possible to define rules
 
-ifndef CL_DEFAULT_GOAL
-CL_DEFAULT_GOAL = all
-endif
-
-default_goal: $(CL_DEFAULT_GOAL)
+default_goal: all
 
 
 # $(ALWAYS) macro - a rule that should be applied even if file exists
@@ -27,13 +22,23 @@ $(ALWAYS):
 # CNAME will not be installed
 # We need to process it BEFORE command check
 ifdef INTERNAL_LIBRARY
+ifdef LIBRARY
+override CL_TMP := $(shell $(CL_HELPER) error cvslvk: cannot process both LIBRARY and INTERNAL_LIBRARY in the same directory.)
+endif
 LIBRARY = $(INTERNAL_LIBRARY)
 endif
 
 
 # If no command is given, stop immidiatly
 ifeq ($(EXECUTABLE)$(LIBRARY)$(SUBDIRS),)
-override CL_TMP := $(shell $(CL_HELPER) error cvslvk: cannot determine mode. Please set EXECUTABLE, LIBRARY or SUBDIRS)
+override CL_TMP := $(shell $(CL_HELPER) error cvslvk: cannot determine mode. Please set EXECUTABLE, LIBRARY, INTERNAL_LIBRARY or SUBDIRS)
+endif
+
+# If both EXECUTABLE and LIBRARY are given, stop immidiatly
+ifneq ($(EXECUTABLE)$(LIBRARY),$(EXECUTABLE))
+ifneq ($(EXECUTABLE)$(LIBRARY),$(LIBRARY))
+override CL_TMP := $(shell $(CL_HELPER) error cvslvk: cannot process both EXECUTABLE and LIBRARY in the same directory.)
+endif
 endif
 
 
@@ -87,11 +92,7 @@ override CL_ARCH := $(shell $(CL_HELPER) get_arch)
 override CL_OS := $(shell $(CL_HELPER) get_os)
 
 
-# Compiler defaults to GCC. Sun CC may be still used, if $(CL_COMP)=suncc
-# $(CL_COMP) should be 'gcc' or 'suncc'
-
-# Find out what WIs we will use.
-# Required compiler setting may also go from here:
+# Find out what WIs we will use. Required compiler setting may go from here.
 #   first parameter of "$(CL_HELPER) process_wi" is "need" or "compute",
 #     "need" means that compiler is the build parameter anyway,
 #     "compute" means that WI processing should find out whether it is needed 
@@ -266,6 +267,15 @@ endif
 
 ifdef CL_LOCALWORK
 override INCLUDES += -I. -I$(CL_BD)
+endif
+
+
+# Include rules.cvslvk for used working installations
+# $(CL_COMP), $(CL_LTYPE), $(CL_BD) are already computed, so may be used but not
+#  changed. That means that no build parameters may come from WIs
+
+ifdef CL_LOCALWORK
+include $(CL_DIR)/rules.cvslvk
 endif
 
 
@@ -447,13 +457,6 @@ endif
 endif  # ifdef LIBRARY
 
 
-# Include additional rules for used module working installations
-
-ifdef CL_LOCALWORK
-include $(CL_DIR)/rules.cvslvk
-endif
-
-
 # RPATH flag differs between gcc and suncc
 # (not all gcc revisions understand -R: linux one doesn't)
 
@@ -539,7 +542,7 @@ endif
 
 
 # Autodepend rules
-# No dependences needed when making $(CL_NODEP_RULES) - e.g. clean, show_wi
+# No dependences needed when making $(CL_NODEP_RULES) - e.g. clean, install
 
 ifdef CL_LOCALWORK
 
@@ -547,7 +550,7 @@ override DEPS := $(SOURCES:%=$(CL_BD)/%.deps)
 override CL_DEPS_ALL := $(CL_DEPS_NU) $(DEPS)
 
 # There is a problem that we can't just call "cpp -MM" because at least gcc
-# passes to cpp tons of defined.
+# passes to cpp tons of defines.
 # We will save some flags in $(CL_BD)/SYS_MKDEP_FLAGS_C{XX}
 # Currently this is done correctly for gcc only (using gcc -v)
 
@@ -783,7 +786,9 @@ all_subdirs install_subdirs clean_subdirs cleanall_subdirs: $(ALWAYS)
 	for dir in $(SUBDIRS); do \
 	  (cd $$dir && $(MAKE) `echo $@ | cut -d_ -f1`) || exit 1; \
 	done
+ifneq ($(MAKECMDGOALS),cleanall)
 override CL_CLEAN := clean_subdirs $(CL_CLEAN)
+endif
 ifeq ($(EXECUTABLE)$(LIBRARY),)
 all: all_subdirs
 endif
@@ -868,6 +873,6 @@ clean: $(CL_CLEAN) $(ALWAYS)
 # "cleanall" rule - removes ALL build directories
 # Those are identified via stamp files
 
-cleanall: cleanall_subdirs $(CL_CLEAN) $(ALWAYS)
+cleanall: $(CL_CLEAN) cleanall_subdirs $(ALWAYS)
 	rm -rf $(CL_CLEAN_FILES)
 	@$(CL_HELPER) cleanall
