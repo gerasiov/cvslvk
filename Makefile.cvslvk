@@ -523,14 +523,12 @@ override CFLAGS += $(INCLUDES) $(DEFINES)
 override CXXFLAGS += $(INCLUDES) $(DEFINES)
 
 
-# Create $(CL_SOURCES_ALL) and $(CL_OBJECTS_ALL)
-# Assumptions:
-# $(SOURCES) contains user sources
-# $(CL_SOURCES_NU) and $(CL_OBJECTS_NU) contain non-user sources and objects
+# Create $(CL_OBJECTS_ALL) from user sources and $(CL_OBJECTS_NU)
+# $(CL_OBJECTS_NU) contain objects that can't be generated from $(SOURCES) by
+# changing the extension and adding $(CL_BD).
 # The later is not automatically generated because methods differ.
 
 ifdef CL_LOCALWORK
-override CL_SOURCES_ALL := $(CL_SOURCES_NU) $(SOURCES)
 override OBJECTS := $(SOURCES:%=$(CL_BD)/%)
 override OBJECTS := $(OBJECTS:.cpp=.o)
 override OBJECTS := $(OBJECTS:.cc=.o)
