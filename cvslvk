@@ -254,7 +254,7 @@ complete_wi()
   find $1 -exec $CHGRP $CVSGROUP \{\} \;
   find $1 -exec $CHMOD ug+rw \{\} \;
   find $1 -exec chmod a+r \{\} \;
-  find $1 -type d -exec chmod a+rw \{\} \;
+  find $1 -type d -exec chmod a+rx \{\} \;
 
   make_rules
 }
