@@ -334,7 +334,6 @@ remove_wi()
 # liborder <ограничения> -- <библиотеки>
 liborder()
 {
-  echo $* 1>&2
   cons=""
   while test "x$1" != "x--"; do
     if test "x$cons" = "x"; then cons="$1"; else cons="$cons $1"; fi
