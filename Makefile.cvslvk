@@ -546,6 +546,13 @@ ifdef SUBDIRS
 override CL_INSTALL_PARTS += install_subdirs
 endif
 
+ifdef CL_INSTALL_WI
+install_rules: $(ALWAYS)
+	if test -f rules.cvslvk; then cp rules.cvslvk $(CL_PREFIX)/; fi
+
+override CL_INSTALL_PARTS += install_rules
+endif
+
 install: $(CL_INSTALL_PARTS) $(ALWAYS)
 
 
