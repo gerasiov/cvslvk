@@ -557,7 +557,7 @@ install_rules: $(ALWAYS)
 override CL_INSTALL_PARTS += install_rules
 endif
 
-install: $(CL_INSTALL_PARTS) $(ALWAYS)
+install: all $(CL_INSTALL_PARTS) $(ALWAYS)
 
 
 ifdef SUBDIRS
