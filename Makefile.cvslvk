@@ -587,7 +587,7 @@ ifdef EXECUTABLE
 ifneq ($(CL_SYMLINKS),)
 override CL_SL_NAMES := $(notdir $(CL_SYMLINKS))
 $(CL_SL_NAMES):
-	ln -s $(CL_SYMLINKS) .
+	ln -sf $(CL_SYMLINKS) .
 endif
 
 all: all_subdirs $(EXECUTABLE) $(CL_SL_NAMES)
