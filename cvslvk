@@ -332,7 +332,7 @@ make_sys_mkdep_flags_c()
   else
     echo > cvslvk-test.c
     gcc -v -E $* cvslvk-test.c 2>&1 | grep /cpp | tr ' ' '\n' |\
-      egrep -v "/cpp|^cvslvk-test.c|^-v|^-lang" |\
+      grep "^-D" |\
       tr '\n' ' ' | awk -f $CL_DIR/cppargs.awk > SYS_MKDEP_FLAGS_C
     rm -f cvslvk-test.c
   fi
@@ -350,7 +350,7 @@ make_sys_mkdep_flags_cxx()
   else
     echo > cvslvk-test.cpp
     g++ -v -E $* cvslvk-test.cpp 2>&1 | grep /cpp | tr ' ' '\n' |\
-      egrep -v "/cpp|^cvslvk-test.cpp|^-v|^-lang" |\
+      grep "^-D" |\
       tr '\n' ' ' | awk -f $CL_DIR/cppargs.awk > SYS_MKDEP_FLAGS_CXX
     rm -f cvslvk-test.cpp
   fi
