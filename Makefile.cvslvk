@@ -584,7 +584,7 @@ endif
 
 ifdef EXECUTABLE
 
-all: $(EXECUTABLE) all_subdirs
+all: all_subdirs $(EXECUTABLE) symlinks
 
 $(EXECUTABLE): $(CL_BD)/$(EXECUTABLE)
 	ln -sf $(CL_BD)/$(EXECUTABLE) $(EXECUTABLE)
@@ -598,6 +598,14 @@ endif
 clean: $(CL_CLEAN) clean_subdirs $(ALWAYS)
 	rm -rf $(CL_BD)
 	rm -f $(EXECUTABLE)
+ifneq ($(CL_SYMLINKS),)
+	for i in $(CL_SYMLINKS); do rm -f `basename $$i`; done
+endif
+
+symlinks: $(ALWAYS)
+ifneq ($(CL_SYMLINKS),)
+	ln -sf $(CL_SYMLINKS) .
+endif
 
 endif
 
