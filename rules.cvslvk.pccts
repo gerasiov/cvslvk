@@ -25,7 +25,7 @@ $(PCCTS_DLG_LEXER_H) : $(PCCTS_DLG_LEXER_CPP)
 
 override PCCTS_GEN_SOURCES := $(PCCTS_ANTLR_RULES_CPP) $(PCCTS_ANTLR_CLASS_CPP) $(PCCTS_DLG_LEXER_CPP)
 override CL_OBJECTS_NU += $(PCCTS_GEN_SOURCES:%.cpp=%.o)
-override CL_DEPS_NU += $(PCCTS_OBJECTS_NU:%=%.deps)
+override CL_DEPS_NU += $(PCCTS_GEN_SOURCES:%=%.deps)
 
 override PCCTS_LIB_FILES := AParser.cpp DLexerBase.cpp ASTBase.cpp PCCTSAST.cpp ATokenBuffer.cpp
 override CL_OBJECTS_NU += $(PCCTS_LIB_FILES:%.cpp=$(CL_BD)/%.o)
