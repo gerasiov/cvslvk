@@ -416,7 +416,7 @@ make_sys_mkdep_flags_cxx()
   shift 2
   cd $bd
   echo > cvslvk-test.cpp
-  $comp++ -v -E $* cvslvk-test.cpp 2>&1 | grep /cpp | tr ' ' '\n' |\
+  $comp -v -E $* cvslvk-test.cpp 2>&1 | grep /cpp | tr ' ' '\n' |\
     grep "^-D" |\
     tr '\n' ' ' | awk -f $CL_DIR/cppargs.awk > SYS_MKDEP_FLAGS_CXX
   rm -f cvslvk-test.cpp
