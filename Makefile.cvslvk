@@ -30,7 +30,7 @@ override CL_TMP := $(if $(EXECUTABLE),$(if $(LIBRARY)$(INTERNAL_LIBRARY),$(CL_DU
 override CL_TMP := $(if $(LIBRARY),$(if $(EXECUTABLE)$(INTERNAL_LIBRARY),$(CL_DUP_COMMAND_ERROR)))
 override CL_TMP := $(if $(INTERNAL_LIBRARY),$(if $(EXECUTABLE)$(LIBRARY),$(CL_DUP_COMMAND_ERROR)))
 ifdef INTERNAL_LIBRARY
-override LIBRARY := INTERNAL_LIBRARY
+override LIBRARY := $(INTERNAL_LIBRARY)
 endif
 
 # CL_LOCALWORK is defined if we are goind to build anything in the current directory.
