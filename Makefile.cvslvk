@@ -68,6 +68,7 @@ override CL_SUNCC_CFLAGS := $(CL_SUNCC_CFLAGS)
 override CL_SUNCC_CXXFLAGS := $(CL_SUNCC_CXXFLAGS)
 override CL_SYMLINKS := $(CL_SYMLINKS)
 override CL_LIBORDER := $(CL_LIBORDER)
+override CL_NODEP_RULES := $(CL_NODEP_RULES)
 
 
 # Variable check subsystem
