@@ -13,8 +13,6 @@ RULES_CVSLVK_TMP=$CL_DIR/rules.cvslvk.tmp  # Временная копия того же файла
 # Группа пользователей CVS
 CVSGROUP=cvsusers
 
-CHGRP=chgrp
-
 MYPID=$$
 kill_make()
 {
@@ -23,19 +21,24 @@ kill_make()
   exit 1;
 }
 
-if test ! -f $CL_DIR/Makefile.cvslvk; then
-  if test "$1" = "selfupdate"; then
-    if test "$CL_DIR" = ""; then
-    echo 'CL_DIR is not set' 1>&2
-    exit 1
-    fi
-  else
-    echo '$CL_DIR/Makefile.cvslvk doesnt exist: maybe CL_DIR is not set?' 1>&2
-    exit 1
-  fi
+if test "$CL_DIR" = ""; then
+  echo 'CL_DIR is not set' 1>&2
+  exit 1
 fi
 
-if test "$CL_VERBOSE" != ""; then echo $* 1>&2; fi
+
+choose_chgrp_and_chmod()
+{
+  clgroup=`ls -ld $CL_DIR | awk '{print($4)}'`
+  if test "$clgroup" = "$CVSGROUP"; then
+    CHGRP=chgrp
+    CHMOD=chmod
+  else
+    CHGRP=true
+    CHMOD=true
+  fi
+}
+
 
 echo_build_error()
 {
@@ -126,8 +129,9 @@ make_rules()
     fi
   done
   mv $RULES_CVSLVK_TMP $RULES_CVSLVK
+  choose_chgrp_and_chmod
   $CHGRP $CVSGROUP $RULES_CVSLVK
-  chmod 664 $RULES_CVSLVK
+  $CHMOD 664 $RULES_CVSLVK
 }
 
 
@@ -249,8 +253,9 @@ before_install_wi()
 complete_wi()
 {
   cd $CL_DIR
+  choose_chgrp_and_chmod
   find $1 -exec $CHGRP $CVSGROUP \{\} \;
-  find $1 -exec chmod ug+rw \{\} \;
+  find $1 -exec $CHMOD ug+rw \{\} \;
 
   make_rules
 }
@@ -278,15 +283,16 @@ remove_wi()
 selfupdate()
 {
   mkdir -p $CL_DIR/tmp/$USER
+  choose_chgrp_and_chmod
   $CHGRP $CVSGROUP $CL_DIR/tmp 2>/dev/null
-  chmod 775 $CL_DIR/tmp 2>/dev/null
+  $CHMOD 775 $CL_DIR/tmp 2>/dev/null
   cd $CL_DIR/tmp/$USER
   cvs checkout cvslvk > /dev/null
   cd cvslvk
   cp Makefile.cvslvk cvslvk *.awk $CL_DIR/
   cd $CL_DIR
   $CHGRP $CVSGROUP *
-  chmod ug+w *
+  $CHMOD ug+w *
   rm -r $CL_DIR/tmp/$USER/cvslvk
   make_rules
 }
