@@ -598,9 +598,9 @@ build()
   cd $MODULE
   MAKE_PARAMS="CL_MODULE=$WINAME CL_OPTIMIZE=1 $PARAMS"
   echo
-  echo "Running make create_wi $MAKE_PARAMS ..."
+  echo "Running make update_wi $MAKE_PARAMS ..."
   echo 
-  make create_wi $MAKE_PARAMS
+  make update_wi $MAKE_PARAMS
   if test $? -ne 0; then
     echo 
     echo "Command failed. Please report to the module maintainer[s]."

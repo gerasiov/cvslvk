@@ -665,7 +665,7 @@ ifdef SCRIPTS
 install_scripts: $(ALWAYS)
 	mkdir -p $(CL_PREFIX)/bin
 	( cd $(CL_PREFIX)/bin && rm -rf $(SCRIPTS) )
-	cp -p $(SCRIPTS) $(CL_PREFIX)/bin/
+	cp -p -r $(SCRIPTS) $(CL_PREFIX)/bin/
 
 override CL_INSTALL_PARTS += install_scripts
 endif
@@ -675,7 +675,7 @@ ifdef CL_INSTALL_WI
 install_scripts_wi: $(ALWAYS)
 	mkdir -p $(CL_PREFIX)/bin
 	( cd $(CL_PREFIX)/bin && rm -rf $(SCRIPTS_WI) )
-	cp -p $(SCRIPTS_WI) $(CL_PREFIX)/bin/
+	cp -p -r $(SCRIPTS_WI) $(CL_PREFIX)/bin/
 
 override CL_INSTALL_PARTS += install_scripts_wi
 endif
