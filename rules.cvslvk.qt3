@@ -6,7 +6,7 @@ override UIC := $(CL_WI)/bin/uic
 override MOC := $(CL_WI)/bin/moc
 
 ifdef UIFILES
-override UIC_GEN_HEADERS := $(UIFILES:%.ui:$(CL_BD)/%.h)
+override UIC_GEN_HEADERS := $(UIFILES:%.ui=$(CL_BD)/%.h)
 $(UIC_GEN_HEADERS) : $(CL_BD)/%.h : %.ui
 	$(UIC) $(UICFLAGS) -o $@ $<
 override UIC_GEN_SOURCES := $(UIFILES:%.ui=$(CL_BD)/%.cpp)
