@@ -253,6 +253,8 @@ complete_wi()
   choose_chgrp_and_chmod
   find $1 -exec $CHGRP $CVSGROUP \{\} \;
   find $1 -exec $CHMOD ug+rw \{\} \;
+  find $1 -exec chmod a+r \{\} \;
+  find $1 -type d -exec chmod a+rw \{\} \;
 
   make_rules
 }

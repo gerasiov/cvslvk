@@ -490,7 +490,7 @@ ifdef SUBDIRS
 
 all_subdirs install_subdirs clean_subdirs: $(ALWAYS)
 	for dir in $(SUBDIRS); do \
-	  ( (cd \$dir && $(MAKE) `echo $@ | cut -f_ -d1`) || exit 1 ) \
+	  ( (cd $$dir && $(MAKE) `echo $@ | cut -d_ -f1`) || exit 1 ) \
 	done
 
 ifeq ($(EXECUTABLE)$(LIBRARY),)
