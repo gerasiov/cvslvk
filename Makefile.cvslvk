@@ -474,6 +474,10 @@ override CL_LDFLAGS_DIRS := $(filter -L%,$(LDFLAGS))
 override CL_LDFLAGS_LIBS := $(filter -l%,$(LDFLAGS))
 override CL_LDFLAGS_OTHER := $(filter-out $(CL_LDFLAGS_DIRS) $(CL_LDFLAGS_LIBS),$(LDFLAGS))
 
+# Make each entry in CL_LDFLAGS_LIBS and ÛL_LDFLAGS_DIRS unique
+override CL_LDFLAGS_DIRS := $(foreach x,$(sort $(CL_LDFLAGS_DIRS)),$(findstring $(x),$(CL_LDFLAGS_DIRS)))
+override CL_LDFLAGS_LIBS := $(foreach x,$(sort $(CL_LDFLAGS_LIBS)),$(findstring $(x),$(CL_LDFLAGS_LIBS)))
+
 
 # Internal library variables
 #
@@ -557,7 +561,7 @@ $(CL_BD)/SYS_MKDEP_FLAGS_CXX:
 
 $(CL_DEPS_ALL): $(CL_BD)/SYS_MKDEP_FLAGS_C $(CL_BD)/SYS_MKDEP_FLAGS_CXX
 
-CL_DEPEND_COMMAND = @$(CL_HELPER) depend $< $@ $(INCLUDES) $(DEFINES)
+override CL_DEPEND_COMMAND = @$(CL_HELPER) depend $< $@ $(INCLUDES) $(DEFINES)
 
 $(CL_BD)/%.deps: %
 	$(CL_DEPEND_COMMAND)
@@ -565,7 +569,7 @@ $(CL_BD)/%.deps: %
 $(CL_BD)/%.deps: $(CL_BD)/%
 	$(CL_DEPEND_COMMAND)
 
-CL_NODEP_RULES += clean cleanall create_wi update_wi install
+override CL_NODEP_RULES += clean cleanall create_wi update_wi install
 
 ifneq ($(MAKECMDGOALS),)
 ifeq ($(filter-out $(CL_NODEP_RULES),$(MAKECMDGOALS)),)
@@ -651,23 +655,21 @@ update_wi: $(ALWAYS)
 
 # Rules for building object files
 
+override CL_C_COMPILE_COMMAND = $(CC) $(CFLAGS) -o $@ $<
+override CL_CPP_COMPILE_COMMAND = $(CXX) $(CFLAGS) -o $@ $<
+
 $(CL_BD)/%.o: %.c
-	$(CC) $(CFLAGS) -o $@ $<
-
+	$(CL_C_COMPILE_COMMAND)
 $(CL_BD)/%.o: $(CL_BD)/%.c
-	$(CC) $(CFLAGS) -o $@ $<
-
+	$(CL_C_COMPILE_COMMAND)
 $(CL_BD)/%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $<
-
+	$(CL_CPP_COMPILE_COMMAND)
 $(CL_BD)/%.o: $(CL_BD)/%.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $<
-
+	$(CL_CPP_COMPILE_COMMAND)
 $(CL_BD)/%.o: %.cc
-	$(CXX) $(CXXFLAGS) -o $@ $<
-
+	$(CL_CPP_COMPILE_COMMAND)
 $(CL_BD)/%.o: %.C
-	$(CXX) $(CXXFLAGS) -o $@ $<
+	$(CL_CPP_COMPILE_COMMAND)
 
 
 # Make things like "make file.o" work
