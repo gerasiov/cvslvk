@@ -416,9 +416,9 @@ override CL_LDFLAGS_LIBS += $(patsubst %,-l%,$(notdir $(CL_USE_IL)))
 override CL_IL_DIRS := $(CL_USE_IL:%=-L%)
 override CL_PWD := $(shell pwd)
 ifeq ($(MAKECMDGOALS),install)
-override CL_LDFLAGS_OTHER += $(CL_IL_DIRS) $(CL_RPATH_FLAG)$(CL_PREFIX)/lib
+override CL_IL_DIRS := $(CL_IL_DIRS) $(CL_RPATH_FLAG)$(CL_PREFIX)/lib
 else
-override CL_LDFLAGS_OTHER += $(CL_IL_DIRS) $(CL_IL_DIRS:-L%=$(CL_RPATH_FLAG)$(CL_PWD)/%)
+override CL_IL_DIRS := $(CL_IL_DIRS) $(CL_IL_DIRS:-L%=$(CL_RPATH_FLAG)$(CL_PWD)/%)
 endif
 endif
 
@@ -429,8 +429,7 @@ override CL_LDFLAGS_LIBS := $(shell $(CL_HELPER) liborder $(CL_LIBORDER) -- $(CL
 endif
 
 # Compute the final LDFLAGS (with compiler-dependent RPATH functionality)
-override LDFLAGS := $(CL_LDFLAGS_DIRS) $(CL_LDFLAGS_DIRS:-L%=$(CL_RPATH_FLAG)%) $(CL_LDFLAGS_LIBS) $(CL_LDFLAGS_OTHER)
-
+override LDFLAGS := $(CL_IL_DIRS) $(CL_LDFLAGS_DIRS) $(CL_LDFLAGS_DIRS:-L%=$(CL_RPATH_FLAG)%) $(CL_LDFLAGS_LIBS) $(CL_LDFLAGS_OTHER)
 
 # Reorder includes so that WI includes are always before other includes
 override INCLUDES := -I. -I$(CL_BD) $(filter $(CL_DIR)/%,$(INCLUDES)) $(filter-out $(CL_DIR)/% -I. -I$(CL_BD),$(INCLUDES))
