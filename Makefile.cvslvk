@@ -229,7 +229,9 @@ endif
 ifdef CL_OPTIMIZE
 override CL_DIR_PARAMS := $(CL_DIR_PARAMS)-optimized
 else
-ifndef CL_NDEBUG
+ifdef CL_NDEBUG
+override CL_DIR_PARAMS := $(CL_DIR_PARAMS)-ndebug
+else
 override CL_DIR_PARAMS := $(CL_DIR_PARAMS)-debug
 endif
 endif
