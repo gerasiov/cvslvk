@@ -1,4 +1,4 @@
-#This file was created by <nikita> Mon Dec 20 19:05:07 1999
+#This file was created by <nikita> Tue Dec 21 20:40:48 1999
 #LyX 0.12 (C) 1995-1998 Matthias Ettrich and the LyX Team
 \lyxformat 2.15
 \textclass article
@@ -39,7 +39,7 @@
 \newline 
 
 \emph on 
-последнее изменение в этот документ внесено 20.12.1999
+последнее изменение в этот документ внесено 21.12.1999
 \newline 
 
 \newline 
@@ -2826,12 +2826,12 @@ LDFLAGS
  
 \layout Standard
 
-Архитектура и операционная система машины, на которой осуществляется сборка,
- доступны в файлах 
+В файлах 
 \family typewriter 
 rules.cvslvk
 \family default 
- через следующие переменные:
+ (а также в пользовательском Makefile-е ниже включения $(CL_DIR)/Makefile.cvslvk)
+ доступны следующие переменные:
 \layout Itemize
 
 
@@ -2843,7 +2843,8 @@ CL_ARCH
 \series default 
  
 \newline 
-Возможные значения в текущей версее системы cvslvk: 
+Содержит архитектуру системы, на которой идет сборка.
+ Возможные значения в текущей версии системы cvslvk: 
 \family typewriter 
 sparc
 \family default 
@@ -2861,13 +2862,27 @@ CL_OS
 \series default 
  
 \newline 
-Возможные значения в текущей версее системы cvslvk: 
+Содержит операционную систему, на которой идет сборка.
+ Возможные значения в текущей версии системы cvslvk: 
 \family typewriter 
 solaris
 \family default 
  и 
 \family typewriter 
 linux
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_BD
+\family default 
+\series default 
+ 
+\newline 
+Содержит имя каталога сборки (т.е.
+ разделенные дефисами параметры сборки)
 \layout Subsubsection
 
 Зависимости между модулями
@@ -3305,10 +3320,526 @@ EXECUTABLE
 Средства создания рабочих инсталляций в системе cvslvk
 \layout Standard
 
-В системе cvslvk модуль собирается из одного каталога или из иерархии каталогов.
+В системе cvslvk модуль собирается из одного каталога или из иерархии каталогов,
+ сцепляемой при помощи переменных 
+\family typewriter 
+SUBDIRS
+\family default 
+.
+ Команды создания рабочей инсталляции во многом аналогичны команде 
+\family typewriter 
+make
+\protected_separator 
+install
+\family default 
+.
+ Отличия заключаются в следующем.
+\layout Itemize
+
+Путь для инсталляции (т.е.
+ значение переменной 
+\family typewriter 
+CL_PREFIX
+\family default 
+) автоматически устанавливается на значение 
+\family typewriter 
+$(CL_DIR)/<
+\family default 
+имя-модуля
+\family typewriter 
+>_<
+\family default 
+параметры-сборки
+\family typewriter 
+>
+\family default 
+.
+\layout Itemize
+
+Если в рабочем каталоге имеется файлы
+\family typewriter 
+ rules.cvslvk
+\family default 
+ и 
+\family typewriter 
+depend.cvslvk
+\family default 
+, то они копируется в рабочую инсталляцию.
+\newline 
+Если определена переменная 
+\family typewriter 
+SUBDIRS
+\family default 
+, то система сделает попытки переписать эти файлы и из перечисленных в переменно
+й 
+\family typewriter 
+SUBDIRS
+\family default 
+ каталогов.
+ Если окажется, что файл имеется более чем в одном из них, то в рабочей
+ инсталляции останется файл из последнего каталога (при этом, как обычно,
+ текущий каталог проверяется после 
+\family typewriter 
+SUBDIRS
+\family default 
+).
+\layout Itemize
+
+Имеется возможность инсталлировать дополнительные файлы.
+ Текущая версия системы явно поддерживает установку только дополнительных
+ скриптов, но это легко расширяется при помощи условной конструкции в 
+\family typewriter 
+Makefile
+\family default 
+-е, которая добавляет дополнительные правила в переменную 
+\family typewriter 
+CL_INSTALL_PARTS
+\family default 
+ когда определена 
+\series bold 
+переменная 
+\family typewriter 
+CL_INSTALL_WI
+\family default 
+\series default 
+.
+\layout Standard
+
+Имеются две команды для создания рабочих инсталляций: 
+\family typewriter 
+make
+\protected_separator 
+create_wi
+\family default 
+ и 
+\family typewriter 
+make
+\protected_separator 
+update_wi
+\family default 
+.
+ Они различаются только поведением в случае, когда создаваемая рабочая инсталляц
+ия уже есть.
+ В этом случае команда 
+\family typewriter 
+make
+\protected_separator 
+create_wi 
+\family default 
+выдаст сообщение об ошибке, а команда 
+\family typewriter 
+update_wi
+\family default 
+ -- сделает попытку удалить имеющуюся рабочую инсталляцию и создать новую.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_MODULE
+\newline 
+
+\family default 
+\series default 
+В этой переменной указывается имя модуля, рабочая инсталляция которого создается.
+ Если эта переменная не определена, то команды 
+\family typewriter 
+make
+\protected_separator 
+create_wi
+\family default 
+ и 
+\family typewriter 
+make
+\protected_separator 
+update_wi
+\family default 
+ будут аварийно завершены.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_SCRIPTS_WI
+\newline 
+
+\family default 
+\series default 
+В этой переменной указывается разделенный пробелами список файлов (скриптов),
+ которые следует переписать в каталог 
+\family typewriter 
+bin/
+\family default 
+ рабочей инсталляции, но не следует переписывать при выполнении команды
+ 
+\family typewriter 
+make
+\protected_separator 
+install
+\family default 
+.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_DEPEND_ON_EXACT
+\newline 
+
+\family default 
+\series default 
+Если эта переменная определена, то в файл 
+\family typewriter 
+depend.cvslvk
+\family default 
+ создаваемой рабочей инсталляции добавляется полные имена использованных
+ при сборке каталога рабочих инсталляций модулей, имена которых перечислены
+ в этой переменной.
+ Это можно использовать в случае, когда модуль может быть собран с использование
+м различных рабочими инсталляциями другого модуля, но создаваемая инсталляция
+ должна зависеть от именно той рабочей инсталляции другого модуля, с которой
+ собиралась.
+ 
+\newline 
+В будущих версиях системы cvslvk механизм передачи параметров между рабочими
+ инсталляциями будет расширен.
+\layout Standard
+
+Порядок действий при создании рабочей инсталляции следующий:
+\layout Itemize
+
+проверяется наличие рабочей инсталляции; если рабочая инсталляция уже есть,
+ то команда 
+\family typewriter 
+make
+\protected_separator 
+create_wi
+\family default 
+ аварийно завершится, а команда 
+\family typewriter 
+make
+\protected_separator 
+update_wi
+\family default 
+ сделает попытку удалить имеющуюся рабочую инсталляцию;
+\layout Itemize
+
+устанавливается переменная 
+\family typewriter 
+CL_PREFIX
+\family default 
+,
+\layout Itemize
+
+вызывается операция сборки каталога (с явно установленной переменной 
+\family typewriter 
+CL_PREFIX
+\family default 
+ -- это можно использовать если в собираемом модуле что-то зависит от пути
+ инсталляции),
+\layout Itemize
+
+устанавливается переменная 
+\family typewriter 
+CL_INSTALL_WI
+\family default 
+ и вызывается команда 
+\family typewriter 
+make
+\protected_separator 
+install
+\family default 
+.
+\layout Standard
+
+Рабочая инсталляция готова к использованию немедленно после успешного завершения
+ команды 
+\family typewriter 
+make
+\protected_separator 
+create_wi
+\family default 
+ или 
+\family typewriter 
+make
+\protected_separator 
+update_wi
+\family default 
+.
 \layout Subsubsection
 
-Переменные, предназначенные для определения в файлах rules.cvslvk
+Создание рабочей инсталляции вручную
+\layout Standard
+
+Для создания рабочей инсталляции вручную следует создать в каталоге 
+\family typewriter 
+$(CL_DIR)/
+\family default 
+ подкаталог с соответствующем именем (
+\family typewriter 
+<
+\family default 
+имя-модуля
+\family typewriter 
+>_<
+\family default 
+параметры
+\family typewriter 
+>/
+\family default 
+) и поместить туда необходимые файлы, в т.ч.
+ файлы 
+\family typewriter 
+rules.cvslvk
+\family default 
+ и/или 
+\family typewriter 
+depend.cvslvk
+\family default 
+.
+ Первым параметром рабочей инсталляции 
+\emph on 
+обязательно
+\emph toggle 
+ должна быть архитектура (
+\family typewriter 
+sparc
+\family default 
+ или 
+\family typewriter 
+x86
+\family default 
+), а вторым -- операционная система (
+\family typewriter 
+solaris
+\family default 
+ или 
+\family typewriter 
+linux
+\family default 
+).
+ При невыполнении этого условия система cvslvk не будет использовать инсталляцию
+ во время сборки каталога.
+\layout Standard
+
+После ручного создания рабочей инсталляции необходимо выполнить команду
+ 
+\family typewriter 
+cvslvk
+\protected_separator 
+make_rules
+\family default 
+.
+ При этом рабочая инсталляция будет зарегистрирована в системе и станет
+ доступной в последующих операциях сборки каталогов.
+\layout Standard
+
+Для ускорения своей работы система cvslvk генерирует включаемый 
+\family typewriter 
+Makefile
+\family default 
+, который включает файлы 
+\family typewriter 
+rules.cvslvk
+\family default 
+ выбранных рабочих инсталляций, и кэширует результаты удовлетворения запросов
+ на использование модулей.
+ Каждое изменение в рабочих инсталляциях может сделать кэшированную информацию
+ неверной и требует ее пересоздание.
+ Именно этим и занимается команда 
+\family typewriter 
+cvslvk
+\protected_separator 
+make_rules
+\family default 
+.
+ При изменениях в рабочих инсталляциях, осуществляемых самой системой, команда
+ 
+\family typewriter 
+cvslvk
+\protected_separator 
+make_rules
+\family default 
+ выполняется автоматически.
+ При ручных изменениях эту команду следует выполнять явно.
+ 
+\emph on 
+Если в рабочих инсталляциях были сделаны изменения, а команда не была выполнена,
+ то система может работать неверно.
+\layout Standard
+
+Если рабочая инсталляция была собрана и/или изменена вручную и ее потеря
+ нежелательна, то рекомендуется создать в рабочей инсталляции файл с именем
+ 
+\family typewriter 
+NOREMOVE
+\family default 
+.
+ В этом случае удаление этой рабочей инсталляции средствами системы cvslvk
+ будет заблокировано.
+\layout Standard
+
+В текущей версии системы cvslvk инсталляции псевдомодулей можно создавать
+ 
+\emph on 
+только вручную
+\emph toggle 
+.
+\layout Subsubsection
+
+Переменные, предназначенные для определения в файлах 
+\family typewriter 
+rules.cvslvk
+\layout Standard
+
+Вне зависимости от способа создания рабочей инсталляции, необходимо определить
+ семантику ее использования, т.е.
+ написать файл 
+\family typewriter 
+rules.cvslvk
+\family default 
+.
+ Причем писать его следует таким образом, чтобы максимально упростить использова
+ние модуля и свести возможные ошибки к минимуму.
+ В идеале файл 
+\family typewriter 
+rules.cvslvk
+\family default 
+ должен быть написан так, чтобы для использования модуля было достаточно
+ упомянуть его имя в переменной 
+\family typewriter 
+CL_USE_MODULES
+\family default 
+.
+ В крайнем случае можно потребовать определение нескольких переменных, управляющ
+их использование модуля, при этом в файле 
+\family typewriter 
+rules.cvslvk 
+\family default 
+рекомендуется контролировать корректное определение этих переменных.
+ Устанавливать более сложные условия использования модуля не рекомандуется.
+\layout Standard
+
+При определении в файле 
+\family typewriter 
+rules.cvslvk
+\family default 
+ внутренних переменных рекомендуется указывать ключевое слово 
+\family typewriter 
+override
+\family default 
+, чтобы исключить ошибки при определении этих же переменных в других модулях,
+ в 
+\family typewriter 
+Makefile
+\family default 
+-е или в командной строке 
+\family typewriter 
+make
+\family default 
+.
+ 
+\layout Standard
+
+При изменении 
+\family typewriter 
+DEFINES
+\family default 
+, 
+\family typewriter 
+INCLUDES
+\family default 
+, 
+\family typewriter 
+LDFLAGS
+\family default 
+, флагов компилятора рекомендуется использовать конструкцию 
+\family typewriter 
+override
+\protected_separator 
+<
+\family default 
+имя
+\family typewriter 
+>
+\protected_separator 
++=
+\protected_separator 
+<
+\family default 
+значение
+\family typewriter 
+>
+\family default 
+, чтобы флаги добавлялись даже если пользователь определил соответствующие
+ переменные в командной строке.
+ Ни в коем случае нельзя использовать присваивание в эти переменные, следует
+ использовать только добавление -- иначе можно нарушить работоспособность
+ других модулей, которые изменяют те же переменные.
+\layout Standard
+
+Для обеспечения простоты использования модуля в системе cvslvk определено
+ несколько переменных и команд.
+ В случае, если их недостаточно, обычно можно написать требуемое действие
+ не посредственно на языке 
+\family typewriter 
+GNU
+\protected_separator 
+Makefile
+\family default 
+-а -- этот язык достаточно богат.
+\layout Subsubsection
+
+Удаление рабочих инсталляций
+\layout Standard
+
+Для удаления рабочей инсталляции служит команда 
+\family typewriter 
+cvslvk
+\protected_separator 
+remove_wi
+\family default 
+.
+ Параметры этой комады -- полные имена рабочих инсталляций, подлежащих удалению.
+\layout Standard
+
+Если в рабочей инсталляции (в ее корневом каталоге) имеется файл с именем
+ 
+\family typewriter 
+NOREMOVE
+\family default 
+, то удаление этой рабочей инсталляции командой будет 
+\family typewriter 
+cvslvk
+\protected_separator 
+remove_wi
+\family default 
+ заблокировано.
+\layout Standard
+
+Рабочие инсталляции можно удалять и вручную, удалив соответствующий подкаталог
+ в каталоге 
+\family typewriter 
+$(CL_DIR)/
+\family default 
+.
+ Однако после этого обязательно следует выполнить команду 
+\family typewriter 
+cvslvk
+\protected_separator 
+make_rules
+\family default 
+ для удаления рабочей инсталляции из списков.
+ При удалении рабочих инсталляций командой 
+\family typewriter 
+cvslvk
+\protected_separator 
+remove_wi
+\family default 
+ списки обновляются автоматически.
 \layout Subsection
 
 Сборка библиотек
