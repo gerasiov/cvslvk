@@ -98,6 +98,7 @@ get_arch()
   case "$arch" in
     *86*)        echo x86   ;;
     sun*|sparc)  echo sparc ;;
+    *)  error "get_arch: unsupported output from uname -m: $arch" ;;
   esac
 }
 
@@ -105,10 +106,11 @@ get_arch()
 # get_os
 get_os()
 {
-  arch=`uname -s`
-  case "$arch" in
+  os=`uname -s`
+  case "$os" in
     Linux|linux)  echo linux    ;;
     SunOS)        echo solaris  ;;
+    *)  error "get_arch: unsupported output from uname -s: $os" ;;
   esac
 }
 

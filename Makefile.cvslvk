@@ -22,6 +22,19 @@ ALWAYS = /etc/file_that_never_exists
 $(ALWAYS):
 
 
+# If no command is given, stop immidiatly
+
+ifeq ($(EXECUTABLE)$(LIBRARY)$(SUBDIRS),)
+override CL_TMP := $(shell $(HELPER) error cvslvk: cannot determine mode. Please set EXECUTABLE, LIBRARY or SUBDIRS)
+endif
+
+# Are we going to do anything in the current directory ?
+# If no, then most of the settings may be omitted
+
+ifneq ($(EXECUTABLE)$(LIBRARY),)
+CL_LOCALWORK = 1
+endif
+
 
 # Architecture and OS are those we are using
 # These are detected automatically using 'uname', but since 'uname' output
@@ -151,13 +164,17 @@ endif
 # Now $(CL_DIR_PARAMS) is the parameter string
 
 override CL_BD := $(CL_DIR_PARAMS)
+ifdef CL_LOCALWORK
 override CL_TMP := $(shell mkdir -p $(CL_BD))  # Create build directory
+endif
 
 # Since some include files may be generated, we want to add $(CL_BD) to
 # include search path. -I. is needed because without it, includes are searched
 # in -I's only
 
+ifdef CL_LOCALWORK
 override INCLUDES += -I. -I$(CL_BD)
+endif
 
 
 # Compiler flags for debugging and optimizing
@@ -318,13 +335,14 @@ endif  # ifdef LIBRARY
 # Find the available module installations and replace user references by
 # actual installations. Then include definitions for used modules
 
+ifdef CL_LOCALWORK
 override CL_MODULES_WI := $(shell $(HELPER) find_modules $(CL_DIR_PARAMS) $(CL_USE_MODULES))
 
 $(CL_DIR)/rules.cvslvk:
 	@$(HELPER) make_rules
 
 include $(CL_DIR)/rules.cvslvk
-
+endif
 
 # 'show_wi' rule - will show what working installes are being used
 
@@ -333,7 +351,7 @@ show_wi: $(ALWAYS)
 
 # If the rule is not 'show_wi', abort if wi's are not available
 
-ifndef CL_NO_CHECKS
+ifdef CL_LOCALWORK
 ifneq ($(MAKECMDGOALS),show_wi)
 override CL_TMP := $(shell $(HELPER) check_wi $(CL_USE_MODULES) -- $(CL_MODULES_WI))
 endif
@@ -345,6 +363,7 @@ endif
 override CFLAGS += $(INCLUDES) $(DEFINES)
 override CXXFLAGS += $(INCLUDES) $(DEFINES)
 
+
 # Create $(CL_SOURCES_ALL) and $(CL_OBJECTS_ALL)
 # Assumptions:
 # $(SOURCES) contains user sources
@@ -354,6 +373,7 @@ override CXXFLAGS += $(INCLUDES) $(DEFINES)
 # $(CL_SOURCES_NU) should be before $(SOURCES), because generated headers
 # may be used when dependences are calculated for user files
 
+ifdef CL_LOCALWORK
 override CL_SOURCES_ALL := $(CL_SOURCES_NU) $(SOURCES)
 override OBJECTS := $(SOURCES:%=$(CL_BD)/%)
 override OBJECTS := $(OBJECTS:.cpp=.o)
@@ -362,10 +382,13 @@ override OBJECTS := $(OBJECTS:.C=.o)
 override OBJECTS := $(OBJECTS:.mm=.o)
 override OBJECTS := $(OBJECTS:.c=.o)
 override CL_OBJECTS_ALL := $(CL_OBJECTS_NU) $(OBJECTS)
+endif
 
 
 # Autodepend rules
 # No dependences needed when making $(CL_NODEP_RULES) - e.g. clean, show_wi
+
+ifdef CL_LOCALWORK
 
 override DEPS := $(SOURCES:%=$(CL_BD)/%.deps)
 override CL_DEPS_ALL := $(CL_DEPS_NU) $(DEPS)
@@ -400,12 +423,15 @@ endif
 
 endif  # ifndef CL_NODEP_WORKED
 
+endif  # CL_LOCALWORK
+
 
 # Rule to create and update working installation.
 # $(CL_MODULE) is the module name
 # $(CL_VERSION) is the wi version, defaults to 'unknown'
 # $(CL_INFO) is the third part of the wi name, defaults to $(CL_DIR_PARAMS)
 # Sets $(CL_PREFIX) and uses make install
+
 
 ifndef CL_VERSION
 CL_VERSION := unknown
@@ -445,6 +471,8 @@ update_wi: $(ALWAYS)
 
 # Rules for building object files
 
+ifdef CL_LOCALWORK
+
 $(CL_BD)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ $<
 
@@ -463,8 +491,33 @@ $(CL_BD)/%.o: %.cc
 $(CL_BD)/%.o: %.C
 	$(CXX) $(CXXFLAGS) -o $@ $<
 
+endif
 
-# Rules for executable makefiles
+
+
+ifdef SUBDIRS
+
+all_subdirs install_subdirs clean_subdirs: $(ALWAYS)
+	for dir in $(SUBDIRS); do \
+	  ( (cd \$dir && $(MAKE) `echo $@ | cut -f_ -d1`) || exit 1 ) \
+	done
+
+ifeq ($(EXECUTABLE)$(LIBRARY),)
+
+all: all_subdirs
+
+install: install_subdirs
+
+clean: $(CL_CLEAN) clean_subdirs
+
+endif
+
+else
+
+all_subdirs install_subdirs clean_subdirs:
+
+endif
+
 
 ifdef EXECUTABLE
 
@@ -487,15 +540,12 @@ install: all $(ALWAYS)
 	if test -n "$(CL_INSTALL_WI)" -a -f rules.cvslvk; then cp rules.cvslvk $(CL_PREFIX); fi
 	if test -n "$(CL_INSTALL_WI)" -a -n "$(CL_SCRIPTS_WI)"; then cp $(CL_SCRIPTS_WI) $(CL_PREFIX)/bin; fi
 
-override CL_CLEAN += clean_se
-
-clean_se: $(ALWAYS)
+clean: $(CL_CLEAN) $(ALWAYS)
+	rm -rf $(CL_BD)
 	rm -f $(EXECUTABLE)
 
 endif
 
-
-# Rules for library makefiles
 
 ifdef LIBRARY
 
@@ -522,11 +572,7 @@ endif
 	cp $(EXPORT_INCLUDES) $(CL_PREFIX)/include
 	if test -n "$(CL_INSTALL_WI)" -a -f rules.cvslvk; then cp rules.cvslvk $(CL_PREFIX); fi
 
-endif
-
-
-# The most general clean rule :-)
-# However, $(CL_CLEAN) may point to something additional
-
 clean: $(CL_CLEAN) $(ALWAYS)
 	rm -rf $(CL_BD)
+
+endif
