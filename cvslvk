@@ -229,8 +229,8 @@ selfupdate()
   cd cvslvk
   cp Makefile.cvslvk cvslvk *.awk $CL_DIR/
   cd $CL_DIR
-  chgrp $CVSGROUP $FILES
-  chmod ug+w $FILES
+  chgrp $CVSGROUP *
+  chmod ug+w *
   rm -r $CL_DIR/tmp/$USER/cvslvk
   make_rules
 }
