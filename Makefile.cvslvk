@@ -22,15 +22,20 @@ ALWAYS = /etc/file_that_never_exists
 $(ALWAYS):
 
 
-# If no command is given, stop immidiatly
+# INTERNAL_LIBRARY is a special case of LIBRARY, that is used by the current
+# module only. Static library will not be installed, and for shared library
+# CNAME will not be installed
+ifdef INTERNAL_LIBRARY
+LIBRARY = $(INTERNAL_LIBRARY)
+endif
 
+# If no command is given, stop immidiatly
 ifeq ($(EXECUTABLE)$(LIBRARY)$(SUBDIRS),)
 override CL_TMP := $(shell $(HELPER) error cvslvk: cannot determine mode. Please set EXECUTABLE, LIBRARY or SUBDIRS)
 endif
 
 # Are we going to do anything in the current directory ?
 # If no, then most of the settings may be omitted
-
 ifneq ($(EXECUTABLE)$(LIBRARY),)
 CL_LOCALWORK = 1
 endif
@@ -548,20 +553,35 @@ override CL_INSTALL_PARTS += install_executable
 endif
 
 ifdef LIBRARY
+
+ifeq ($(CL_LTYPE),shared)
 install_library: $(ALWAYS)
 	mkdir -p $(CL_PREFIX)/lib
 	cp $(CL_BD)/$(CL_LIBRARY_FNAME) $(CL_PREFIX)/lib/
-ifeq ($(CL_LTYPE),shared)
 ifneq ($(CL_LIBRARY_SONAME), $(CL_LIBRARY_FNAME))
 	(cd $(CL_PREFIX)/lib && rm -f $(CL_LIBRARY_SONAME) && ln -s $(CL_LIBRARY_FNAME) $(CL_LIBRARY_SONAME))
 endif
 ifneq ($(CL_LIBRARY_CNAME), $(CL_LIBRARY_SONAME))
+ifndef INTERNAL_LIBRARY
 	(cd $(CL_PREFIX)/lib && rm -f $(CL_LIBRARY_CNAME) && ln -s $(CL_LIBRARY_SONAME) $(CL_LIBRARY_CNAME))
 endif
 endif
 
 override CL_INSTALL_PARTS += install_library
+endif # shared
+
+ifeq ($(CL_LTYPE),static)
+ifndef INTERNAL_LIBRARY
+install_library: $(ALWAYS)
+	mkdir -p $(CL_PREFIX)/lib
+	cp $(CL_BD)/$(CL_LIBRARY_FNAME) $(CL_PREFIX)/lib/
+
+override CL_INSTALL_PARTS += install_library
 endif
+endif # static
+
+endif # LIBRARY
+
 
 ifdef EXPORT_INCLUDES
 install_includes: $(ALWAYS)
