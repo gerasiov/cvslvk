@@ -587,13 +587,13 @@ ifdef EXECUTABLE
 ifneq ($(CL_SYMLINKS),)
 override CL_SL_NAMES := $(notdir $(CL_SYMLINKS))
 $(CL_SL_NAMES):
-	ln -sf $(CL_SYMLINKS) .
+	rm -f $(CL_SL_NAMES) && ln -s $(CL_SYMLINKS) .
 endif
 
 all: all_subdirs $(EXECUTABLE) $(CL_SL_NAMES)
 
 $(EXECUTABLE): $(CL_BD)/$(EXECUTABLE)
-	ln -sf $(CL_BD)/$(EXECUTABLE) $(EXECUTABLE)
+	rm -f  $(EXECUTABLE) && ln -sf $(CL_BD)/$(EXECUTABLE) $(EXECUTABLE)
 
 $(CL_BD)/$(EXECUTABLE): $(CL_OBJECTS_ALL)
 	$(LD) $(CL_OBJECTS_ALL) $(LDFLAGS) -o $@ 
