@@ -1,0 +1,43 @@
+ifndef LEX_C
+LEX_C = lex.yy.c
+endif
+override LEX_O := $(LEX_C:.c=.o)
+override LEX_O := $(LEX_O:.cpp=.o)
+override LEX_O := $(LEX_O:.cc=.o)
+
+ifndef YACC_C
+YACC_C = y.tab.c
+endif
+override YACC_O := $(YACC_C:.c=.o)
+override YACC_O := $(YACC_O:.cpp=.o)
+override YACC_O := $(YACC_O:.cc=.o)
+
+ifndef YACC_H
+YACC_H = y.tab.h
+endif
+
+ifndef LEX_YACC_PREFIX
+LEX_YACC_PREFIX = yy
+endif
+
+override LEX_FLAGS += -t -P$(LEX_YACC_PREFIX)
+override YACC_FLAGS += -y -d -p$(LEX_YACC_PREFIX) -o $(CL_BD)/_yacc_.c
+
+ifdef LEX_FILE
+override CL_SOURCES_NU += $(CL_BD)/$(LEX_C)
+override CL_OBJECTS_NU += $(CL_BD)/$(LEX_O)
+override CL_DEPS_NU += $(CL_BD)/$(LEX_C).deps
+$(CL_BD)/$(LEX_C): $(LEX_FILE)
+	flex $(LEX_FLAGS) $< > $@
+endif
+
+ifdef YACC_FILE
+override CL_SOURCES_NU += $(CL_BD)/$(YACC_C)
+override CL_OBJECTS_NU += $(CL_BD)/$(YACC_O)
+override CL_DEPS_NU += $(CL_BD)/$(YACC_C).deps
+override CL_PRE_DEPEND += $(CL_BD)/$(YACC_H)
+$(CL_BD)/$(YACC_C) $(CL_BD)/$(YACC_H) $(CL_BD)/_yacc_.h: $(YACC_FILE)
+	bison $(YACC_FLAGS) $<
+	cp $(CL_BD)/_yacc_.c $(CL_BD)/$(YACC_C)
+	cp $(CL_BD)/_yacc_.h $(CL_BD)/$(YACC_H)
+endif

@@ -419,6 +419,10 @@ ifndef CL_NODEP_WORKED
 
 $(CL_DIR)/Makefile.cvslvk: $(CL_DEPS_ALL)
 
+ifneq ($(CL_PRE_DEPEND),)
+$(CL_DEPS_ALL): $(CL_PRE_DEPEND)
+endif
+
 override CL_DEPS_TO_INCLUDE := $(filter $(CL_DEPS_ALL),$(wildcard $(CL_BD)/*.deps))
 ifneq ($(CL_DEPS_TO_INCLUDE),)
 include $(CL_DEPS_TO_INCLUDE)
