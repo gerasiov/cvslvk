@@ -17,7 +17,7 @@ default_goal: $(CL_DEFAULT_GOAL)
 # $(ALWAYS) macro - a rule that should be applied even if file exists
 #   ( usage:   xxx : $(ALWAYS) )
 
-ALWAYS = /etc/file_that_never_exists
+ALWAYS = /file/that/never/exists
 
 $(ALWAYS):
 
@@ -80,23 +80,23 @@ CL_COMP_TMP := any
 endif
 
 ifdef CL_PARAM_COMP
-CL_COMP_PARAM_TEMP := need
+CL_COMP_PARAM_TMP := need
 else
-CL_COMP_PARAM_TEMP := compute
+CL_COMP_PARAM_TMP := compute
 endif
 
 # Don't do anythong more if we need only to show WI logic
 # ('$(HELPER) show_wi' will kill make)
 ifeq ($(MAKECMDGOALS),show_wi)
-override CL_TMP := $(shell $(HELPER) show_wi $(CL_COMP_PARAM_TEMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
+override CL_TMP := $(shell $(HELPER) show_wi $(CL_COMP_PARAM_TMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
 endif
 
 # We want "make clean" to work even when WIs are not available
 # So we process this case separately.
 ifeq ($(MAKECMDGOALS),clean)
-override CL_TMP := $(shell $(HELPER) process_wi in_clean $(CL_COMP_PARAM_TEMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
+override CL_TMP := $(shell $(HELPER) process_wi in_clean $(CL_COMP_PARAM_TMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
 else
-override CL_TMP := $(shell $(HELPER) process_wi $(CL_COMP_PARAM_TEMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
+override CL_TMP := $(shell $(HELPER) process_wi $(CL_COMP_PARAM_TMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
 endif
 ifeq ($(filter gcc,$(CL_TMP)),gcc)
 override CL_PARAM_COMP := 1
@@ -495,7 +495,7 @@ $(CL_BD)/%.deps: %
 $(CL_BD)/%.deps: $(CL_BD)/%
 	@$(HELPER) depend $< $@ $(INCLUDES) $(DEFINES)
 
-CL_NODEP_RULES += clean create_wi update_wi
+CL_NODEP_RULES += clean create_wi update_wi install
 
 ifneq ($(MAKECMDGOALS),)
 ifeq ($(filter-out $(CL_NODEP_RULES),$(MAKECMDGOALS)),)
@@ -530,8 +530,10 @@ override CL_TMP := $(shell $(HELPER) touchap $(CL_BD) WILIST $(CL_WI_LIST) -- AL
 $(CL_OBJECTS_ALL) $(CL_DEPS_ALL) : $(CL_BD)/WILIST $(CL_BD)/ALLCOMPILEFLAGS $(filter $(CL_WI_LIST:%=$(CL_DIR)/%/rules.cvslvk),$(wildcard $(CL_DIR)/*/rules.cvslvk))
 ifneq ($(EXECUTABLE),)
 override CL_TMP := $(filter -L%, $(LDFLAGS))
+ifneq ($(CL_TMP),)
 vpath lib%.so $(CL_TMP:-L%=%)
 vpath lib%.a $(CL_TMP:-L%=%)
+endif
 $(CL_BD)/$(EXECUTABLE) : $(CL_BD)/LINKFLAGS $(filter -l%, $(LDFLAGS))
 endif
 ifneq ($(CL_LIBRARY_FNAME),)
