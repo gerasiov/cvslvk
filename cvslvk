@@ -530,10 +530,10 @@ build()
 
   WINAME=`echo $WI | cut -d_ -f1`
   WIPARAMS=`echo $WI | cut -d_ -f2`
-  if test x'$WIPARAMS' = x; then
-    FULL_WI_NAME=$WINAME'_'`get_arch`'-'`get_os`'-optimized'
-  else
+  if echo $WI | grep _ >/dev/null; then
     FULL_WI_NAME=$WINAME'_'`get_arch`'-'`get_os`'-'$WIPARAMS'-optimized'
+  else
+    FULL_WI_NAME=$WINAME'_'`get_arch`'-'`get_os`'-optimized'
   fi
 
   if test -d $CL_DIR/$FULL_WI_NAME; then
