@@ -270,16 +270,19 @@ endif
 endif
 
 
+# In the following assignments, ?= can't be used because vars are already
+# assigned at least on the top in 'override var := $(var)'
 ifeq ($(CL_BTYPE),debug)
-CL_GCC_DEBUG ?= -g
-CL_SUNCC_DEBUG ?= -g
+override CL_GCC_DEBUG := $(if $(CL_GCC_DEBUG),$(CL_GCC_DEBUG),-g)
+override CL_SUNCC_DEBUG := $(if $(CL_SUNCC_DEBUG),$(CL_SUNCC_DEBUG),-g)
+$(warning CL_$(CL_COMPC)_DEBUG)
 override CFLAGS += $(CL_$(CL_COMPC)_DEBUG)
 override CXXFLAGS += $(CL_$(CL_COMPC)_DEBUG)
 endif
 
 ifeq ($(CL_BTYPE),optimized)
-CL_GCC_OPTIMIZE ?= -O2
-CL_SUNCC_OPTIMIZE ?= -O
+override CL_GCC_OPTIMIZE := $(if $(CL_GCC_OPTIMIZE),$(CL_GCC_OPTIMIZE),-O2)
+override CL_SUNCC_OPTIMIZE := $(if $(CL_SUNCC_OPTIMIZE),$(CL_SUNCC_OPTIMIZE),-O)
 override CFLAGS += $(CL_$(CL_COMPC)_OPTIMIZE)
 override CXXFLAGS += $(CL_$(CL_COMPC)_OPTIMIZE)
 endif
