@@ -96,7 +96,9 @@ override CL_PARAM_COMP := 1
 override CL_COMP := suncc
 endif
 ifeq ($(filter any,$(CL_TMP)),any)
-override CL_COMP := gcc
+ifndef CL_COMP
+CL_COMP = gcc
+endif
 endif
 override CL_WI_LIST := $(filter-out gcc suncc any,$(CL_TMP))
 
