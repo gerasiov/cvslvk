@@ -124,7 +124,7 @@ endif
 #
 # CL_LTYPE is used, if CL_PARAM_LTYPE is defined, or if we are building library
 #
-# CL_OTHER is used, if CL_PARAM_LTYPE is defined
+# CL_OTHERP is used, if CL_PARAM_OTHERP is defined
 
 override CL_DIR_PARAMS := $(CL_ARCH)-$(CL_OS)
 
@@ -187,8 +187,8 @@ endif
 # For optimizing with gcc, $(CL_GCC_OPTIMIZE) is used, defaults to -O2 -DNDEBUG
 # For optimizing with suncc, $(CL_SUNCC_OPTIMIZE) is used, defaults to -O -DNDEBUG
 
-override CFLAGS := -c
-override CXXFLAGS := -c
+override CFLAGS = -c
+override CXXFLAGS = -c
 
 # Handle sun CC's templates database
 ifeq ($(CL_COMP),suncc)

@@ -29,7 +29,7 @@ fi
 
 choose_chgrp_and_chmod()
 {
-  clgroup=`ls -ld $CL_DIR | awk '{print($4)}'`
+  clgroup=`ls -Lld $CL_DIR | awk '{print($4)}'`
   if test "$clgroup" = "$CVSGROUP"; then
     CHGRP=chgrp
     CHMOD=chmod
