@@ -22,8 +22,8 @@ kill_make()
 }
 
 if test ! -f $CL_DIR/Makefile.cvslvk; then
-  if test "$1" == "selfupdate"; then
-    if test "$CL_DIR" == ""; then
+  if test "$1" = "selfupdate"; then
+    if test "$CL_DIR" = ""; then
     echo 'CL_DIR is not set' 1>&2
     exit 1
     fi
