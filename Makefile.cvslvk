@@ -326,7 +326,7 @@ endif
 
 # Additional defines for debugging and optimizing
 # $(CL_DEFINES_DEBUG) - defaults to "-DDEBUG" if no one of DEBUG vars is set
-# $(CL_DEFINES_OPTIMIZE)- defaults to "-DNDEBUG" if no one of DEBUG vars is set
+# $(CL_DEFINES_OPTIMIZE)- defaults to "-DNDEBUG" if no one of OPTIMIZED vars is set
 # $(CL_DEFINES_DEBUG_GCC)
 # $(CL_DEFINES_OPTIMIZE_GCC)
 # $(CL_DEFINES_DEBUG_SUNCC)

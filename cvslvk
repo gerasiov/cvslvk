@@ -304,7 +304,7 @@ make_sys_mkdep_flags_c()
   else
     echo > cvslvk-test.c
     gcc -v -E $* cvslvk-test.c 2>&1 | grep /cpp | tr ' ' '\n' |\
-      egrep -v "/cpp|^cvslvk-test.cpp|^-v|^-lang" |\
+      egrep -v "/cpp|^cvslvk-test.c|^-v|^-lang" |\
       tr '\n' ' ' > SYS_MKDEP_FLAGS_C
     rm -f cvslvk-test.c
   fi
