@@ -35,8 +35,10 @@ $(PCCTS_LIB_OBJECTS) : $(CL_BD)/%.o: $(PCCTS_H)/%.cpp
 
 ifneq ($(PCCTS_SOR_FILES),)
 override PCCTS_SOR := $(CL_WI)/bin/sor
-override PCCTS_SOR_GEN := $(foreach f,$(basename $(PCCTS_SOR_FILES)),$(CL_BD)/$(PCCTS_SOR_CLASS_$(f)).cpp: $(f).sor%n%t$(PCCTS_SOR) -CPP $(PCCTS_SOR_FLAGS_$(f)) -out-dir $(CL_BD) $(f).sor%n$(CL_BD)/$(PCCTS_SOR_CLASS_$(f)).h: $(CL_BD)/$(PCCTS_SOR_CLASS_$(f)).cpp%n$(CL_BD)/$(f).cpp: $(CL_BD)/$(PCCTS_SOR_CLASS_$(f)).h%noverride CL_OBJECTS_NU += $(CL_BD)/$(f).o $(CL_BD)/$(PCCTS_SOR_CLASS_$(f)).o%noverride CL_DEPS_NU += $(CL_BD)/$(f).cpp.deps $(CL_BD)/$(PCCTS_SOR_CLASS_$(f)).cpp.deps%noverride CL_PRE_DEPEND += $(CL_BD)/$(PCCTS_SOR_CLASS_$(f)).h%n%n)
-override CL_GEN_SOURCES += $(CL_BD)/STreeParser.cpp
+override PCCTS_SOR_GEN := $(foreach f,$(basename $(PCCTS_SOR_FILES)),$(CL_BD)/$(PCCTS_SOR_CLASS_$(f)).cpp: $(f).sor%n%t$(PCCTS_SOR) -CPP $(PCCTS_SOR_FLAGS_$(f)) -out-dir $(CL_BD) $(f).sor%n$(CL_BD)/$(PCCTS_SOR_CLASS_$(f)).h: $(CL_BD)/$(PCCTS_SOR_CLASS_$(f)).cpp%n$(CL_BD)/$(f).cpp: $(CL_BD)/$(PCCTS_SOR_CLASS_$(f)).h%noverride CL_GEN_SOURCES += $(CL_BD)/$(f).cpp $(CL_BD)/$(PCCTS_SOR_CLASS_$(f)).cpp%n%n)
+override CL_GEN_OBJECTS += $(CL_BD)/STreeParser.o
+$(CL_BD)/STreeParser.o : $(PCCTS_H)/STreeParser.cpp
+	$(CL_CPP_COMPILE_COMMAND)
 override CL_TMP := $(shell echo $(PCCTS_SOR_GEN) | sed -f $(CL_WI)/convgen.sed > $(CL_BD)/pccts.sor.gen.mak)
 -include $(CL_BD)/pccts.sor.gen.mak
 endif
