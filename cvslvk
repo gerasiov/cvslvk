@@ -182,7 +182,14 @@ before_create_wi()
   fi
 
   mkdir $1
-  return $?
+  if test $? -ne 0; then
+    echo_build_error
+    echo "Failed to create directory $CL_DIR/$1" 1>&2
+    echo "Are you sure you are in cvsusers group ?" 1>&2
+    echo 1>&2
+    return 1
+  fi
+  return 0
 }
 
 

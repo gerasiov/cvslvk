@@ -53,6 +53,7 @@ CL_LD = $(CXX)
 endif
 override LD := $(CL_LD)
 
+
 # Flags for debugging and optimizing
 # By default, everything is built with debug information
 # If CL_NDEBUG is set, everything will be built with no debug information
@@ -121,6 +122,47 @@ endif
 endif
 
 
+
+# Library building tools
+# If CL_LTYPE is 'shared', gcc -shared is used
+# $(LIBRARY) is library name.
+# For shared libraries, $(LIBRARY_VERSION) and $(LIBRARY_REVISION) may be also
+# used. $(LIBRARY_VERSION) will be built into soname
+
+ifeq ($(CL_LTYPE), shared)
+CL_LIBRARY_CNAME = lib$(LIBRARY).so
+ifdef LIBRARY_VERSION
+CL_LIBRARY_SONAME = lib$(LIBRARY).so.$(LIBRARY_VERSION)
+ifdef LIBRARY_REVISION
+CL_LIBRARY_FNAME = lib$(LIBRARY).so.$(LIBRARY_VERSION).$(LIBRARY_REVISION)
+else
+CL_LIBRARY_FNAME = lib$(LIBRARY).so.$(LIBRARY_VERSION)
+endif
+else
+CL_LIBRARY_SONAME = lib$(LIBRARY).so
+CL_LIBRARY_FNAME = lib$(LIBRARY).so
+endif
+ifeq ($(CL_COMP), gcc)
+override CFLAGS += -fPIC
+override CXXFLAGS += -fPIC
+CL_MKLIB = g++ -shared -Wl,-soname,$(CL_LIBRARY_SONAME) -o
+endif
+ifeq ($(CL_COMP), suncc)
+CL_MKLIB = false
+endif
+endif
+
+ifeq ($(CL_LTYPE), static)
+CL_LIBRARY_FNAME = lib$(LIBRARY).a
+ifeq ($(CL_COMP), gcc)
+CL_MKLIB = ar cr
+endif
+ifeq ($(CL_COMP), suncc)
+CL_MKLIB = false
+endif
+endif
+
+
 # ALWAYS macro - a rule that should be always applied
 #   ( usage:   xxx : $(ALWAYS) )
 
@@ -171,16 +213,13 @@ override CL_TMP := $(shell $(HELPER) check_vars $(CL_VARS))
 override CL_DIR_PARAMS := $(CL_ARCH)-$(CL_OS)
 
 ifdef CL_PARAM_COMP
-override CL_TMP := $(CL_DIR_PARAMS)
-override CL_DIR_PARAMS := $(CL_TMP)-$(CL_COMP)
+override CL_DIR_PARAMS := $(CL_DIR_PARAMS)-$(CL_COMP)
 endif
 ifdef CL_PARAM_LTYPE
-override CL_TMP := $(CL_DIR_PARAMS)
-override CL_DIR_PARAMS := $(CL_TMP)-$(CL_LTYPE)
+override CL_DIR_PARAMS := $(CL_DIR_PARAMS)-$(CL_LTYPE)
 endif
 ifdef CL_PARAM_OTHERP
-override CL_TMP := $(CL_DIR_PARAMS)
-override CL_DIR_PARAMS := $(CL_TMP)-$(CL_OTHERP)
+override CL_DIR_PARAMS := $(CL_DIR_PARAMS)-$(CL_OTHERP)
 endif
 
 ifdef CL_OPTIMIZE
@@ -200,7 +239,7 @@ override CL_TMP := $(shell mkdir -p $(CL_BD))  # Create build directory
 # include search path. -I. is needed because without it, includes are searched
 # in -I's only
 
-override INCLUDES := $(INCLUDES) -I. -I$(CL_BD)
+override INCLUDES += $(INCLUDES) -I. -I$(CL_BD)
 
 
 # Find the available module installations and replace user references by
@@ -335,27 +374,52 @@ $(CL_BD)/%.o: %.C
 
 # Rules for single-executable makefiles
 
-ifdef SINGLE_EXECUTABLE
+ifdef EXECUTABLE
 
-all: $(SINGLE_EXECUTABLE)
+all: $(EXECUTABLE)
 
-$(SINGLE_EXECUTABLE): $(CL_BD)/$(SINGLE_EXECUTABLE)
-	ln -sf $(CL_BD)/$(SINGLE_EXECUTABLE) $(SINGLE_EXECUTABLE)
+$(EXECUTABLE): $(CL_BD)/$(EXECUTABLE)
+	ln -sf $(CL_BD)/$(EXECUTABLE) $(EXECUTABLE)
 
-$(CL_BD)/$(SINGLE_EXECUTABLE): $(CL_OBJECTS_ALL)
+$(CL_BD)/$(EXECUTABLE): $(CL_OBJECTS_ALL)
 	$(LD) $(CL_OBJECTS_ALL) $(LDFLAGS) -o $@ 
 
-install: $(ALWAYS)
+install: all $(ALWAYS)
 	@$(HELPER) check_vars CL_PREFIX=$(CL_PREFIX)
 	mkdir -p $(CL_PREFIX)/bin
-	cp $(CL_BD)/$(SINGLE_EXECUTABLE) $(CL_PREFIX)/bin
+	cp $(CL_BD)/$(EXECUTABLE) $(CL_PREFIX)/bin
 	if test -n "$(CL_SCRIPTS)"; then cp $(CL_SCRIPTS) $(CL_PREFIX)/bin; fi
 	if test -n "$(CL_INSTALL_WI)" -a -f rules.cvslvk; then cp rules.cvslvk $(CL_PREFIX); fi
 
 override CL_CLEAN += clean_se
 
 clean_se: $(ALWAYS)
-	rm -f $(SINGLE_EXECUTABLE)
+	rm -f $(EXECUTABLE)
+
+endif
+
+
+ifdef LIBRARY
+
+all: $(CL_BD)/$(CL_LIBRARY_FNAME)
+
+$(CL_BD)/$(CL_LIBRARY_FNAME): $(CL_OBJECTS_ALL)
+	$(CL_MKLIB) $@ $(CL_OBJECTS_ALL)
+
+install: all $(ALWAYS)
+	@$(HELPER) check_vars CL_PREFIX=$(CL_PREFIX)
+	mkdir -p $(CL_PREFIX)/lib $(CL_PREFIX)/include
+	cp $(CL_BD)/$(CL_LIBRARY_FNAME) $(CL_PREFIX)/lib
+ifeq ($(CL_LTYPE), shared)
+ifneq ($(CL_LIBRARY_SONAME), $(CL_LIBRARY_FNAME))
+	(cd $(CL_PREFIX)/lib && ln -sf $(CL_LIBRARY_FNAME) $(CL_LIBRARY_SONAME))
+endif
+ifneq ($(CL_LIBRARY_CNAME), $(CL_LIBRARY_SONAME))
+	(cd $(CL_PREFIX)/lib && ln -sf $(CL_LIBRARY_SONAME) $(CL_LIBRARY_CNAME))
+endif
+endif
+	cp $(EXPORT_INCLUDES) $(CL_PREFIX)/include
+	if test -n "$(CL_INSTALL_WI)" -a -f rules.cvslvk; then cp rules.cvslvk $(CL_PREFIX); fi
 
 endif
 
