@@ -574,7 +574,7 @@ override CL_WI_DEPEND := $(foreach dep,$(CL_DEPEND_ON_EXACT),$(filter $(dep)_%,$
 install_rules: $(ALWAYS)
 	if test -f rules.cvslvk; then cp rules.cvslvk $(CL_PREFIX)/; fi
 	if test -f depend.cvslvk; then cp depend.cvslvk $(CL_PREFIX)/; fi
-ifneq ($(strip $(CL_WI_DEPEND)),"" )
+ifneq ($(strip $(CL_WI_DEPEND)),)
 	printf "\n%s\n" $(CL_WI_DEPEND) >> $(CL_PREFIX)/depend.cvslvk
 endif
 
