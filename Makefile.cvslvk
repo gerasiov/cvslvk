@@ -570,12 +570,12 @@ override CL_INSTALL_PARTS += install_subdirs
 endif
 
 ifdef CL_INSTALL_WI
-override CL_DEPEND_NU := $(foreach dep,$(CL_DEPEND_ON_EXACT),$(filter $(dep)_%,$(CL_WI_LIST)))
+override CL_WI_DEPEND := $(foreach dep,$(CL_DEPEND_ON_EXACT),$(filter $(dep)_%,$(CL_WI_LIST)))
 install_rules: $(ALWAYS)
 	if test -f rules.cvslvk; then cp rules.cvslvk $(CL_PREFIX)/; fi
 	if test -f depend.cvslvk; then cp depend.cvslvk $(CL_PREFIX)/; fi
-ifneq ($(CL_DEPEND_NU),"" )
-	printf "\n%s\n" $(CL_DEPEND_NU) >> $(CL_PREFIX)/depend.cvslvk
+ifneq ($(strip $(CL_WI_DEPEND)),"" )
+	printf "\n%s\n" $(CL_WI_DEPEND) >> $(CL_PREFIX)/depend.cvslvk
 endif
 
 override CL_INSTALL_PARTS += install_rules
