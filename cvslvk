@@ -6,6 +6,12 @@ if test "$CL_DIR" = ""; then
   exit 1
 fi
 
+realls=`which ls`
+ls()
+{
+  LANG=C $realls $@
+}
+
 # Файл, создаваемый по cvslvk make_rules
 RULES_CVSLVK=$CL_DIR/rules.cvslvk
 RULES_CVSLVK_TMP=$CL_DIR/rules.cvslvk.tmp.$$  # Временная копия того же файла
@@ -122,6 +128,65 @@ get_os()
 }
 
 
+# get_comp_defaults
+get_comp_defaults()
+{
+  case "`gcc -v 2>&1 | grep version`" in
+    *3.2*)  echo gcc32 ;;
+    *2.95*)  echo gcc295 ;;
+    *2.96*)  echo gcc296 ;;
+    *)
+      error "get_comp_defaults: can't determine gcc version"
+      ;;
+  esac
+}
+
+# get_comp_execs $CL_COMP
+# Возвращаемое первое слово - исполняемый файл компилятора Си, второе - компилятора Си++
+get_comp_execs()
+{
+  case "$1" in
+    gcc32)
+      defc=gcc-3.2
+      defcpp=g++-3.2
+      ver=3.2
+      ;;
+    gcc295)
+      defc=gcc-2.95
+      defcpp=g++-2.95
+      ver=2.95
+      ;;
+    gcc296)
+      defc=gcc-2.96
+      defcpp=g++-2.96
+      ver=2.96
+      ;;
+    *)
+      error "get_comp_execs: unsupported CL_COMP $1"
+      ;;
+  esac
+
+  wc=`which $defc`;  wcpp=`which $defcpp`
+  if test -n "$wc" -a -n "$wcpp" -a -x "$wc" -a -x "$wcpp"; then
+    echo $defc $defcpp
+    return 0
+  fi
+
+  wc=`which gcc`;  wcpp=`which g++`
+  if test -n "$wc" -a -n "$wcpp" -a -x "$wc" -a -x "$wcpp"; then
+    if gcc -v 2>&1 | grep version | grep -- "$ver" >/dev/null; then
+      if g++ -v 2>&1 | grep version | grep -- "$ver" >/dev/null; then
+        echo gcc g++
+        return 0
+      fi
+    fi
+  fi
+  
+  error "get_comp_execs: can't find $1 compilers." \
+        "If you are sure they are present in \$PATH, edit cvslvk script and" \
+	"fix get_comp_execs() function."
+}
+
 # make_rules
 # Создает $CL_DIR/rules.cvslvk и $CL_DIR/wilist*
 make_rules()
@@ -169,9 +234,9 @@ make_rules()
 # process_wi [in_clean] <фиксировать ли компилятор> <какой компилятор> <запросы модулей>
 #   возможный нулевой параметр - in_clean если не нужно убивать make по ошибкам
 #   первый параметр: yes или unknown
-#   второй параметр: gcc, suncc или any
+#   второй параметр: gcc32, gcc295, gcc296 или any
 #   возврат: первое слово - comp_param_needed или comp_param_not_needed
-#            второе - gcc, suncc или any
+#            второе - gcc32, gcc295, gcc296 или any
 #            дальше - список примененных WI
 process_wi()
 {
@@ -234,13 +299,18 @@ get_bd_for_clean()
   if test -d $1; then echo $1; return; fi
 
   part3=`echo $1 | cut -d- -f3`
-  if test "$part3" = "gcc" -o "$part3" = "suncc"; then echo $1; return; fi
+  if test "$part3" = "gcc32" -o "$part3" = "gcc295" -o $part3 = "gcc296" -o "$part3" = "gcc"; then
+    echo $1
+    return
+  fi
 
   part12=`echo $1 | cut -d- -f1-2`
   rest=`echo $1 | cut -d- -f3-`
   test "$rest" = "" || rest="-$rest" 
+  if test -d $part12-gcc32$rest; then echo $part12-gcc32$rest; return; fi
+  if test -d $part12-gcc295$rest; then echo $part12-gcc295$rest; return; fi
+  if test -d $part12-gcc296$rest; then echo $part12-gcc296$rest; return; fi
   if test -d $part12-gcc$rest; then echo $part12-gcc$rest; return; fi
-  if test -d $part12-suncc$rest; then echo $part12-suncc$rest; return; fi
   
   echo $1
 }
@@ -284,7 +354,7 @@ setup_bd()
 {
   mkdir -p $1
   touch $1/CVSLVK_BUILD_DIR
-  LANG=C ls -l | awk '{ if (NF==11) {
+  ls -l | awk '{ if (NF==11) {
 		   if ( split ( $11,a,"/" ) == 2 ) {
 		     if ( (a[1] != "'$1'") && (a[2] == $9) ) {
 		       print ( "rm -f " $9 );
@@ -302,7 +372,7 @@ remove_old_symlinks()
 
   for l in $*; do
     ln=`basename $l`
-    lv=`LANG=C ls -l $ln 2>/dev/null | awk '{print($11)}'`
+    lv=`ls -l $ln 2>/dev/null | awk '{print($11)}'`
     test "$l" != "$lv" && rm -f $ln
   done
 }
@@ -322,38 +392,34 @@ cleanall()
 }
 
 
-# make_sys_mkdep_flags_c <CL_BD> <gcc>|<suncc> <SYS_CFLAGS>
+# make_sys_mkdep_flags_c <CL_BD> <CL_COMP> <SYS_CFLAGS>
 make_sys_mkdep_flags_c()
 {
-  bd=$1; comp=$2; shift 2
+  bd=$1
+  comp=`get_comp_execs $2 | cut -d' ' -f1`
+  shift 2
   cd $bd
-  if test "x$comp" != "xgcc"; then
-    touch SYS_MKDEP_FLAGS_C
-  else
-    echo > cvslvk-test.c
-    gcc -v -E $* cvslvk-test.c 2>&1 | grep /cpp | tr ' ' '\n' |\
-      grep "^-D" |\
-      tr '\n' ' ' | awk -f $CL_DIR/cppargs.awk > SYS_MKDEP_FLAGS_C
-    rm -f cvslvk-test.c
-  fi
+  echo > cvslvk-test.c
+  $comp -v -E $* cvslvk-test.c 2>&1 | grep /cpp | tr ' ' '\n' |\
+    grep "^-D" |\
+    tr '\n' ' ' | awk -f $CL_DIR/cppargs.awk > SYS_MKDEP_FLAGS_C
+  rm -f cvslvk-test.c
   return 0
 }
 
 
-# make_sys_mkdep_flags_cxx <CL_BD> <gcc>|<suncc> <SYS_CXXFLAGS>
+# make_sys_mkdep_flags_cxx <CL_BD> <CL_COMP> <SYS_CXXFLAGS>
 make_sys_mkdep_flags_cxx()
 {
-  bd=$1; comp=$2; shift 2
+  bd=$1
+  comp=`get_comp_execs $2 | cut -d' ' -f2`
+  shift 2
   cd $bd
-  if test "x$comp" != "xgcc"; then
-    touch SYS_MKDEP_FLAGS_CXX
-  else
-    echo > cvslvk-test.cpp
-    g++ -v -E $* cvslvk-test.cpp 2>&1 | grep /cpp | tr ' ' '\n' |\
-      grep "^-D" |\
-      tr '\n' ' ' | awk -f $CL_DIR/cppargs.awk > SYS_MKDEP_FLAGS_CXX
-    rm -f cvslvk-test.cpp
-  fi
+  echo > cvslvk-test.cpp
+  $comp++ -v -E $* cvslvk-test.cpp 2>&1 | grep /cpp | tr ' ' '\n' |\
+    grep "^-D" |\
+    tr '\n' ' ' | awk -f $CL_DIR/cppargs.awk > SYS_MKDEP_FLAGS_CXX
+  rm -f cvslvk-test.cpp
   return 0
 }
 
@@ -496,7 +562,7 @@ install()
   choose_chgrp_and_chmod
  # Создание скрипта process_wi.awk
   (
-    echo "# This file is automatically generated during 'cvslvk selfupdate'"
+    echo "# This file is automatically generated during cvslvk installation"
     echo "# Please use the source to view or edit"
     cpp -P process_wi.awk.in | tr '@' '\n' | awk '{if(NF>0)print}'
   ) > process_wi.awk
@@ -642,7 +708,8 @@ case "$command" in
   process_wi|show_wi|get_bd_for_clean|depend|liborder|touchap|\
   before_create_wi|before_install_wi|complete_wi|remove_wi|\
   install|selfupdate|\
-  build|show_ab)
+  build|show_ab|\
+  get_comp_defaults|get_comp_execs)
     $command $*
     exit $?
     ;;

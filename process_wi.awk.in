@@ -30,11 +30,11 @@
   } @\
 
 // Проверка, что в списке M1 нет ни одного поля из списка M2
-// Оба списка разделяются символами "-"
+// Первый список символами "-", второй - пробелами
 // Результат заносится в третий параметр
 #define check_cnf(M1,M2,res)  { @\
   bn1 = split ( M1, ba1, "-" ); @\
-  bn2 = split ( M2, ba2, "-" ); @\
+  bn2 = split ( M2, ba2, " " ); @\
   for ( bi2=1; bi2<=bn2; bi2++ )  { @\
     for ( bi1=1; bi1<=bn1; bi1++ )  if ( ba1[bi1]==ba2[bi2] )  break; @\
     if ( bi1<=bn1 )  break; @\
@@ -68,7 +68,7 @@
     aq[ai] = 0; @\
     am = split ( WI_params[a[ai]], a2, "-" ); @\
     for ( aj=1; aj<=am; aj++ )  { @\
-      if ( a2[aj]=="gcc" )  aq[ai]+=4; @\
+      if ( a2[aj]=="gcc32" )  aq[ai]+=4; @\
       if ( a2[aj]=="optimized" )  aq[ai]+=2; @\
       if ( a2[aj]=="shared" )  aq[ai]+=1; @\
       } @\
@@ -102,14 +102,16 @@
   fcnn = split ( PARAMS, fcna, "-" ); @\
   RES = ""; @\
   for ( fcni=1; fcni<=fcnn; fcni++ ) @\
-    if ( (fcna[fcni]=="gcc") || (fcna[fcni]=="suncc") )  {RES=fcna[fcni]; break;} @\
+    if ( (fcna[fcni]=="gcc32") || (fcna[fcni]=="gcc295") || (fcna[fcni]=="gcc296") || (fcna[fcni]=="gcc") )  {RES=fcna[fcni]; break;} @\
   } @\
 
 // Установка переменной conflicts в зависимости от текущей установки comp
 // и comp_param
 #define set_conflicts  { @\
-  if ( comp=="gcc" )  {conflicts = "suncc"} @\
-  else if ( comp=="suncc" )  {conflicts = "gcc"} @\
+  if ( comp=="gcc" )  {conflicts = "gcc32 gcc296"} @\
+  else if ( comp=="gcc32" )  {conflicts = "gcc295 gcc gcc296"} @\
+  else if ( comp=="gcc295" )  {conflicts = "gcc32 gcc296"} @\
+  else if ( comp=="gcc296" )  {conflicts = "gcc32 gcc295 gcc"} @\
   else {conflicts = ""} @\
   } @\
 
@@ -118,7 +120,7 @@
 // Вторая строка - параметры:
 //   $1: quiet | verbose
 //   $2: need | compute (про comp_param)
-//   $3: suncc | gcc | any
+//   $3: gcc32 | gcc295 | gcc296 | any
 // Каждая из следующих строк - доступная рабочая инсталляция, после которой ее
 //   требования
 BEGIN  {
@@ -240,7 +242,6 @@ END  {
    // Кандидат может вносить новое требование к компилятору
    // Первый же кандидат, в параметры которого входит компилятор, устанавливает
    // comp_param="need" и comp=<использованный компилятор>
-   // Приоритет gcc перед suncc устанавливается еще в sort_wi_list
     find_comp_name ( candp[n], tmpcomp );
     if ( tmpcomp != "" )  {
       comp_param="need"; comp=tmpcomp;  set_conflicts;
