@@ -403,17 +403,52 @@ include $(CL_DIR)/rules.cvslvk
 endif
 
 
-# Add compiler-dependent RPATH functionality
-CL_ALL_LIBDIRS = $(filter -L%,$(LDFLAGS))
+# RPATH flag differs between gcc and suncc
+# (not all gcc revisions understand -R: linux one doesn't)
+
 ifeq ($(CL_COMP),gcc)
-override CL_RPATH := $(CL_ALL_LIBDIRS:-L%=-Wl,-R%)
+override CL_RPATH_FLAG := -Wl,-R
 endif
 ifeq ($(CL_COMP),suncc)
-override CL_RPATH := $(CL_ALL_LIBDIRS:-L%=-R%)
+override CL_RPATH_FLAG := -R
 endif
-override LDFLAGS := $(LDFLAGS) $(CL_RPATH)
+
+
+# Internal library variables
+#
+# Executable may use some internal libraries (libraries from the same module).
+# The subdirs should be in CL_USE_IL variable
+# Current restrictions:
+#   each library should be in a subdir;
+#   subdir name and library name should be the same 
+# The subdirs of the used internal librsries should be in CL_USE_IL variable
+# When internal libraries are used, executable is linked separately during build
+# and during installation.
+# During build, rpaths to the build directories of the shared libraries are
+# set, and during install - rpaths for the install directory is set
+
+ifdef CL_USE_IL
+ifeq ($(filter install clean,$(MAKECMDGOALS)),)
+override SUBDIRS := $(CL_USE_IL) $(filter-out $(CL_USE_IL),$(SUBDIRS))
+endif
+override INCLUDES += $(CL_USE_IL:%=-I%)
+override CL_IL_LPATHS := $(CL_USE_IL:%=-L%)
+override CL_IL_LIBS_TMP := $(notdir $(CL_IL_LPATHS))
+override CL_IL_LIBS := $(CL_IL_LIBS_TMP:%=-l%)
+override CL_PWD := $(shell pwd)
+override CL_IL_LDFLAGS_BUILD := $(CL_IL_LPATHS) $(CL_IL_LIBS) $(CL_IL_LPATHS:-L%=$(CL_RPATH_FLAG)$(CL_PWD)/%)
+override CL_IL_LDFLAGS_INSTALL := $(CL_IL_LPATHS) $(CL_IL_LIBS) $(CL_RPATH_FLAG)$(CL_PREFIX)/lib
+endif
+
+
+# Add compiler-dependent RPATH functionality to other LDFLAGS
+
+override CL_ALL_LIBDIRS := $(filter -L%,$(LDFLAGS))
+override LDFLAGS := $(LDFLAGS) $(CL_ALL_LIBDIRS:-L%=$(CL_RPATH_FLAG)%)
+
 
 # Now we can add $(INCLUDES) and $(DEFINES) to $(C{XX}FLAGS)
+
 override CFLAGS += $(INCLUDES) $(DEFINES)
 override CXXFLAGS += $(INCLUDES) $(DEFINES)
 
@@ -547,7 +582,11 @@ endif
 ifdef EXECUTABLE
 install_executable: $(ALWAYS)
 	mkdir -p $(CL_PREFIX)/bin
+ifdef CL_USE_IL
+	$(LD) $(CL_OBJECTS_ALL) $(LDFLAGS) $(CL_IL_LDFLAGS_INSTALL) -o $(CL_PREFIX)/bin/$(EXECUTABLE)
+else
 	cp $(CL_BD)/$(EXECUTABLE) $(CL_PREFIX)/bin/
+endif
 
 override CL_INSTALL_PARTS += install_executable
 endif
@@ -574,6 +613,7 @@ ifeq ($(CL_LTYPE),static)
 ifndef INTERNAL_LIBRARY
 install_library: $(ALWAYS)
 	mkdir -p $(CL_PREFIX)/lib
+	rm -f $(CL_BD)/$(CL_LIBRARY_FNAME)
 	cp $(CL_BD)/$(CL_LIBRARY_FNAME) $(CL_PREFIX)/lib/
 
 override CL_INSTALL_PARTS += install_library
@@ -586,7 +626,8 @@ endif # LIBRARY
 ifdef EXPORT_INCLUDES
 install_includes: $(ALWAYS)
 	mkdir -p $(CL_PREFIX)/include
-	cp $(EXPORT_INCLUDES) $(CL_PREFIX)/include/
+	rm -rf $(CL_PREFIX)/include/$(EXPORT_INCLUDES)
+	cp -r $(EXPORT_INCLUDES) $(CL_PREFIX)/include/
 
 override CL_INSTALL_PARTS += install_includes
 endif
@@ -594,6 +635,7 @@ endif
 ifdef SCRIPTS
 install_scripts: $(ALWAYS)
 	mkdir -p $(CL_PREFIX)/bin
+	rm -rf $(CL_PREFIX)/bin/$(SCRIPTS)
 	cp $(SCRIPTS) $(CL_PREFIX)/bin/
 
 override CL_INSTALL_PARTS += install_scripts
@@ -603,6 +645,7 @@ ifdef SCRIPTS_WI
 ifdef CL_INSTALL_WI
 install_scripts_wi: $(ALWAYS)
 	mkdir -p $(CL_PREFIX)/bin
+	rm -rf $(CL_PREFIX)/bin/$(SCRIPTS_WI)
 	cp $(SCRIPTS_WI) $(CL_PREFIX)/bin/
 
 override CL_INSTALL_PARTS += install_scripts_wi
@@ -616,8 +659,8 @@ endif
 ifdef CL_INSTALL_WI
 override CL_WI_DEPEND := $(foreach dep,$(CL_DEPEND_ON_EXACT),$(filter $(dep)_%,$(CL_WI_LIST)))
 install_rules: $(ALWAYS)
-	if test -f rules.cvslvk; then cp rules.cvslvk $(CL_PREFIX)/; fi
-	if test -f depend.cvslvk; then cp depend.cvslvk $(CL_PREFIX)/; fi
+	if test -f rules.cvslvk; then rm -f $(CL_PREFIX)/rules.cvslvk && cp rules.cvslvk $(CL_PREFIX)/; fi
+	if test -f depend.cvslvk; then rm -f $(CL_PREFIX)/depend.cvslvk && cp depend.cvslvk $(CL_PREFIX)/; fi
 ifneq ($(strip $(CL_WI_DEPEND)),)
 	printf "\n%s\n" $(CL_WI_DEPEND) >> $(CL_PREFIX)/depend.cvslvk
 endif
@@ -664,12 +707,12 @@ $(EXECUTABLE): $(CL_BD)/$(EXECUTABLE)
 	rm -f  $(EXECUTABLE) && ln -s $(CL_BD)/$(EXECUTABLE) $(EXECUTABLE)
 
 $(CL_BD)/$(EXECUTABLE): $(CL_OBJECTS_ALL)
-	$(LD) $(CL_OBJECTS_ALL) $(LDFLAGS) -o $@ 
+	$(LD) $(CL_OBJECTS_ALL) $(LDFLAGS) $(CL_IL_LDFLAGS_BUILD) -o $@ 
 ifdef CL_OPTIMIZE
 	strip $@
 endif
 
-clean: $(CL_CLEAN) clean_subdirs $(ALWAYS)
+clean: clean_subdirs $(CL_CLEAN) $(ALWAYS)
 	rm -rf $(CL_BD_CLEAN) $(EXECUTABLE) $(CL_SL_NAMES)
 
 endif
@@ -687,7 +730,7 @@ override CL_ALL_LIB_NAMES += $(CL_LIBRARY_CNAME)
 endif
 endif
 
-all: $(CL_ALL_LIB_NAMES) all_subdirs
+all: all_subdirs $(CL_ALL_LIB_NAMES)
 
 $(CL_ALL_LIB_NAMES): $(CL_ALL_LIB_NAMES:%=$(CL_BD)/%)
 	rm -f $@ && ln -s $(CL_BD)/$@ .
@@ -709,7 +752,7 @@ $(CL_BD)/$(CL_LIBRARY_CNAME): $(CL_BD)/$(CL_LIBRARY_SONAME)
 endif
 endif
 
-clean: $(CL_CLEAN) clean_subdirs $(ALWAYS)
+clean: clean_subdirs $(CL_CLEAN) $(ALWAYS)
 	rm -rf $(CL_BD_CLEAN) $(CL_ALL_LIB_NAMES)
 
 endif
