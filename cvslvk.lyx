@@ -1,4 +1,4 @@
-#This file was created by <nikita> Sun Dec 19 01:13:21 1999
+#This file was created by <nikita> Mon Dec 20 19:05:07 1999
 #LyX 0.12 (C) 1995-1998 Matthias Ettrich and the LyX Team
 \lyxformat 2.15
 \textclass article
@@ -39,7 +39,7 @@
 \newline 
 
 \emph on 
-последнее изменение в этот документ внесено 18.12.1999
+последнее изменение в этот документ внесено 20.12.1999
 \newline 
 
 \newline 
@@ -1531,7 +1531,7 @@ LDFLAGS
  или запуске программ -- удалить эти флаги.
 \layout Standard
 
-В будущих версиях системы работа с 
+Возможно, в будущих версиях системы работа с 
 \family typewriter 
 LDFLAGS
 \family default 
@@ -1860,6 +1860,9 @@ SUBDIRS
 \layout Subsubsection
 
 Команды очистки
+\layout Standard
+
+Имеются две команды очистки:
 \layout Itemize
 
 
@@ -1892,7 +1895,11 @@ make
 cleanall
 \family default 
  -- удаляет все файлы, созданные системой cvslvk.
- В частности, удаляются все созданные каталоги сборки.
+ В частности, удаляются 
+\emph on 
+все
+\emph toggle 
+ созданные каталоги сборки.
 \layout Standard
 
 Имеются две переменные, при помощи которых можно заставить команды 
@@ -1969,10 +1976,13 @@ CL_CLEAN
 make
 \family default 
 -правилами.
- Однако, если пользовательские make-правила создают временные файлы, то
- рекомендуется их размещать в каталоге сборки -- тогда они не будут засорять
- рабочий каталог и будут автоматически удалены при очистке без дополнительных
- определений.
+ Однако, если пользовательские 
+\family typewriter 
+make
+\family default 
+-правила создают временные файлы, то рекомендуется их размещать в каталоге
+ сборки -- тогда они не будут засорять рабочий каталог и будут автоматически
+ удалены при очистке без дополнительных определений.
  Имя каталога сборки доступно в 
 \family typewriter 
 Makefile
@@ -1981,10 +1991,13 @@ Makefile
 \family typewriter 
 $(CL_DIR)/Makefile.cvslvk
 \family default 
- в переменной 
+ в 
+\series bold 
+переменной 
 \family typewriter 
-$(CL_BD)
+CL_BD
 \family default 
+\series default 
 .
 \newline 
 
@@ -2026,9 +2039,229 @@ SUBDIRS
 \layout Subsubsection
 
 Команда инсталляции
+\layout Standard
+
+Команда 
+\family typewriter 
+make
+\protected_separator 
+install
+\family default 
+ осуществляет инсталляцию программы или библиотеки, собираемой в рабочем
+ каталоге.
+ Указывается путь для инсталляции, куда в подкаталог 
+\family typewriter 
+bin/
+\family default 
+ копируется исполняемый файл, в подкаталог 
+\family typewriter 
+lib/
+\family default 
+ -- библиотека, и т.д.
+ Инсталляция управляется набором переменных.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_PREFIX
+\family default 
+\series default 
+
+\newline 
+Указывает путь для инсталляции.
+ Если эта переменная не определена, то команда 
+\family typewriter 
+make
+\protected_separator 
+install
+\family default 
+ будет аварийно завершена.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_INSTALL_PARTS
+\family default 
+\series default 
+
+\newline 
+Может содержать разделенный пробелами список 
+\family typewriter 
+make
+\family default 
+-правил, которые надо выполнить перед инсталляцией.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+EXPORT_INCLUDES
+\family default 
+\series default 
+
+\newline 
+Может содержать разделенный пробелами список файлов и каталогов, которые
+ следует в процессе инсталляции скопировать в каталог 
+\family typewriter 
+$(CL_PREFIX)/include/
+\family default 
+.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+SCRIPTS
+\family default 
+\series default 
+
+\newline 
+Может содержать разделенный пробелами дополнительный список файлов (например,
+ скриптов), которые следует в процессе инсталляции скопировать в каталог
+ 
+\family typewriter 
+$(CL_PREFIX)/bin/
+\family default 
+.
+\layout Standard
+
+По команде 
+\family typewriter 
+make
+\protected_separator 
+install
+\family default 
+ выполняются следующие действия:
+\layout Itemize
+
+вызывается сборка каталога (с явно установленной переменной 
+\family typewriter 
+CL_PREFIX
+\family default 
+);
+\layout Itemize
+
+если определена переменная 
+\family typewriter 
+SUBDIRS
+\family default 
+, то вызывается команда make
+\protected_separator 
+install в каждом из каталогов, перечисленных в этой переменной;
+\layout Itemize
+
+если система находится в режиме сборки программы (т.е.
+ определена переменная 
+\family typewriter 
+EXECUTABLE
+\family default 
+), то исполняемый файл программы копируется в каталог 
+\family typewriter 
+$(CL_PREFIX)/bin
+\family default 
+; если система находится в режиме сборки библиотеки (т.е.
+ определена переменная 
+\family typewriter 
+LIBRARY
+\family default 
+), то собранная библиотека копируется в каталог 
+\family typewriter 
+$(CL_PREFIX)/lib
+\family default 
+;
+\layout Itemize
+
+если определена переменная 
+\family typewriter 
+EXPORT_INCLUDES
+\family default 
+, то перечесленные в ней файлы и каталоги копируются в каталог 
+\family typewriter 
+$(CL_PREFIX)/include
+\family default 
+;
+\layout Itemize
+
+если определена переменная 
+\family typewriter 
+SCRIPTS
+\family default 
+, то перечесленные в ней файлы копируются в каталог 
+\family typewriter 
+$(CL_PREFIX)/bin
+\family default 
+.
+\layout Subsubsection
+
+Другие команды (цели 
+\family typewriter 
+make
+\family default 
+)
+\layout Itemize
+
+Команды 
+\family typewriter 
+make
+\protected_separator 
+create_wi
+\family default 
+, 
+\family typewriter 
+make
+\protected_separator 
+update_wi
+\family default 
+, 
+\family typewriter 
+make
+\protected_separator 
+show_wi
+\family default 
+, связанные с использованием модулей, рассматриваются в разделе 
+\begin_inset LatexCommand \ref{sec: modules}
+
+\end_inset 
+
+.
+\layout Itemize
+
+Всякий создаваемый файл (например, объектный) можно создать явно командой
+ 
+\family typewriter 
+make
+\protected_separator 
+<имя-файла>
+\family default 
+.
+ Следует иметь в виду, однако, что файл скорее всего будет создан не в текущем
+ каталоге, а в подкаталоге сборки.
+ 
+\layout Itemize
+
+Новые цели 
+\family typewriter 
+make
+\family default 
+ могут определяться в 
+\family typewriter 
+Makefile
+\family default 
+-е или в подключаемых модулях.
 \layout Subsection
 
 Модель использования модулей в системе cvslvk
+\begin_inset LatexCommand \label{sec: modules}
+
+\end_inset 
+
+
 \layout Subsubsection
 
 Понятие модуля
@@ -2244,7 +2477,9 @@ shared
  из них.
 \layout Subsubsection
 
-Семантика использования модуля: файл rules.cvslvk
+Семантика использования модуля: файл 
+\family typewriter 
+rules.cvslvk
 \layout Standard
 
 После того, как система принимает решение об использовании конкретной рабочей
@@ -2554,7 +2789,7 @@ ifdef
 \family typewriter 
 rules.cvslvk
 \family default 
- все параметры сборки уже установлены, переопределить их в файлах 
+ параметры сборки уже установлены, переопределить их в файлах 
 \family typewriter 
 rules.cvslvk
 \family default 
@@ -2588,12 +2823,51 @@ DEFINES
 LDFLAGS
 \family default 
 , флаги компилятора и т.д.) могут быть доопределены или переопределены.
- Имеются также переменные, специально предназначенные для определения в
- файлах 
+ 
+\layout Standard
+
+Архитектура и операционная система машины, на которой осуществляется сборка,
+ доступны в файлах 
 \family typewriter 
 rules.cvslvk
 \family default 
-.
+ через следующие переменные:
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_ARCH
+\family default 
+\series default 
+ 
+\newline 
+Возможные значения в текущей версее системы cvslvk: 
+\family typewriter 
+sparc
+\family default 
+ и 
+\family typewriter 
+x86
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_OS
+\family default 
+\series default 
+ 
+\newline 
+Возможные значения в текущей версее системы cvslvk: 
+\family typewriter 
+solaris
+\family default 
+ и 
+\family typewriter 
+linux
 \layout Subsubsection
 
 Зависимости между модулями
@@ -3047,6 +3321,9 @@ EXECUTABLE
 \layout Subsubsection
 
 Управление порядком библиотек
+\layout Subsubsection
+
+Блокировка вычисления зависимостей
 \layout Section
 
 Сообщения об ошибках
