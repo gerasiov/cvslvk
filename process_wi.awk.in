@@ -75,7 +75,7 @@
       } @\
     } @\
   RES=""; @\
-  for ( ai=7; ai>=0; ai-- )  for ( aj=1; aj<=an; aj++ )  @\
+  for ( ai=8; ai>=0; ai-- )  for ( aj=1; aj<=an; aj++ )  @\
     if ( aq[aj]==ai )  append ( RES, a[aj], " " ); @\
   } @\
 
