@@ -475,6 +475,9 @@ $(EXECUTABLE): $(CL_BD)/$(EXECUTABLE)
 
 $(CL_BD)/$(EXECUTABLE): $(CL_OBJECTS_ALL)
 	$(LD) $(CL_OBJECTS_ALL) $(LDFLAGS) -o $@ 
+ifdef CL_OPTIMIZE
+	strip $@
+endif
 
 install: all $(ALWAYS)
 	@$(HELPER) check_vars CL_PREFIX=$(CL_PREFIX)
@@ -500,6 +503,9 @@ all: $(CL_BD)/$(CL_LIBRARY_FNAME)
 
 $(CL_BD)/$(CL_LIBRARY_FNAME): $(CL_OBJECTS_ALL)
 	$(CL_MKLIB) $@ $(CL_OBJECTS_ALL)
+ifdef CL_OPTIMIZE
+	strip -g $@
+endif
 
 install: all $(ALWAYS)
 	@$(HELPER) check_vars CL_PREFIX=$(CL_PREFIX)
