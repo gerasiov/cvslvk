@@ -1,4 +1,4 @@
-#This file was created by <nikita> Thu Dec 23 19:50:05 1999
+#This file was created by <nikita> Fri Dec 24 17:37:25 1999
 #LyX 0.12 (C) 1995-1998 Matthias Ettrich and the LyX Team
 \lyxformat 2.15
 \textclass article
@@ -39,7 +39,7 @@
 \newline 
 
 \emph on 
-последнее изменение в этот документ внесено 23.12.1999
+последнее изменение в этот документ внесено 24.12.1999
 \newline 
 
 \newline 
@@ -1765,10 +1765,13 @@ shared
  одно из следующих условий:
 \layout Itemize
 
-установлена переменная 
+установлена 
+\series bold 
+переменная 
 \family typewriter 
 CL_PARAM_LTYPE
 \family default 
+\series default 
 ,
 \layout Itemize
 
@@ -4483,10 +4486,563 @@ lib<
  для компоновщика на файл с новой версией библиотеки.
 \layout Subsubsection
 
-Сборка библиотек в системе cvslvk
+Поиск разделяемых библиотек при запуске исполняемого файла
+\layout Standard
+
+В процессе запуска исполняемого файла OC UNIX должна найти все используемые
+ этим файлом разделяемые библиотеки.
+ Для этого используются следующие механизмы.
+\layout Itemize
+
+Библиотека может быть в одном из каталогов, в которых поиск производится
+ по умолчанию.
+ Список этих каталогов может быть фиксирован или же настраиваться системным
+ администратором.
+ В любом случае для того, чтобы библиотеки были найдены этим способом, требуется
+ вмешательство системного администратора.
+\layout Itemize
+
+Библиотека может быть в одном из каталогов, перечисленных у пользователя
+ в переменной среды 
+\family typewriter 
+LD_LIBRARY_PATH
+\family default 
+.
+ При помощи этой переменной всегда можно добиться, чтобы разделяемые библиотеки
+ были корректно найдены, однако это требует персональной установки переменной
+ 
+\family typewriter 
+LD_LIBRARY_PATH
+\family default 
+ у каждого пользователя, что неудобно.
+\layout Itemize
+
+Пути для поиска разделяемых библиотек могут быть прописаны непосредственно
+ в исполняемый файл (механизм 
+\family typewriter 
+rpath
+\family default 
+).
+ В этом случае никаких дополнительных установок ни у пользователя, ни у
+ системного администратора не требуется.
+ Однако, перемещение разделяемых библиотек из одного места в другое потребует
+ перекомпоновки исполняемого файла.
+\layout Standard
+
+В системе cvslvk в основном используется третий метод.
+ Все пути, указанные в ключах 
+\family typewriter 
+-L
+\family default 
+ компоновщика, система cvslvk автоматически прописывается в исполняемый
+ файл (при помощи соответствующей обработки переменной 
+\family typewriter 
+LDFLAGS
+\family default 
+).
+ В большинстве случаев это обеспечит корректную работу.
+\layout Standard
+
+Команда 
+\family typewriter 
+ldd
+\family default 
+ позволяет определить, откуда берутся разделяемые библиотеки при запуске
+ исполняемого файла.
 \layout Subsubsection
 
-Использоваение библиотек.
+Сборка библиотек в системе cvslvk
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+LIBRARY
+\newline 
+
+\family default 
+\series default 
+Если определена эта переменная, то в текущем каталоге собирается библиотека.
+ Переменная 
+\family typewriter 
+LIBRARY
+\family default 
+ содержит имя библиотеки, которое будет использоваться в ключе 
+\family typewriter 
+-l
+\family default 
+ компоновщика при подключении этой библиотеки
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_LTYPE
+\family default 
+\series default 
+
+\newline 
+Возможные значения: shared, static
+\newline 
+Значение по умолчанию: shared
+\newline 
+Определяет тип собираемой библиотеки: разделяемая или статическая.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_LIBRARY_VERSION
+\newline 
+
+\family default 
+Переменная: 
+\family typewriter 
+CL_LIBRARY_REVISION
+\newline 
+
+\family default 
+\series default 
+Эти переменные используются при сборке разделяемых библиотек (
+\family typewriter 
+CL_LTYPE
+\family default 
+=
+\family typewriter 
+shared
+\family default 
+) для установки трех имен разделяемой библиотеки.
+ Имена устанавливаются следующим образом:
+\begin_deeper 
+\layout Itemize
+
+имя для компоновщика -- всегда 
+\family typewriter 
+lib$(LIBRARY).so
+\family default 
+,
+\layout Itemize
+
+имя класса совместимости -- 
+\family typewriter 
+lib$(LIBRARY).so.$(CL_LIBRARY_VERSION)
+\family default 
+, если определена переменная 
+\family typewriter 
+CL_LIBRARY_VERSION
+\family default 
+, иначе 
+\family typewriter 
+lib$(LIBRARY).so
+\family default 
+,
+\layout Itemize
+
+полное имя библоитеки -- 
+\family typewriter 
+lib$(LIBRARY).so.$(CL_LIBRARY_VERSION).$(CL_LIBRARY_REVIRSION)
+\family default 
+, если определены обе переменные 
+\family typewriter 
+CL_LIBRARY_VERSION
+\family default 
+ и 
+\family typewriter 
+CL_LIBRARY_REVIRSION
+\family default 
+, иначе 
+\family typewriter 
+lib$(LIBRARY).so.$(CL_LIBRARY_VERSION)
+\family default 
+, если определена переменная 
+\family typewriter 
+CL_LIBRARY_VERSION
+\family default 
+, иначе 
+\family typewriter 
+lib$(LIBRARY).so
+\family default 
+.
+\layout Standard
+
+Если собирается статическая библиотека (
+\family typewriter 
+CL_LTYPE
+\family default 
+=
+\family typewriter 
+static
+\family default 
+), то ее имя всегда будет 
+\family typewriter 
+lib$(LIBRARY).a
+\family default 
+.
+\end_deeper 
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+EXPORT_INCLUDES
+\newline 
+
+\family default 
+\series default 
+Содержит разделенный пробелами список файлов (скорее всего include-файлов)
+ для комирования в подкаталог 
+\family typewriter 
+include/
+\family default 
+ каталога инсталляции.
+\layout Standard
+
+При сборке библиотеки значение 
+\family typewriter 
+CL_LTYPE
+\family default 
+ всегда оказывается среди параметров сборки, таким образом объектные файлы
+ для статической и разделяемой версий библиотеки разделены.
+ 
+\layout Standard
+
+Сборка разделяемых библиотек компиляторами Sun в текущей версии системы
+ cvslvk не поддерживается.
+ Имеются подозрения, что компиляторы фирмы Sun из пакета 
+\family typewriter 
+SUNWspro
+\protected_separator 
+4
+\family default 
+ (как минимум с языка Си++) создают некорректные разделяемые библиотеки
+ и/или исполняемые файлы, использующие разделяемые библиотеки.
+ При работе с компиляторами Sun значение переменной 
+\family typewriter 
+CL_LTYPE
+\family default 
+ по умолчанию -- 
+\family typewriter 
+static
+\family default 
+.
+\layout Standard
+
+Флаг 
+\family typewriter 
+-fPIC
+\family default 
+, необходимый компилятору 
+\family typewriter 
+gcc
+\family default 
+ для сборки объектных файлов для разделяемой библиотеки, подключается автоматиче
+ски.
+\layout Standard
+
+Разделяемые библиотеки создаются из объектных файлов при помощи команды
+ 
+\family typewriter 
+gcc
+\protected_separator 
+-shared
+\family default 
+.
+ Значение 
+\family typewriter 
+LDFLAGS
+\family default 
+ этой команде 
+\emph on 
+не передается
+\emph toggle 
+.
+\begin_float footnote 
+\layout Standard
+
+Это, в частности, означает невозможность прописывать в создаваемые разделяемые
+ библиотеки зависимости от других разделяемых библиотек.
+ Такой межанизм планируется в будущих версиях системы
+\end_float 
+\layout Standard
+
+При использовании компилятора Sun Си++ статические библиотеки создаются
+ командой 
+\family typewriter 
+CC
+\protected_separator 
+-xar
+\family default 
+.
+ Эта команда может работать долго (сравнимо с компиляцией всех объектных
+ файлов), но зато автоматически будут созданы все упомянуиые в библиотеке
+ экземпляры 
+\family typewriter 
+template
+\family default 
+-ов.
+\layout Standard
+
+В остальных случаях статические библиотеки создаются командой 
+\family typewriter 
+ar
+\protected_separator 
+cr
+\family default 
+.
+\layout Subsubsection
+
+Использоваение библиотек
+\layout Standard
+
+В системе cvslvk может быть три способа использования библиотек программами.
+\layout Standard
+
+Первый способ -- использовать библиотеку внешними по отношению к системе
+ cvslvk средствами, т.е.
+ явно указывая соответствующие флаги в 
+\family typewriter 
+Makefile
+\family default 
+-е в переменных 
+\family typewriter 
+INCLUDES
+\family default 
+ и 
+\family typewriter 
+LDFLAGS
+\family default 
+.
+ Этот способ можно использовать для подключения библиотеки, установленной
+ помимо системы cvslvk, если соответствующий псевдомодуль не создан.
+\layout Standard
+
+Второй способ -- механизм модулей и рабочих инсталляций.
+ Из библиотеки создается модуль, для ее использования устанавливается соответств
+ующее требование в переменной 
+\family typewriter 
+CL_USE_MODULES
+\family default 
+, а все необходимые установки переменных поступают автоматически из файла
+ 
+\family typewriter 
+rules.cvslvk
+\family default 
+ рабочей инсталляции библиотеки.
+ Это рекомендуемый способ подключения библиотек, собираемых при помощи системы
+ cvslvk и используемых более чем одним проектом.
+\layout Standard
+
+Третий способ -- механизм 
+\emph on 
+внутренних библиотек
+\emph toggle 
+.
+ Если библиотека используется только в одном проекте, то делать из нее отдельный
+ модуль не имеет смысла.
+ Вместо этого, можно собрать библиотеку в подкаталоге и подключить локально.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_INTERNAL_LIBRARY
+\family default 
+\series default 
+
+\newline 
+Эта переменная эквивалентна 
+\family typewriter 
+LIBRARY
+\family default 
+ с единственным исключением: при инсталляции статическая библиотека не инсталлир
+уетя, а у разделяемой не инсталлируется имя для компоновщика.
+ В итоге после инсталляции невозможна компоновка с библиотекой (но возможен
+ запуск скомпонованных с ней исполняемых файлов).
+\begin_deeper 
+\layout Standard
+
+В каталогах, где собирается 
+\begin_inset Quotes eld
+\end_inset 
+
+локальная
+\begin_inset Quotes erd
+\end_inset 
+
+ библиотека, следует определять переменную 
+\family typewriter 
+INTERNAL_LIBRARY
+\family default 
+ вместо переменной 
+\family typewriter 
+LIBRARY
+\family default 
+, и не определять переменную 
+\family typewriter 
+EXPORT_INCLUDES
+\family default 
+.
+\end_deeper 
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_USE_IL
+\family default 
+\series default 
+
+\newline 
+Эта переменная используется при сборке исполняемого файла и содержит список
+ каталогов, в которых собираются 
+\begin_inset Quotes eld
+\end_inset 
+
+локальные
+\begin_inset Quotes erd
+\end_inset 
+
+ библиотеки, с которыми следует компоновать исполняемый файл.
+\begin_deeper 
+\layout Standard
+
+В текущей версии системы cvslvk имеются следующее ограничение: имя каждого
+ каталога, перечисленного в переменной 
+\family typewriter 
+CL_USE_IL
+\family default 
+, должно совпадать с именем библиотеки, собираемой в этом каталоге.
+ 
+\layout Standard
+
+Если определена переменная 
+\family typewriter 
+CL_USE_IL
+\family default 
+, то выполняются следующие действия:
+\layout Itemize
+
+в переменную 
+\family typewriter 
+INCLUDES
+\family default 
+ добавляются пути в каталоги, перечисленные в переменной 
+\family typewriter 
+CL_USE_IL
+\family default 
+,
+\layout Itemize
+
+в переменную 
+\family typewriter 
+LDFLAGS
+\family default 
+ добавляются соответствующие ключи 
+\family typewriter 
+-L
+\family default 
+ и 
+\family typewriter 
+-l
+\family default 
+,
+\layout Itemize
+
+перед сборкой текущего каталога будет выполнена сборка каталогов, перечисленных
+ в переменной 
+\family typewriter 
+CL_USE_IL
+\family default 
+,
+\layout Itemize
+
+в процессе сборки каталога в исполняемый файл при компоновки прописываются
+ пути до разделяемых библиотек, указанные в переменной 
+\family typewriter 
+CL_IL_LIBS
+\family default 
+ (и дополненные до глобальных путей); в процессе инсталляции производится
+ перекомпоновка и вместо путей из 
+\family typewriter 
+CL_IL_LIBS
+\family default 
+ прописывается единственный путь 
+\family typewriter 
+$(CL_PREFIX)/lib
+\family default 
+.
+ Эти действия соответствуют понятию 
+\emph on 
+внутренний библиотеки модуля
+\emph toggle 
+ (отсюда и имя переменной 
+\family typewriter 
+INTERNAL_LIBRARY
+\family default 
+) -- некоторая библиотека используется несколькими программами и только
+ ими, эти программы и библиотека объединяются в один модуль.
+\layout Standard
+
+Автоматической инсталляции каталогов, перечисленных в переменной 
+\family typewriter 
+CL_USE_IL
+\family default 
+, 
+\emph on 
+не производится
+\emph toggle 
+ -- чтобы избежать многократных инсталляций этих каталогов при использовании
+ библиотеки несколькомо программами.
+ Автоматической очистки тоже не производится -- чтобы не удалять библиотеку,
+ используемую несколькими программами, при очистке в каталоге одной из этих
+ программ.
+\layout Standard
+
+Рекомендуется следующая организация модуля, состоящего из внутренних библиотек
+ и программ.
+ На глобальном уровне имеются подкаталоги для каждой библиотеки и программы
+ и 
+\family typewriter 
+Makefile
+\family default 
+, определяющий только переменную 
+\family typewriter 
+SUBDIRS
+\family default 
+ (и, возможно, переменную 
+\family typewriter 
+CL_MODULE
+\family default 
+).
+ В каталогах, соответствующих библиотекам, определяется переменная 
+\family typewriter 
+INTERNAL_LIBRARY
+\family default 
+.
+ Наконец, в каталогах с программами определяется переменная 
+\family typewriter 
+CL_USE_IL
+\family default 
+.
+\end_deeper 
+\layout Standard
+
+
+\emph on 
+Замечание.
+ Как показывает опыт, если библиотека что-либо использует, то использующие
+ эту библиотеку программы должны использовать то же самое.
+ Видимо, нужен какой-то механизм для наследования использования в этом случае.
+ Такой механизм возможно будет реализован в следующих версиях системы cvslvk.
+ В текущей версии приходится переносить информацию об использовании вручную.
+ Однако, это не очень страшно, т.к.
+ если это забыть, то возникнет ошибка при сборке, диагностируемая автоматически.
 \layout Subsection
 
 Дополнительные возможности
@@ -4498,6 +5054,191 @@ lib<
 \end_inset 
 
 
+\layout Standard
+
+Некоторые программы и/или модули можно корректно собирать и/или использовать
+ только при корректной установке определенных переменных.
+ В связи с этим в системе cvslvk имеется механизм проверки переменных.
+ Можно просто проверить некоторую наличие некоторой переменной, или проверить,
+ что переменная приняла одно из указанного набора значений.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_VARS
+\newline 
+
+\family default 
+\series default 
+В этой переменной указываются разделенные пробелами условия, которые трубуется
+ проверить.
+ Условия могут быть двух видов.
+ Дла проверки наличия
+\begin_float footnote 
+\layout Standard
+
+Строго говоря, непустоты
+\end_float 
+ переменной требуется просто указать ее имя.
+ Для проверки того, что переменная приняла одно из указанных значений, условие
+ записывается в виде 
+\family typewriter 
+<
+\family default 
+имя
+\family typewriter 
+>:<
+\family default 
+значение1
+\family typewriter 
+>|
+\family default 
+...
+\family typewriter 
+|<
+\family default 
+значениеN
+\family typewriter 
+>
+\family default 
+.
+ В случае несоблюдения условия (переменная не определена или определена
+ в пустую строку в первом случае, переменная не определена или ее значение
+ не совпадает ни с одним из перечисленных во втором случае) команда 
+\family typewriter 
+make
+\family default 
+ будет аварийно завершена.
+ 
+\begin_deeper 
+\layout Standard
+
+Примеры: 
+\layout Itemize
+
+
+\family typewriter 
+override
+\protected_separator 
+CL_VARS
+\protected_separator 
++=
+\protected_separator 
+QT_DIR
+\family default 
+ -- потребовать обязательное определение переменной 
+\family typewriter 
+QT_DIR
+\family default 
+,
+\layout Itemize
+
+override
+\protected_separator 
+
+\family typewriter 
+CL_VARS
+\protected_separator 
++=
+\protected_separator 
+MTTYPE:mtint|mtfloat|mtdouble
+\family default 
+ -- потребовать определение переменной 
+\family typewriter 
+MT_TYPE
+\family default 
+, причем в одно из значений mtint, mtfloat или mtdouble.
+\layout Standard
+
+Если корректная работа модуля зависит от определения переменных, то рекомендуетс
+я в файле 
+\family typewriter 
+rules.cvslvk
+\family default 
+ добавлять соответствующие условия в переменную 
+\family typewriter 
+CL_VARS
+\family default 
+.
+\end_deeper 
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_CHECK_VARS_COMMAND
+\newline 
+
+\family default 
+\series default 
+По умолчанию проверка условий, занесенных в переменную 
+\family typewriter 
+CL_VARS
+\family default 
+, производится сначала до включения файлов , а если в них были определены
+ новые условия -- то еще раз после включения файлов 
+\family typewriter 
+rules.cvslvk
+\family default 
+.
+ Если по какой-либо причине при несоблюдении условий необходимо немедленно
+ прекратить дальнейшую работу, то это можно сделать при помощи комадны,
+ хранимой в переменной 
+\family typewriter 
+CL_CHECK_VARS_COMMAND
+\family default 
+.
+ Например:
+\begin_deeper 
+\layout LyX-Code
+
+override CL_VARS += MYVAR:val1|val2
+\layout LyX-Code
+
+$(
+\family typewriter 
+CL_CHECK_VARS_COMMAND
+\family default 
+)
+\layout LyX-Code
+
+override CL_VARS :=
+\end_deeper 
+\layout Standard
+
+Последняя строка служит для сброса переменной 
+\family typewriter 
+CL_VARS
+\family default 
+ с целью избежать лишнего вызова 
+\family typewriter 
+$(CL_CHECK_VARS_COMMAND)
+\family default 
+ после окончания чтения файлов 
+\family typewriter 
+rules.cvslvk
+\family default 
+.
+ В принципе, это не обязательно, но желательно, т.к.
+ команда 
+\family typewriter 
+$(CL_CHECK_VARS_COMMAND)
+\family default 
+ связана с лишним вызовом внешней программы проверки и потому работает сравнител
+ьно медленно.
+ По этой же причине если проверку можно отложить до окончания чтения файлов
+ 
+\family typewriter 
+rules.cvslvk
+\family default 
+, то 
+\family typewriter 
+$(CL_CHECK_VARS_COMMAND)
+\family default 
+ лучше вообще не использовать.
 \layout Subsubsection
 
 Управление порядком библиотек
@@ -4506,6 +5247,69 @@ lib<
 \end_inset 
 
 
+\layout Standard
+
+В некоторых случаях существенно, в каком порядке передаются компоновщику
+ ключи 
+\family typewriter 
+-l
+\family default 
+.
+ Например, если одна и та же функция определена более чем в одной библиотеке,
+ то будет использована первая найденая.
+ Или (только при использовании статических библиотек) если функции одной
+ библиотеки вызывают функции другой, то первая должна подключаться раньше
+ -- если раньше будет подключена вторая, то к моменту ее подключения ссылок
+ на ее объектные файлы не будет и соответственно эти объектные файлы не
+ будут подключены.
+\layout Standard
+
+В системе cvslvk ключи компоновщика могут добавляться из файлов 
+\family typewriter 
+rules.cvslvk
+\family default 
+, порядок подключения которых неопределен.
+ Чтобы порядком библиотек все равно можно было управлять, имеется специальный
+ механизм.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_LIBORDER
+\newline 
+
+\family default 
+\series default 
+В этой переменной указываются пары библиотек, относительный порядок которых
+ должен быть конкретным.
+ Например:
+\begin_deeper 
+\layout LyX-Code
+
+override CL_LIBORDER += -lwx,-lXm
+\layout Standard
+
+Это определение требует, чтобы в командной строке компоновщика ключ 
+\family typewriter 
+-lwx
+\family default 
+ был указан раньше ключа 
+\family typewriter 
+-lXm
+\family default 
+.
+ 
+\layout Standard
+
+В переменной CL_LIBORDER
+\end_deeper 
+\layout Subsubsection
+
+Зависимость 
+\family typewriter 
+$(ALWAYS)
 \layout Subsubsection
 
 Блокировка вычисления зависимостей
