@@ -225,12 +225,16 @@ get_bd_for_clean()
 {
   if test -d $1; then echo $1; return; fi
 
-  part3=`echo $1 | sed 's/[^-]*-[^-]*-\([^-]*\).*/\1/'`
-  if test "$part3" = "gcc" -o "$part3" = "suncc"; then
-    echo $1; return
-  fi
+  part3=`echo $1 | cut -d- -f3`
+  if test "$part3" = "gcc" -o "$part3" = "suncc"; then echo $1; return; fi
 
-  echo $1 | sed 's/\([^-]*-[^-]*\)\(.*\)/\1-'$2'\2/'; return
+  part12=`echo $1 | cut -d- -f1-2`
+  rest=`echo $1 | cut -d- -f3-`
+  test "$rest" = "" || rest="-$rest" 
+  if test -d $part12-gcc$rest; then echo $part12-gcc$rest; return; fi
+  if test -d $part12-suncc$rest; then echo $part12-suncc$rest; return; fi
+  
+  echo $1
 }
 
 
@@ -267,9 +271,11 @@ depend()
 }
 
 
-# remove_other_bd_links <имя каталога сборки>
-remove_other_bd_links()
+# setup_bd <имя каталога сборки>
+setup_bd()
 {
+  mkdir -p $1
+  touch $1/CVSLVK_BUILD_DIR
   ls -l | awk '{ if (NF==11) {
 		   if ( split ( $11,a,"/" ) == 2 ) {
 		     if ( (a[1] != "'$1'") && (a[2] == $9) ) {
@@ -500,7 +506,7 @@ fi
 shift
 
 case "$command" in
-  check_vars|error|get_arch|get_os|make_rules|remove_other_bd_links|cleanall|\
+  check_vars|error|get_arch|get_os|make_rules|setup_bd|cleanall|\
   make_sys_mkdep_flags_c|make_sys_mkdep_flags_cxx|\
   process_wi|show_wi|get_bd_for_clean|depend|liborder|touchap|\
   before_create_wi|before_install_wi|complete_wi|remove_wi|\
