@@ -2,38 +2,50 @@ override PCCTS_BIN := $(CL_WI)/bin
 override PCCTS_H := $(CL_WI)/include
 override INCLUDES += -I$(PCCTS_H)
 
-override PCCTS_DLG_FILE := parser.dlg
-override PCCTS_SCAN := DLGLexer
-override PCCTS_TOKENS := tokens.h
-
 override PCCTS_ANTLR := $(PCCTS_BIN)/antlr
-PCCTS_ANTLR_FLAGS += -CC -o $(CL_BD)/
-override PCCTS_ANTLR_SPAWN := $(PCCTS_GRAMMAR:%.g=$(CL_BD)/%.cpp) $(CL_BD)/$(PCCTS_PARSER).cpp $(CL_BD)/$(PCCTS_PARSER).h $(CL_BD)/$(PCCTS_DLG_FILE) $(CL_BD)/$(PCCTS_TOKENS)
+override PCCTS_ANTLR_FLAGS += -CC -o $(CL_BD)/
+override PCCTS_ANTLR_RULES_CPP := $(PCCTS_GRAMMAR:%.g=$(CL_BD)/%.cpp)
+override PCCTS_ANTLR_CLASS_CPP := $(CL_BD)/$(PCCTS_PARSER).cpp
+override PCCTS_ANTLR_CLASS_H := $(CL_BD)/$(PCCTS_PARSER).h
+override PCCTS_DLG_FILE := $(CL_BD)/parser.dlg
+override PCCTS_TOKENS_H := $(CL_BD)/tokens.h
 
 override PCCTS_DLG := $(PCCTS_BIN)/dlg
-PCCTS_DLG_FLAGS += -C2 -i -CC -o $(CL_BD)/
-override PCCTS_DLG_SPAWN := $(CL_BD)/$(PCCTS_SCAN).cpp $(CL_BD)/$(PCCTS_SCAN).h
+override PCCTS_DLG_FLAGS += -C2 -i -CC -o $(CL_BD)/
+override PCCTS_DLG_LEXER_CPP := $(CL_BD)/DLGLexer.cpp
+override PCCTS_DLG_LEXER_H := $(CL_BD)/DLGLexer.h
 
-override PCCTS_SOURCES_GEN := $(PCCTS_GRAMMAR:%g=$(CL_BD)/%cpp) $(CL_BD)/$(PCCTS_PARSER).cpp $(CL_BD)/$(PCCTS_SCAN).cpp
-override PCCTS_SOURCES_LIB := $(PCCTS_H)/AParser.cpp $(PCCTS_H)/DLexerBase.cpp $(PCCTS_H)/ASTBase.cpp $(PCCTS_H)/PCCTSAST.cpp $(PCCTS_H)/ATokenBuffer.cpp
-
-override PCCTS_OBJECTS_NU := $(PCCTS_SOURCES_GEN:%.cpp=%.o) $(PCCTS_SOURCES_LIB:$(PCCTS_H)/%.cpp=$(CL_BD)/%.o)
-override CL_OBJECTS_NU += $(PCCTS_OBJECTS_NU)
-
-override PCCTS_DEPS_NU := $(PCCTS_SOURCES_GEN:%=%.deps) $(PCCTS_SOURCES_LIB:$(PCCTS_H)/%=$(CL_BD)/%.deps)
-override CL_DEPS_NU += $(PCCTS_DEPS_NU)
-
-override PCCTS_HEADERS_NU := $(CL_BD)/$(PCCTS_PARSER).h $(CL_BD)/$(PCCTS_TOKENS) $(CL_BD)/$(PCCTS_SCAN).h
-override CL_PRE_DEPEND += $(PCCTS_HEADERS_NU)
-
-$(PCCTS_ANTLR_SPAWN) : $(PCCTS_GRAMMAR)
+$(PCCTS_ANTLR_RULES_CPP) : $(PCCTS_GRAMMAR)
 	$(PCCTS_ANTLR) $(PCCTS_ANTLR_FLAGS) $(PCCTS_GRAMMAR)
+$(PCCTS_ANTLR_CLASS_CPP) $(PCCTS_ANTLR_CLASS_H) $(PCCTS_DLG_FILE) $(PCCTS_TOKENS_H): $(PCCTS_ANTLR_RULES_CPP)
 
-$(PCCTS_DLG_SPAWN) : $(CL_BD)/$(PCCTS_DLG_FILE)
-	$(PCCTS_DLG) $(PCCTS_DLG_FLAGS) $(CL_BD)/$(PCCTS_DLG_FILE)
+$(PCCTS_DLG_LEXER_CPP) : $(PCCTS_DLG_FILE)
+	$(PCCTS_DLG) $(PCCTS_DLG_FLAGS) $(PCCTS_DLG_FILE)
+$(PCCTS_DLG_LEXER_H) : $(PCCTS_DLG_LEXER_CPP)
+
+override PCCTS_GEN_SOURCES := $(PCCTS_ANTLR_RULES_CPP) $(PCCTS_ANTLR_CLASS_CPP) $(PCCTS_DLG_LEXER_CPP)
+override CL_OBJECTS_NU += $(PCCTS_GEN_SOURCES:%.cpp=%.o)
+override CL_DEPS_NU += $(PCCTS_OBJECTS_NU:%=%.deps)
+
+override PCCTS_LIB_FILES := AParser.cpp DLexerBase.cpp ASTBase.cpp PCCTSAST.cpp ATokenBuffer.cpp
+override CL_OBJECTS_NU += $(PCCTS_LIB_FILES:%.cpp=$(CL_BD)/%.o)
+override CL_DEPS_NU += $(PCCTS_LIB_FILES:%=$(CL_BD)/%.deps)
+
+override CL_PRE_DEPEND += $(PCCTS_ANTLR_CLASS_H) $(PCCTS_TOKENS_H) $(PCCTS_DLG_LEXER_H)
+
+
+ifneq ($(PCCTS_SOR_FILES),)
+override PCCTS_SOR := $(CL_WI)/bin/sor
+override PCCTS_SOR_GEN := $(foreach f,$(basename $(PCCTS_SOR_FILES)),$(CL_BD)/$(PCCTS_SOR_CLASS_$(f)).cpp: $(f).sor%n%t$(PCCTS_SOR) -CPP $(PCCTS_SOR_FLAGS_$(f)) -out-dir $(CL_BD) $(f).sor%n$(CL_BD)/$(PCCTS_SOR_CLASS_$(f)).h: $(CL_BD)/$(PCCTS_SOR_CLASS_$(f)).cpp%n$(CL_BD)/$(f).cpp: $(CL_BD)/$(PCCTS_SOR_CLASS_$(f)).h%noverride CL_OBJECTS_NU += $(CL_BD)/$(f).o $(CL_BD)/$(PCCTS_SOR_CLASS_$(f)).o%noverride CL_DEPS_NU += $(CL_BD)/$(f).cpp.deps $(CL_BD)/$(PCCTS_SOR_CLASS_$(f)).cpp.deps%noverride CL_PRE_DEPEND += $(CL_BD)/$(PCCTS_SOR_CLASS_$(f)).h%n%n)
+override CL_TMP := $(shell echo $(PCCTS_SOR_GEN) | sed -f $(CL_WI)/convgen.sed > $(CL_BD)/pccts.sor.gen.mak)
+override CL_OBJECTS_NU += $(CL_BD)/STreeParser.o
+include $(CL_BD)/pccts.sor.gen.mak
+endif
+
 
 $(CL_BD)/%.o: $(PCCTS_H)/%.cpp
 	$(CL_CPP_COMPILE_COMMAND)
 
 $(CL_BD)/%.deps: $(PCCTS_H)/%
 	$(CL_DEPEND_COMMAND)
+

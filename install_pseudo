@@ -47,6 +47,7 @@ done
 WINAME='pccts_'$ARCH'-1.33MR22'
 if test -d $WINAME; then
   cp $SOURCE/rules.cvslvk.pccts $WINAME/rules.cvslvk
+  cp $SOURCE/convgen.sed $WINAME/
   touch $WINAME/NOREMOVE
   $CHGRP $CVSGROUP $WINAME/*
   $CHMOD g+rw $WINAME/*
