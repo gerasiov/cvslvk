@@ -1,0 +1,224 @@
+#This file was created by <nikita> Wed Oct 20 16:15:53 1999
+#LyX 0.12 (C) 1995-1998 Matthias Ettrich and the LyX Team
+\lyxformat 2.15
+\textclass article
+\begin_preamble
+\usepackage[koi8-r]{inputenc}
+\usepackage[russian]{babel}
+\sloppy
+\end_preamble
+\language default
+\inputencoding default
+\fontscheme default
+\graphics default
+\float_placement ht
+\paperfontsize default
+\spacing single 
+\papersize Default
+\paperpackage widemarginsa4
+\use_geometry 0
+\use_amsmath 0
+\paperorientation portrait
+\secnumdepth 0
+\tocdepth 3
+\paragraph_separation skip
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+
+\layout Standard
+\align center 
+
+\size huge 
+Использование системы cvslvk
+\size default 
+
+\newline 
+последнее изменение в этот документ внесено 20.10.1999
+\layout Section
+
+ВНИМАНИЕ:
+\layout Enumerate
+
+Система работает ТОЛЬКО с 
+\family typewriter 
+GNU make
+\family default 
+.
+ Sun-овский 
+\family typewriter 
+make
+\family default 
+ работать не будет.
+ Пользователям системы на серверах 
+\family typewriter 
+redsun
+\family default 
+ и 
+\family typewriter 
+chronos
+\family default 
+ следует поставить 
+\family typewriter 
+/usr/local/bin
+\family default 
+ в 
+\family typewriter 
+$PATH
+\family default 
+ на первое место, тогда все будет работать.
+\layout Enumerate
+
+Переменная среды 
+\family typewriter 
+CL_DIR
+\family default 
+ должна указывать на каталог с рабочими инсталляциями.
+ Сейчас на серверах 
+\family typewriter 
+redsun
+\family default 
+ и 
+\family typewriter 
+chronos
+\family default 
+ это 
+\family typewriter 
+/usr/local/builds
+\family default 
+.
+\layout Section
+
+Простейшее использование
+\layout Standard
+
+Пользовательский 
+\family typewriter 
+Makefile
+\family default 
+ для сборки программы (в т.ч.
+ модели на DYANA) устроен следующим образом:
+\layout LyX-Code
+
+CL_USE_MODULES = <список используемых модулей>
+\layout LyX-Code
+
+EXECUTABLE = <имя>
+\layout LyX-Code
+
+SOURCES = <список файлов>
+\layout LyX-Code
+
+<Возможно, определения других переменных>
+\layout LyX-Code
+
+include $(CL_DIR)/Makefile.cvslvk
+\layout Standard
+
+В переменной 
+\family typewriter 
+SOURCES
+\family default 
+ указываются все исходные файлы (на Си, Cи++ и mm-языке, можно перемешивать).
+ Однако, сейчас все файлы должны быть в текущем каталоге.
+\layout Standard
+
+
+\family typewriter 
+EXECUTABLE
+\family default 
+ -- имя результирующего исполняемого файла.
+\layout Standard
+
+
+\family typewriter 
+CL_USE_MODULES
+\family default 
+ -- список используемых модулей.
+ Если никакие модули не используются, эту переменную определять не надо.
+\newline 
+Модули разделяются пробелами.
+ Ссылка на каждый модуль содержит до трех частей, разделенных символом подчеркив
+ания.
+ Первое поле -- имя модуля.
+ Второе -- имя версии (если его нет или это 
+\family typewriter 
+any
+\family default 
+, значит годится любая версия).
+ Третье поле -- дополнительные параметры -- строки разделенные дефисами
+ -- обычно не нужны.
+\newline 
+Для моделей на mm-языке должно быть 
+\begin_inset Quotes eld
+\end_inset 
+
+
+\family typewriter 
+CL_USE_MODULES
+\protected_separator 
+=
+\protected_separator 
+mmt libmon
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\layout Standard
+
+Простейший сервис:
+\layout Itemize
+
+
+\family typewriter 
+make
+\family default 
+ (без параметров) произведет сборку исполняемого файла 
+\family typewriter 
+EXECUTABLE
+\family default 
+ (при этом все будет собрано в некотором подкаталоге, а из текущего каталога
+ будет проставлена ссылка туда);
+\layout Itemize
+
+
+\family typewriter 
+make clean
+\family default 
+ удалит все файлы, созданные при 
+\family typewriter 
+make
+\family default 
+;
+\layout Itemize
+
+при повторных запусках make автоматически будут пересобираться те и только
+ те файлы, которые требуют этого;
+\layout Itemize
+
+по умолчанию исполняемый файл будет готов к отладке (т.е.
+ собран с отладочной информацией и без оптимизаций)
+\layout Standard
+
+Весь остальной сервис доступен через определение переменных.
+\layout Section
+
+Переменные
+\layout Standard
+
+Переменные можно определять внутри Makefile-а, в командной строке make-а,
+ в окружении.
+\layout Standard
+
+Документация по переменным доступна в виде комментариев в файле 
+\family typewriter 
+$CL_DIR/Makefile.cvslvk
+\layout Section
+
+Создание своего модуля
+\the_end
