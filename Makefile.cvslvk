@@ -510,10 +510,10 @@ install_library: $(ALWAYS)
 	cp $(CL_BD)/$(CL_LIBRARY_FNAME) $(CL_PREFIX)/lib/
 ifeq ($(CL_LTYPE),shared)
 ifneq ($(CL_LIBRARY_SONAME), $(CL_LIBRARY_FNAME))
-	(cd $(CL_PREFIX)/lib && ln -sf $(CL_LIBRARY_FNAME) $(CL_LIBRARY_SONAME))
+	(cd $(CL_PREFIX)/lib && rm -f $(CL_LIBRARY_SONAME) && ln -s $(CL_LIBRARY_FNAME) $(CL_LIBRARY_SONAME))
 endif
 ifneq ($(CL_LIBRARY_CNAME), $(CL_LIBRARY_SONAME))
-	(cd $(CL_PREFIX)/lib && ln -sf $(CL_LIBRARY_SONAME) $(CL_LIBRARY_CNAME))
+	(cd $(CL_PREFIX)/lib && rm -f $(CL_LIBRARY_CNAME) && ln -s $(CL_LIBRARY_SONAME) $(CL_LIBRARY_CNAME))
 endif
 endif
 
@@ -609,34 +609,39 @@ endif
 
 ifdef LIBRARY
 
-all: $(CL_LIBRARY_FNAME) $(CL_LIBRARY_SONAME) $(CL_LIBRARY_CNAME) all_subdirs
-
-$(CL_LIBRARY_FNAME) $(CL_LIBRARY_SONAME) $(CL_LIBRARY_CNAME): $(CL_BD)/$(CL_LIBRARY_FNAME) $(CL_BD)/$(CL_LIBRARY_SONAME) $(CL_BD)/$(CL_LIBRARY_CNAME)
-	ln -sf $(CL_BD)/$(CL_LIBRARY_FNAME) .
+override CL_ALL_LIB_NAMES := $(CL_LIBRARY_FNAME)
 ifeq ($(CL_LTYPE),shared)
 ifneq ($(CL_LIBRARY_SONAME), $(CL_LIBRARY_FNAME))
-	ln -sf $(CL_BD)/$(CL_LIBRARY_SONAME) .
+override CL_ALL_LIB_NAMES += $(CL_LIBRARY_SONAME)
 endif
 ifneq ($(CL_LIBRARY_CNAME), $(CL_LIBRARY_SONAME))
-	ln -sf $(CL_BD)/$(CL_LIBRARY_CNAME) .
+override CL_ALL_LIB_NAMES += $(CL_LIBRARY_CNAME)
 endif
 endif
 
-$(CL_BD)/$(CL_LIBRARY_FNAME) $(CL_BD)/$(CL_LIBRARY_SONAME) $(CL_BD)/$(CL_LIBRARY_CNAME): $(CL_OBJECTS_ALL)
+all: $(CL_ALL_LIB_NAMES) all_subdirs
+
+$(CL_ALL_LIB_NAMES): $(CL_ALL_LIB_NAMES:%=$(CL_BD)/%)
+	rm -f $@ && ln -s $(CL_BD)/$@ .
+
+$(CL_BD)/$(CL_LIBRARY_FNAME): $(CL_OBJECTS_ALL)
 	$(CL_MKLIB) $@ $(CL_OBJECTS_ALL)
 ifdef CL_OPTIMIZE
 	strip -g $@
 endif
+
 ifeq ($(CL_LTYPE),shared)
 ifneq ($(CL_LIBRARY_SONAME), $(CL_LIBRARY_FNAME))
-	(cd $(CL_BD) && ln -sf $(CL_LIBRARY_FNAME) $(CL_LIBRARY_SONAME))
+$(CL_BD)/$(CL_LIBRARY_SONAME): $(CL_BD)/$(CL_LIBRARY_FNAME)
+	(cd $(CL_BD) && rm -f $(CL_LIBRARY_SONAME) && ln -s $(CL_LIBRARY_FNAME) $(CL_LIBRARY_SONAME))
 endif
 ifneq ($(CL_LIBRARY_CNAME), $(CL_LIBRARY_SONAME))
-	(cd $(CL_BD) && ln -sf $(CL_LIBRARY_SONAME) $(CL_LIBRARY_CNAME))
+$(CL_BD)/$(CL_LIBRARY_CNAME): $(CL_BD)/$(CL_LIBRARY_SONAME)
+	(cd $(CL_BD) && rm -f $(CL_LIBRARY_CNAME) && ln -s $(CL_LIBRARY_SONAME) $(CL_LIBRARY_CNAME))
 endif
 endif
 
 clean: $(CL_CLEAN) clean_subdirs $(ALWAYS)
-	rm -rf $(CL_BD) $(CL_LIBRARY_FNAME) $(CL_LIBRARY_SONAME) $(CL_LIBRARY_CNAME)
+	rm -rf $(CL_BD) $(CL_ALL_LIB_NAMES)
 
 endif
