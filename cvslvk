@@ -151,6 +151,7 @@ get_comp_execs()
       defc=gcc-3.3
       defcpp=g++-3.3
       ver=3.3
+      ;;
     gcc32)
       defc=gcc-3.2
       defcpp=g++-3.2
