@@ -282,8 +282,9 @@ remove_wi()
     if test -f $i/NOREMOVE; then
       echo "$i/NOREMOVE file exists - skipping this WI"
       res=1
+    else
+      rm -rf $i
     fi
-    rm -rf $i
   done
 
   make_rules
