@@ -1,0 +1,32 @@
+override DEFINES += -D_REENTRANT
+override INCLUDES += -I$(CL_WI)/include
+override LDFLAGS += -L$(CL_WI)/lib -lqt-mt
+
+override UIC := $(CL_WI)/bin/uic
+override MOC := $(CL_WI)/bin/moc
+
+ifdef UIFILES
+override UIC_GEN_HEADERS := $(UIFILES:%.ui:$(CL_BD)/%.h)
+$(UIC_GEN_HEADERS) : $(CL_BD)/%.h : %.ui
+	$(UIC) $(UICFLAGS) -o $@ $<
+override UIC_GEN_SOURCES := $(UIFILES:%.ui=$(CL_BD)/%.cpp)
+override UIC_GEN_MOC_SOURCES := $(UIFILES:%.ui=$(CL_BD)/moc_%.cpp)
+$(UIC_GEN_SOURCES) : $(CL_BD)/%.cpp : %.ui $(CL_BD)/%.h
+	$(UIC) $(UICFLAGS) -o $@ -i $(<:%.ui=$(CL_BD)/%.h) $<
+$(UIC_GEN_MOC_SOURCES) : $(CL_BD)/moc_%.cpp : $(CL_BD)/%.h
+	$(MOC) -o $@ $<
+override CL_GEN_SOURCES += $(UIC_GEN_SOURCES) $(UIC_GEN_MOC_SOURCES)
+endif
+
+ifdef UICIMAGES
+override CL_GEN_SOURCES += $(CL_BD)/imagecollection.cpp
+$(CL_BD)/imagecollection.cpp : $(UICIMAGES)
+	$(UIC) -embed $(EXECUTABLE) $(UICIMAGES) -o $@
+endif
+
+ifdef MOC_HEADERS
+override MOC_GEN_SOURCES += $(MOC_HEADERS:%.h=$(CL_BD)/moc_%.cpp)
+override CL_GEN_SOURCES += $(MOC_GEN_SOURCES)
+$(MOC_GEN_SOURCES) : $(CL_BD)/moc_%.cpp: %.h $(MOC)
+	$(MOC) -o $@ $<
+endif
