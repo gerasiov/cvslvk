@@ -249,9 +249,10 @@ process_wi()
   if eval $command >/dev/null; then
     res=`eval $command`;
 # gcc33 and gcc32 are compatable.
-# Try to use gcc33 if any of those is suggested, and revert to 32 if it is not
-# available
-    echo $res | ( read p1 ncomp rest;
+# If no compiler is set via CL_COMP, try to use gcc33 if any of those
+# is suggested, and revert to gcc32 if gcc33 is not available.
+# If particular one is set via CL_COMP, enforce it.
+  echo $res | ( read p1 ncomp rest;
 		  if test "$comp" = "any"; then
                     if test "$ncomp" = "gcc33" -o "$ncomp" = "gcc32"; then
 		      if test -n "`which gcc-3.3`"; then
@@ -260,6 +261,10 @@ process_wi()
 		        ncomp=gcc32
 		      fi
 		    fi
+		  elif test "$comp" = "gcc33" -a "$ncomp" = "gcc32"; then
+		    ncomp=gcc33
+		  elif test "$comp" = "gcc32" -a "$ncomp" = "gcc33"; then
+		    ncomp=gcc32
 		  fi
 		  echo $p1 $ncomp $rest )
     return
