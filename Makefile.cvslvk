@@ -601,7 +601,7 @@ install_executable: $(ALWAYS)
 ifdef CL_USE_IL
 	$(LD) $(CL_OBJECTS_ALL) $(LDFLAGS) $(CL_IL_LDFLAGS_INSTALL) -o $(CL_PREFIX)/bin/$(EXECUTABLE)
 else
-	cp $(CL_BD)/$(EXECUTABLE) $(CL_PREFIX)/bin/
+	cp -p $(CL_BD)/$(EXECUTABLE) $(CL_PREFIX)/bin/
 endif
 
 override CL_INSTALL_PARTS += install_executable
@@ -613,7 +613,7 @@ ifeq ($(CL_LTYPE),shared)
 install_library: $(ALWAYS)
 	mkdir -p $(CL_PREFIX)/lib
 	rm -f $(CL_PREFIX)/lib/$(CL_LIBRARY_FNAME)
-	cp $(CL_BD)/$(CL_LIBRARY_FNAME) $(CL_PREFIX)/lib/
+	cp -p $(CL_BD)/$(CL_LIBRARY_FNAME) $(CL_PREFIX)/lib/
 ifneq ($(CL_LIBRARY_SONAME), $(CL_LIBRARY_FNAME))
 	(cd $(CL_PREFIX)/lib && rm -f $(CL_LIBRARY_SONAME) && ln -s $(CL_LIBRARY_FNAME) $(CL_LIBRARY_SONAME))
 endif
@@ -636,7 +636,7 @@ ifndef INTERNAL_LIBRARY
 install_library: $(ALWAYS)
 	mkdir -p $(CL_PREFIX)/lib
 	rm -f $(CL_PREFIX)/lib/$(CL_LIBRARY_FNAME)
-	cp $(CL_BD)/$(CL_LIBRARY_FNAME) $(CL_PREFIX)/lib/
+	cp -p $(CL_BD)/$(CL_LIBRARY_FNAME) $(CL_PREFIX)/lib/
 
 override CL_INSTALL_PARTS += install_library
 endif
@@ -649,7 +649,7 @@ ifdef EXPORT_INCLUDES
 install_includes: $(ALWAYS)
 	mkdir -p $(CL_PREFIX)/include
 	( cd $(CL_PREFIX)/include && rm -rf $(EXPORT_INCLUDES) )
-	cp -r $(EXPORT_INCLUDES) $(CL_PREFIX)/include/
+	cp -p -r $(EXPORT_INCLUDES) $(CL_PREFIX)/include/
 
 override CL_INSTALL_PARTS += install_includes
 endif
@@ -658,7 +658,7 @@ ifdef SCRIPTS
 install_scripts: $(ALWAYS)
 	mkdir -p $(CL_PREFIX)/bin
 	( cd $(CL_PREFIX)/bin && rm -rf $(SCRIPTS) )
-	cp $(SCRIPTS) $(CL_PREFIX)/bin/
+	cp -p $(SCRIPTS) $(CL_PREFIX)/bin/
 
 override CL_INSTALL_PARTS += install_scripts
 endif
@@ -668,7 +668,7 @@ ifdef CL_INSTALL_WI
 install_scripts_wi: $(ALWAYS)
 	mkdir -p $(CL_PREFIX)/bin
 	( cd $(CL_PREFIX)/bin && rm -rf $(SCRIPTS_WI) )
-	cp $(SCRIPTS_WI) $(CL_PREFIX)/bin/
+	cp -p $(SCRIPTS_WI) $(CL_PREFIX)/bin/
 
 override CL_INSTALL_PARTS += install_scripts_wi
 endif
@@ -677,8 +677,8 @@ endif
 ifdef CL_INSTALL_WI
 override CL_WI_DEPEND := $(foreach dep,$(CL_DEPEND_ON_EXACT),$(filter $(dep)_%,$(CL_WI_LIST)))
 install_rules: $(ALWAYS)
-	if test -f rules.cvslvk; then rm -f $(CL_PREFIX)/rules.cvslvk && cp rules.cvslvk $(CL_PREFIX)/; fi
-	if test -f depend.cvslvk; then rm -f $(CL_PREFIX)/depend.cvslvk && cp depend.cvslvk $(CL_PREFIX)/; fi
+	if test -f rules.cvslvk; then rm -f $(CL_PREFIX)/rules.cvslvk && cp -p rules.cvslvk $(CL_PREFIX)/; fi
+	if test -f depend.cvslvk; then rm -f $(CL_PREFIX)/depend.cvslvk && cp -p depend.cvslvk $(CL_PREFIX)/; fi
 ifneq ($(strip $(CL_WI_DEPEND)),)
 	printf "\n%s\n" $(CL_WI_DEPEND) >> $(CL_PREFIX)/depend.cvslvk
 endif
