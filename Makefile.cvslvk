@@ -235,10 +235,10 @@ override CFLAGS += $(CL_CC_FLAGS)
 override CXXFLAGS += $(CL_CC_FLAGS)
 endif
 ifdef CL_CC_CFLAGS
-override CFLAGS += $(CL_CC_FLAGS)
+override CFLAGS += $(CL_CC_CFLAGS)
 endif
 ifdef CL_CC_CXXFLAGS
-override CXXFLAGS += $(CL_CC_FLAGS)
+override CXXFLAGS += $(CL_CC_CXXFLAGS)
 endif
 
 ifeq ($(CL_COMP),gcc)
@@ -247,10 +247,10 @@ override CFLAGS += $(CL_GCC_FLAGS)
 override CXXFLAGS += $(CL_GCC_FLAGS)
 endif
 ifdef CL_GCC_CFLAGS
-override CFLAGS += $(CL_GCC_FLAGS)
+override CFLAGS += $(CL_GCC_CFLAGS)
 endif
 ifdef CL_GCC_CXXFLAGS
-override CXXFLAGS += $(CL_GCC_FLAGS)
+override CXXFLAGS += $(CL_GCC_CXXFLAGS)
 endif
 endif
 
@@ -260,10 +260,10 @@ override CFLAGS += $(CL_SUNCC_FLAGS)
 override CXXFLAGS += $(CL_SUNCC_FLAGS)
 endif
 ifdef CL_SUNCC_CFLAGS
-override CFLAGS += $(CL_SUNCC_FLAGS)
+override CFLAGS += $(CL_SUNCC_CFLAGS)
 endif
 ifdef CL_SUNCC_CXXFLAGS
-override CXXFLAGS += $(CL_SUNCC_FLAGS)
+override CXXFLAGS += $(CL_SUNCC_CXXFLAGS)
 endif
 endif
 
