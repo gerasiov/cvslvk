@@ -661,7 +661,7 @@ update_wi: $(ALWAYS)
 # Rules for building object files
 
 override CL_C_COMPILE_COMMAND = $(CC) $(CFLAGS) -o $@ $<
-override CL_CPP_COMPILE_COMMAND = $(CXX) $(CFLAGS) -o $@ $<
+override CL_CPP_COMPILE_COMMAND = $(CXX) $(CXXFLAGS) -o $@ $<
 
 $(CL_BD)/%.o: %.c
 	$(CL_C_COMPILE_COMMAND)
