@@ -1,4 +1,4 @@
-#This file was created by <nikita> Fri Dec 17 19:02:47 1999
+#This file was created by <nikita> Sun Dec 19 01:13:21 1999
 #LyX 0.12 (C) 1995-1998 Matthias Ettrich and the LyX Team
 \lyxformat 2.15
 \textclass article
@@ -39,10 +39,18 @@
 \newline 
 
 \emph on 
-последнее изменение в этот документ внесено 17.12.1999
+последнее изменение в этот документ внесено 18.12.1999
 \newline 
 
 \newline 
+
+\layout Standard
+
+
+\begin_inset LatexCommand \tableofcontents
+
+\end_inset 
+
 
 \layout Section
 
@@ -85,13 +93,9 @@ Makefile
 Система обеспечивает автоматическое отслеживание зависимостей файлов между
  собой и пересборку тех и только тех из них, которые нуждаются в пересборке.
  Команда 
-\begin_inset Quotes eld
-\end_inset 
-
+\family typewriter 
 make
-\begin_inset Quotes erd
-\end_inset 
-
+\family default 
  всегда создаст корректный исполняемый файл, вне зависимости от состояния
  рабочего каталога перед ее выполнением, причем сделает это в минимально
  возможное время.
@@ -544,7 +548,7 @@ make
 *.deps
 \family default 
 ), объектные файлы, создаваемый исполняемый файл или библиотека, служебные
- файлы системы CVSLVK, и файлы, создаваемые используемыми модулями
+ файлы системы cvslvk, и файлы, создаваемые используемыми модулями
 \begin_float footnote 
 \layout Standard
 
@@ -1794,6 +1798,236 @@ Makefile
  в указанном порядке, начиная с 3-го места.
 \layout Subsection
 
+Цели 
+\family typewriter 
+make
+\family default 
+, определенные в системе cvslvk
+\layout Standard
+
+По умолчанию команда 
+\family typewriter 
+make
+\family default 
+ в системе cvslvk выполняет сборку каталога.
+\layout Itemize
+
+Если определена переменная 
+\family typewriter 
+EXECUTABLE
+\family default 
+, то при сборке каталога будет собран исполняемый файл
+\layout Itemize
+
+Если определена переменная 
+\family typewriter 
+LIBRARY
+\family default 
+ (или 
+\family typewriter 
+INTERNAL_LIBRARY
+\family default 
+), то при сборке каталога будет собрана библиотека.
+ Одновременное определение переменных 
+\family typewriter 
+EXECUTABLE
+\family default 
+ и 
+\family typewriter 
+LIBRARY
+\family default 
+ является ошибкой.
+\layout Itemize
+
+Если определена переменная 
+\family typewriter 
+SUBDIRS
+\family default 
+, то перед сборкой исполняемого файла или библиотеки будет осуществлена
+ сборка каталогов, перечисленных в переменной 
+\family typewriter 
+SUBDIRS
+\family default 
+.
+\layout Standard
+
+Как минимум одна из перечисленных переменных должна быть определена, иначе
+ любая операция системы cvslvk в данном каталоге будет немедленно аварийно
+ завершена.
+\layout Standard
+
+Кроме сборки каталога, определены следующие команды.
+\layout Subsubsection
+
+Команды очистки
+\layout Itemize
+
+
+\family typewriter 
+make
+\protected_separator 
+clean
+\family default 
+ -- удаляет результаты одной сборки каталога.
+ 
+\begin_deeper 
+\layout Standard
+
+Удаляются те и только те файлы, которые собираются при сборке каталога при
+ тех же установках переменных (в командной строке, в 
+\family typewriter 
+Makefile
+\family default 
+-е, в переменных окружения).
+ Файлы, созданные при других установках переменных (и не создаваемые при
+ данных), удалены не будут.
+ В частности, будет удален ровно один каталог сборки.
+\end_deeper 
+\layout Itemize
+
+
+\family typewriter 
+make
+\protected_separator 
+cleanall
+\family default 
+ -- удаляет все файлы, созданные системой cvslvk.
+ В частности, удаляются все созданные каталоги сборки.
+\layout Standard
+
+Имеются две переменные, при помощи которых можно заставить команды 
+\family typewriter 
+make
+\protected_separator 
+clean
+\family default 
+ и 
+\family typewriter 
+make
+\protected_separator 
+cleanall
+\family default 
+ производить дополнительные очистки.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_CLEAN_FILES
+\begin_deeper 
+\begin_deeper 
+\layout Standard
+
+Содержит дополнительный список файлов, удаляемый по команде 
+\family typewriter 
+make
+\protected_separator 
+clean
+\family default 
+.
+ Этот список будет передан команде 
+\family typewriter 
+rm
+\protected_separator 
+-rf
+\family default 
+.
+\end_deeper 
+\end_deeper 
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_CLEAN
+\begin_deeper 
+\begin_deeper 
+\layout Standard
+
+Содержит разделенный пробелами список дополнительных 
+\family typewriter 
+make
+\family default 
+-правил, которые следует выполнить перед удалением файлов.
+\end_deeper 
+\end_deeper 
+\layout Standard
+
+Переменные 
+\family typewriter 
+CL_CLEAN_FILES
+\family default 
+ и 
+\family typewriter 
+CL_CLEAN
+\family default 
+ обеспечивают возможность удаления файлов, созданных пользовательскими программа
+ми или дополнительными пользовательскими 
+\family typewriter 
+make
+\family default 
+-правилами.
+ Однако, если пользовательские make-правила создают временные файлы, то
+ рекомендуется их размещать в каталоге сборки -- тогда они не будут засорять
+ рабочий каталог и будут автоматически удалены при очистке без дополнительных
+ определений.
+ Имя каталога сборки доступно в 
+\family typewriter 
+Makefile
+\family default 
+-е ниже включения файла 
+\family typewriter 
+$(CL_DIR)/Makefile.cvslvk
+\family default 
+ в переменной 
+\family typewriter 
+$(CL_BD)
+\family default 
+.
+\newline 
+
+\layout Standard
+
+Если определена переменная 
+\family typewriter 
+SUBDIRS
+\family default 
+, то перед очисткой текущего каталога (но после выполнения правил из переменной
+ 
+\family typewriter 
+CL_CLEAN
+\family default 
+) будет вызвана та же (
+\family typewriter 
+clean
+\family default 
+ или 
+\family typewriter 
+cleanall
+\family default 
+) очистка перечисленных в переменной 
+\family typewriter 
+SUBDIRS
+\family default 
+ каталогов.
+ Команда 
+\family typewriter 
+make
+\protected_separator 
+clean_subdirs
+\family default 
+ вызовет только очистку каталогов 
+\family typewriter 
+SUBDIRS
+\family default 
+, без очистки текущего каталога.
+\layout Subsubsection
+
+Команда инсталляции
+\layout Subsection
+
 Модель использования модулей в системе cvslvk
 \layout Subsubsection
 
@@ -2314,6 +2548,52 @@ ifdef
 : в них проверяется текущее состояние переменных, поэтому не следует в них
  использовать переменные, определяемых в других рабочих инсталляциях, т.к.
  они могут быть еще не определены.
+\layout Standard
+
+К моменту включения файлов 
+\family typewriter 
+rules.cvslvk
+\family default 
+ все параметры сборки уже установлены, переопределить их в файлах 
+\family typewriter 
+rules.cvslvk
+\family default 
+ нельзя.
+ Таким образом, неявные параметры сборки, возникающие при подключении рабочих
+ инсталляций, в текущей версии системы cvslvk невозможны.
+ Также в файлах 
+\family typewriter 
+rules.cvslvk
+\family default 
+ нельзя изменить компилятор (переменная 
+\family typewriter 
+CL_COMP
+\family default 
+) и тип библиотеки (переменная 
+\family typewriter 
+CL_LTYPE
+\family default 
+).
+ Все остальные переменные (в т.ч.
+ 
+\family typewriter 
+INCLUDES
+\family default 
+, 
+\family typewriter 
+DEFINES
+\family default 
+, 
+\family typewriter 
+LDFLAGS
+\family default 
+, флаги компилятора и т.д.) могут быть доопределены или переопределены.
+ Имеются также переменные, специально предназначенные для определения в
+ файлах 
+\family typewriter 
+rules.cvslvk
+\family default 
+.
 \layout Subsubsection
 
 Зависимости между модулями
@@ -2446,6 +2726,139 @@ depend.cvslvk
 .
  Параметры разделяются дефисами.
  Требования разделяются пробелами или переводами строки.
+\layout Subsubsection
+
+Псевдомодули
+\layout Standard
+
+Могут быть модули, в которых нет ни одного файла.
+ Рабочая инсталляция такого модуля будет содержать только служебные файлы
+ системы cvslvk -- файл 
+\family typewriter 
+rules.cvslvk
+\family default 
+ и/или файл 
+\family typewriter 
+depend.cvslvk
+\family default 
+.
+ Такие модули называются 
+\emph on 
+псевдомодулями
+\emph toggle 
+.
+\layout Standard
+
+Одно из применений псевдомодулей было рассмотрено выше -- для подключения
+ нескольких модулей по одному требованию.
+ В рабочей инсталляции такого псевдомодуля скорее всего будет только файл
+ 
+\family typewriter 
+depend.cvslvk
+\family default 
+.
+\layout Standard
+
+Другое важное применение псевдомодулей -- обеспечение из системы cvslvk
+ доступа до пакетов, установленных на машине.
+ Например, если в иерархии 
+\family typewriter 
+/usr/local
+\family default 
+ установлена некоторая библиотека 
+\family typewriter 
+libXYZ
+\family default 
+ (т.е.
+ в каталоге 
+\family typewriter 
+/usr/local/include
+\family default 
+ имеются include-файлы этой библиотеки, а в каталоге 
+\family typewriter 
+/usr/local/lib
+\family default 
+ -- сама библиотека
+\family typewriter 
+ libXYZ.so
+\family default 
+), то подключать эту библиотеку к программе, собираемой при помощи системы
+ cvslvk, можно двумя способами.
+ Можно установить в 
+\family typewriter 
+Makefile
+\family default 
+-е соответетвующие переменные:
+\layout LyX-Code
+
+INCLUDES = -I/usr/local/include
+\layout LyX-Code
+
+LDFLAGS = -L/usr/local/lib -lXYZ
+\layout Standard
+
+Но можно вместо этого создать соответствующий библиотеке псевдомодуль.
+ В его рабочей инсталляции в файле rules.cvslvk должно стоять 
+\layout LyX-Code
+
+override INCLUDES += -I/usr/local/include
+\layout LyX-Code
+
+override LDFLAGS += -L/usr/local/lib -lXYZ
+\layout Standard
+
+Тогда для использования этой библиотеки можно будет просто добавлять соответству
+ющее требование в переменную 
+\family typewriter 
+CL_USE_MODULES
+\family default 
+.
+ Все пользователи и все проекты, которые захотят использовать эту библиотеку,
+ будут разделять между собой определения из псевдомодуля.
+\layout Standard
+
+В данном примере файл 
+\family typewriter 
+rules.cvslvk
+\family default 
+, подключаемый с псевдомодулем, очень прост и едва ли оправдывает его создание.
+ Однако, в более сложных случаях создание псевдомодуля безусловно полезна.
+ Например, известная библиотека 
+\family typewriter 
+Qt
+\family default 
+ использует свой собственный препроцессор 
+\family typewriter 
+moc
+\family default 
+.
+ Для своевременного запуска этого препроцессора требуются дополнительные
+ правила в 
+\family typewriter 
+Makefile
+\family default 
+-е, причем достаточно громоздкие.
+ Если один раз указать эти правила в псевдомодуле и отладить их один раз,
+ то будет значительная экономия по сравнению с написанием и отладкой этих
+ правил в каждом проекте, использующем библиотеку 
+\family typewriter 
+Qt
+\family default 
+.
+ Аналогичная ситуация имеет место, например, со средствами автоматического
+ создания парсера по грамматике.
+\layout Standard
+
+Необходимые сведения по написанию соответствующих файлов 
+\family typewriter 
+rules.cvslvk
+\family default 
+ приведены в разделе 
+\begin_inset LatexCommand \ref{sec: newmodules}
+
+\end_inset 
+
+.
 \layout Subsection
 
 Использование модулей при сборке каталога
@@ -2468,12 +2881,172 @@ CL_USE_MODULES
 
 В случае невозможности удовлетворения зависимостей сборка каталога будет
  аварийно прервана.
+\end_deeper 
 \layout Standard
 
-Команда make
+Команда 
+\family typewriter 
+make
 \protected_separator 
-show_wi выдаст список действий, выполняемых при удовлетворе
+show_wi
+\family default 
+ выдаст список действий, выполняемых при удовлетворении требований.
+\layout Standard
+
+Если при сборке каталога используются модули (т.е.
+ если определена переменная 
+\family typewriter 
+CL_USE_MODULES
+\family default 
+), то процесс сборки каталога начинает неявно зависеть от внешних по отношению
+ к этому каталогу явлений: 
+\layout Itemize
+
+при изменениях в использованной рабочей инсталляции очередная команда 
+\family typewriter 
+make
+\family default 
+ вызовет пересборку всех файлов, хотя файлы возможно и не менялись.
+ 
+\layout Itemize
+
+при появлении новой рабочая инсталляция, при помощи которой можно удовлетворить
+ требования, то очередная команда 
+\family typewriter 
+make
+\family default 
+ может начать использовать новую инсталляцию вместо использованных ранее.
+ Если рабочие инсталляции сделаны недостаточно аккуратно, то такая подмена
+ может привести к ошибкам.
+\layout Subsection
+
+Использование модулей после сборки каталога
+\layout Standard
+
+Система cvslvk позволяет использовать рабочие инсталляции модулей не только
+ при сборе каталога, но и позже.
+\layout Standard
+
+Если модуль представляет из себя разделяемую библиотеку, то рабочая инсталляция
+ используется неявно при каждом запуске собранной программы -- из рабочей
+ инсталляции подгружается код разделяемой библиотеки.
+ Необходимые настройки (при помощи механизма 
+\family typewriter 
+rpath
+\family default 
+ -- записи местоположения разделяемых библиотек непосредственно в исполняемый
+ файл) устанавливаются системой cvslvk автоматически.
+\layout Standard
+
+Имеется и механизм для явного использования модулей после сборки.
+ Это делается при помощи символьных ссылок.
+ В процессе сборки в рабочем каталоге устанавливаются символьные ссылки
+ на расположенные в рабочей инсталляции файлы (например, скрипты, программы
+ или файлы данных), и эти файлы оказываются доступными из текущего каталога.
+ Если у пользователя имеется текущий каталог (
+\begin_inset Quotes eld
+\end_inset 
+
+
+\family typewriter 
+.
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+) в переменной среды 
+\family typewriter 
+PATH
+\family default 
+, то программы из рабочих инсталляций делаются доступными прозрачно -- пользоват
+ель может даже не знать, что это программы из рабочих инсталляций.
+ В различных рабочих инсталляциях под одними именами могут стоять различные
+ программы (например, работающие с различными форматами данных) -- тогда
+ получается, что система cvslvk осуществляет автоматический выбор нужной
+ программы.
+\layout Itemize
+
+
+\series bold 
+Переменная: 
+\family typewriter 
+CL_SYMLINKS
+\begin_deeper 
+\layout Standard
+
+В этой переменной указывается разделенный пробелами список полных путей
+ до файлов, символьные ссылки на которые пользователь хочет получить в рабочем
+ каталоге.
+\layout Standard
+
+Эта переменная скорее всего должна определяться в файлах 
+\family typewriter 
+rules.cvslvk
+\family default 
+ с использованием значения 
+\family typewriter 
+$(CL_WI)
+\family default 
+.
+ Например, если модуль содержит программу 
+\family typewriter 
+bin/trcdump
+\family default 
+, доступ до которой следует дать пользователю, то в файле 
+\family typewriter 
+rules.cvslvk
+\family default 
+ должна быть строка
+\layout LyX-Code
+
+override CL_SYMLINKS += $(CL_WI)/bin/trcdump
+\layout Standard
+
+Значение переменной 
+\family typewriter 
+CL_SYMLINKS
+\family default 
+ используется только в режиме сборки программы (т.е.
+ когда опрелена переменная 
+\family typewriter 
+EXECUTABLE
+\family default 
+)
 \end_deeper 
+\layout Subsection
+
+Создание модулей и их рабочих инсталляций 
+\begin_inset LatexCommand \label{sec: newmodules}
+
+\end_inset 
+
+
+\layout Standard
+
+Как было отмечено выше, рабочие инсталляции модулей могут быть созданы как
+ при помощи системы cvslvk, так и иными средствами.
+\layout Subsubsection
+
+Средства создания рабочих инсталляций в системе cvslvk
+\layout Standard
+
+В системе cvslvk модуль собирается из одного каталога или из иерархии каталогов.
+\layout Subsubsection
+
+Переменные, предназначенные для определения в файлах rules.cvslvk
+\layout Subsection
+
+Сборка библиотек
+\layout Subsection
+
+Дополнительные возможности
+\layout Subsubsection
+
+Проверка переменных среды
+\layout Subsubsection
+
+Управление порядком библиотек
 \layout Section
 
 Сообщения об ошибках
