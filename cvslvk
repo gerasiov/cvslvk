@@ -22,8 +22,6 @@ CVSGROUP=cvsusers
 # Полные имена следующих двух файлов получаются добавлением к ним -<arch>-<os>
 # Префикс файла со списком рабочих инсталляций и их требований
 WILIST=$CL_DIR/wilist
-# Префикс файла кеширования запросов к process_wi
-PROCESSWICACHE=$CL_DIR/wicache
 
 # Файл управления автоматической сборкой
 # метка:WI:модуль:тег:параметры make:комментарий
@@ -359,14 +357,21 @@ setup_bd()
 {
   mkdir -p $1
   touch $1/CVSLVK_BUILD_DIR
-  ls -l | awk '{ if (NF==11) {
-		   if ( split ( $11,a,"/" ) == 2 ) {
-		     if ( (a[1] != "'$1'") && (a[2] == $9) ) {
-		       print ( "rm -f " $9 );
-		       }
-		     }
-		   }
-		}' | sh
+  # Удалить ссылки, показывающие на какие-либо WI
+  # Для этого надо выделать X - первый элемент в назначении ссылки и проверить
+  # наличие X/CVSLVK_BUILD_DIR
+  (echo */CVSLVK_BUILD_DIR; ls -l) | awk '
+    BEGIN {m=0}
+    m==0 {m=1;
+          for (i=1; i<=NF; i++) {
+	    split($i,a,"/")
+	    if (a[1]!="'$1'")  bd[a[1]]=1
+	  }
+	  next
+	 }
+    NF==11 {split($11,a,"/")
+            if (bd[a[1]]==1)  print("rm -f " $9)
+	   }' | sh
 }
 
 
@@ -545,21 +550,6 @@ touchap()
 }
 
 
-# selfupdate - инсталляция из CVS
-selfupdate()
-{
-  mkdir -p $CL_DIR/tmp/$LOGNAME
-  choose_chgrp_and_chmod
-  $CHGRP $CVSGROUP $CL_DIR/tmp 2>/dev/null
-  $CHMOD 775 $CL_DIR/tmp 2>/dev/null
-  cd $CL_DIR/tmp/$LOGNAME
-  cvs checkout cvslvk > /dev/null
-  if test $? -ne 0; then rm -rf cvslvk; return 1; fi
-  cvslvk/cvslvk install $CL_DIR/tmp/$LOGNAME/cvslvk
-  rm -rf $CL_DIR/tmp/$LOGNAME/cvslvk
-  return 0
-}
-
 # install [каталог] - инсталляция из указанного или из текущего каталога
 install()
 {
@@ -712,7 +702,7 @@ case "$command" in
   cleanall|make_sys_mkdep_flags_c|make_sys_mkdep_flags_cxx|\
   process_wi|show_wi|get_bd_for_clean|depend|liborder|touchap|\
   before_create_wi|before_install_wi|complete_wi|remove_wi|\
-  install|selfupdate|\
+  install|\
   build|show_ab|\
   get_comp_defaults|get_comp_execs)
     $command $*
