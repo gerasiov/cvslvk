@@ -1,6 +1,6 @@
 BEGIN {
   getline
-  for ( i=1; i<=NF; i++ )  {req_p[$i]=1}
+  req_p["for_buggy_sun_awk"]=0;  for ( i=1; i<=NF; i++ )  {req_p[$i]=1}
   getline
   for ( i=1; i<=NF; i++ )  {dir_p[$i]=1}
   k="NONE"
