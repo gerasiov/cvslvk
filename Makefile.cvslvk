@@ -239,7 +239,7 @@ override CL_TMP := $(shell mkdir -p $(CL_BD))  # Create build directory
 # include search path. -I. is needed because without it, includes are searched
 # in -I's only
 
-override INCLUDES += $(INCLUDES) -I. -I$(CL_BD)
+override INCLUDES += -I. -I$(CL_BD)
 
 
 # Find the available module installations and replace user references by
@@ -285,6 +285,8 @@ override OBJECTS := $(SOURCES:%=$(CL_BD)/%)
 override OBJECTS := $(OBJECTS:.cpp=.o)
 override OBJECTS := $(OBJECTS:.cc=.o)
 override OBJECTS := $(OBJECTS:.C=.o)
+override OBJECTS := $(OBJECTS:.mm=.o)
+override OBJECTS := $(OBJECTS:.c=.o)
 
 override CL_SOURCES_ALL := $(CL_SOURCES_NU) $(SOURCES)
 override CL_OBJECTS_ALL := $(CL_OBJECTS_NU) $(OBJECTS)
@@ -390,6 +392,7 @@ install: all $(ALWAYS)
 	cp $(CL_BD)/$(EXECUTABLE) $(CL_PREFIX)/bin
 	if test -n "$(CL_SCRIPTS)"; then cp $(CL_SCRIPTS) $(CL_PREFIX)/bin; fi
 	if test -n "$(CL_INSTALL_WI)" -a -f rules.cvslvk; then cp rules.cvslvk $(CL_PREFIX); fi
+	if test -n "$(CL_INSTALL_WI)" -a -n "$(CL_SCRIPTS_WI)"; then cp $(CL_SCRIPTS_WI) $(CL_PREFIX)/bin; fi
 
 override CL_CLEAN += clean_se
 
