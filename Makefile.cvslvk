@@ -86,7 +86,14 @@ ifeq ($(MAKECMDGOALS),show_wi)
 override CL_TMP := $(shell $(HELPER) show_wi $(CL_COMP_PARAM_TEMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
 endif
 
+# We want "make clean" to work even when WIs are not available
+# Because CL_PARAM_COMP is set after WI processing, 'make clean' removes
+# subdirs both for set and unset CL_PARAM_COMP (FIXME?)
+ifeq ($(MAKECMDGOALS),clean)
+override CL_TMP := any
+else
 override CL_TMP := $(shell $(HELPER) process_wi $(CL_COMP_PARAM_TEMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
+endif
 ifeq ($(filter gcc,$(CL_TMP)),gcc)
 override CL_PARAM_COMP := 1
 override CL_COMP := gcc
@@ -198,6 +205,23 @@ endif
 # Now $(CL_DIR_PARAMS) is the parameter string
 
 override CL_BD := $(CL_DIR_PARAMS)
+
+# Since WI logic don't work on 'make clean' (because we want 'make clean' to
+# work even when there are WI errors), $(CL_BD) may be set incorrectly.
+# When CL_PARAM_COMP is not set, comp will be not in $(CL_BD), but it *may*
+# be in the real build birectory name.
+# In this case we will rm -f all three options (without comp, with gcc and
+# with suncc. Hopefully this is correct.
+
+ifeq ($(MAKECMDGOALS),clean)
+ifdef CL_PARAM_COMP
+override CL_BD_CLEAN := $(CL_BD)
+else
+override CL_BD_CLEAN := $(shell echo $(CL_BD) | sed 's/\([^-]*-[^-]*\)\(-.*\)/\1\2 \1-gcc\2 \1-suncc\2/')
+endif
+endif
+
+
 ifdef CL_LOCALWORK
 override CL_TMP := $(shell mkdir -p $(CL_BD))  # Create the build directory
 endif
@@ -626,7 +650,7 @@ ifdef CL_OPTIMIZE
 endif
 
 clean: $(CL_CLEAN) clean_subdirs $(ALWAYS)
-	rm -rf $(CL_BD) $(EXECUTABLE) $(CL_SL_NAMES)
+	rm -rf $(CL_BD_CLEAN) $(EXECUTABLE) $(CL_SL_NAMES)
 
 endif
 
@@ -666,6 +690,6 @@ endif
 endif
 
 clean: $(CL_CLEAN) clean_subdirs $(ALWAYS)
-	rm -rf $(CL_BD) $(CL_ALL_LIB_NAMES)
+	rm -rf $(CL_BD_CLEAN) $(CL_ALL_LIB_NAMES)
 
 endif
