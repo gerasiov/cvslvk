@@ -44,7 +44,7 @@ done
 
 
 # Установка/обновление rules.cvslvk для PCCTS
-WINAME='pccts_'$ARCH'-1.33MR12b'
+WINAME='pccts_'$ARCH'-1.33MR22'
 if test -d $WINAME; then
   cp $SOURCE/rules.cvslvk.pccts $WINAME/rules.cvslvk
   touch $WINAME/NOREMOVE
