@@ -17,11 +17,9 @@ override PCCTS_DLG_SPAWN := $(CL_BD)/$(PCCTS_SCAN).cpp $(CL_BD)/$(PCCTS_SCAN).h
 override PCCTS_SOURCES_GEN := $(PCCTS_GRAMMAR:%g=$(CL_BD)/%cpp) $(CL_BD)/$(PCCTS_PARSER).cpp $(CL_BD)/$(PCCTS_SCAN).cpp
 override PCCTS_SOURCES_LIB := $(PCCTS_H)/AParser.cpp $(PCCTS_H)/DLexerBase.cpp $(PCCTS_H)/ASTBase.cpp $(PCCTS_H)/PCCTSAST.cpp $(PCCTS_H)/ATokenBuffer.cpp
 
-override PCCTS_SOURCES_NU := $(PCCTS_SOURCES_GEN) $(PCCTS_SOURCES_LIB)
 override PCCTS_OBJECTS_NU := $(PCCTS_SOURCES_GEN:%.cpp=%.o) $(PCCTS_SOURCES_LIB:$(PCCTS_H)/%.cpp=$(CL_BD)/%.o)
 override PCCTS_DEPS_NU := $(PCCTS_SOURCES_GEN:%=%.deps) $(PCCTS_SOURCES_LIB:$(PCCTS_H)/%=$(CL_BD)/%.deps)
 
-override CL_SOURCES_NU += $(PCCTS_SOURCES_NU)
 override CL_OBJECTS_NU += $(PCCTS_OBJECTS_NU)
 override CL_DEPS_NU += $(PCCTS_DEPS_NU)
 
@@ -38,4 +36,4 @@ $(CL_BD)/%.o: $(PCCTS_H)/%.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $<
 
 $(CL_BD)/%.deps: $(PCCTS_H)/%
-	@$(CL_HELPER) depend $< $@ $(INCLUDES) $(DEFINES)
+	$(CL_DEPEND_COMMAND)

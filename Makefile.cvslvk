@@ -529,12 +529,7 @@ override CXXFLAGS += $(INCLUDES) $(DEFINES)
 # The later is not automatically generated because methods differ.
 
 ifdef CL_LOCALWORK
-override OBJECTS := $(SOURCES:%=$(CL_BD)/%)
-override OBJECTS := $(OBJECTS:.cpp=.o)
-override OBJECTS := $(OBJECTS:.cc=.o)
-override OBJECTS := $(OBJECTS:.C=.o)
-override OBJECTS := $(OBJECTS:.mm=.o)
-override OBJECTS := $(OBJECTS:.c=.o)
+override OBJECTS := $(addprefix $(CL_BD)/,$(addsuffix .o,$(basename $(notdir $(SOURCES)))))
 override CL_OBJECTS_ALL := $(CL_OBJECTS_NU) $(OBJECTS)
 endif
 
@@ -544,7 +539,7 @@ endif
 
 ifdef CL_LOCALWORK
 
-override DEPS := $(SOURCES:%=$(CL_BD)/%.deps)
+override DEPS := $(addprefix $(CL_BD)/,$(addsuffix .deps,$(notdir $(SOURCES))))
 override CL_DEPS_ALL := $(CL_DEPS_NU) $(DEPS)
 
 # There is a problem that we can't just call "cpp -MM" because at least gcc
@@ -562,12 +557,13 @@ $(CL_BD)/SYS_MKDEP_FLAGS_CXX:
 
 $(CL_DEPS_ALL): $(CL_BD)/SYS_MKDEP_FLAGS_C $(CL_BD)/SYS_MKDEP_FLAGS_CXX
 
+CL_DEPEND_COMMAND = @$(CL_HELPER) depend $< $@ $(INCLUDES) $(DEFINES)
 
 $(CL_BD)/%.deps: %
-	@$(CL_HELPER) depend $< $@ $(INCLUDES) $(DEFINES)
+	$(CL_DEPEND_COMMAND)
 
 $(CL_BD)/%.deps: $(CL_BD)/%
-	@$(CL_HELPER) depend $< $@ $(INCLUDES) $(DEFINES)
+	$(CL_DEPEND_COMMAND)
 
 CL_NODEP_RULES += clean cleanall create_wi update_wi install
 
