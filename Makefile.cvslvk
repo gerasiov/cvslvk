@@ -388,7 +388,8 @@ $(CL_BD)/SYS_MKDEP_FLAGS_CXX:
 
 $(CL_DEPS_ALL): $(CL_BD)/SYS_MKDEP_FLAGS_C $(CL_BD)/SYS_MKDEP_FLAGS_CXX
 
-override CL_DEPEND_COMMAND = @$(CL_HELPER) depend $< $@ $(INCLUDES) $(DEFINES)
+override CL_CPP := $(subst gcc,cpp,$(CC))
+override CL_DEPEND_COMMAND = @$(CL_HELPER) depend $< $@ $(CL_CPP) $(INCLUDES) $(DEFINES)
 
 $(CL_BD)/%.deps: %
 	$(CL_DEPEND_COMMAND)
