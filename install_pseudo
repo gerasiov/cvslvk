@@ -62,23 +62,6 @@ touch $WINAME/REMOVE_ON_CVSLVK_UPDATE
 $CHGRP $CVSGROUP $WINAME/* $WINAME
 $CHMOD g+rw $WINAME/* $WINAME
 
-# Создание псевдомодулей для d99
-# Отличаются параметром (mtfloat,mtdouble,mtint) и зависят от d99-libmon
-# с тем же параметром и от mmt
-if ls -d 'd99-mmt_'$ARCH''* >/dev/null 2>/dev/null; then
-  for mt in mtfloat mtdouble mtint; do
-    if ls -d 'd99-libmon_'$ARCH''*''$mt''* >/dev/null 2>/dev/null; then
-      WINAME='d99_'$ARCH'-'$mt
-      mkdir $WINAME
-      echo d99-mmt > $WINAME/depend.cvslvk
-      echo d99-libmon_$mt >> $WINAME/depend.cvslvk
-      touch $WINAME/REMOVE_ON_CVSLVK_UPDATE
-      $CHGRP $CVSGROUP $WINAME/* $WINAME
-      $CHMOD g+rw $WINAME/* $WINAME
-    fi
-  done
-fi
-
 # Cоздание псевдомодуля для X11
 # Sun-овские include-файлы из /usr/openwin/include не определяют типы,
 #   возвращаемые функицями, из-за чего g++ ругается
