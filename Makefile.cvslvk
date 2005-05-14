@@ -73,7 +73,7 @@ override CL_GCC_OPTIMIZE := $(CL_GCC_OPTIMIZE)
 # Either just names or name:val1|...|valN
 
 # Check some system settings also
-override CL_VARS += $(if $(CL_COMP),CL_COMP:gcc33|gcc32|gcc295|gcc296)
+override CL_VARS += $(if $(CL_COMP),CL_COMP:gcc40|gcc34|gcc33|gcc32|gcc295|gcc296)
 override CL_VARS += $(if $(CL_LTYPE),CL_LTYPE:shared|static)
 override CL_VARS += $(if $(filter create_wi update_wi,$(MAKECMDGOALS)),CL_MODULE)
 override CL_VARS += $(if $(filter install,$(MAKECMDGOALS)),CL_PREFIX)
@@ -103,8 +103,8 @@ override CL_OS := $(shell $(CL_HELPER) get_os)
 #   first parameter of "$(CL_HELPER) process_wi" is "need" or "compute",
 #     "need" means that compiler is the build parameter anyway,
 #     "compute" means that WI processing should find out whether it is needed 
-#   second parameter of "$(CL_HELPER) process_wi" is "gcc33" or "gcc32" or
-#     "gcc295" or "gcc296" or "any"
+#   second parameter of "$(CL_HELPER) process_wi" is "gcc40" or "gcc34" or
+#     "gcc33" or "gcc32" or "gcc295" or "gcc296" or "any"
 #     "gcc*" means that exacltly this compiler should be used
 #     "any" means that WI processing should choose (it will try to use gcc33
 #     if possible)
@@ -130,6 +130,12 @@ ifeq ($(filter comp_param_needed comp_param_not_needed,$(CL_RES)),comp_param_nee
 override CL_PARAM_COMP := 1
 endif
 
+ifeq ($(filter gcc40,$(CL_RES)),gcc40)
+override CL_COMP := gcc40
+endif
+ifeq ($(filter gcc34,$(CL_RES)),gcc34)
+override CL_COMP := gcc34
+endif
 ifeq ($(filter gcc33,$(CL_RES)),gcc33)
 override CL_COMP := gcc33
 endif
@@ -148,7 +154,7 @@ endif
 
 # Get the full WI list to use
 
-override CL_WI_LIST := $(filter-out gcc33 gcc32 gcc295 gcc296 any comp_param_needed comp_param_not_needed,$(CL_RES))
+override CL_WI_LIST := $(filter-out gcc40 gcc34 gcc33 gcc32 gcc295 gcc296 any comp_param_needed comp_param_not_needed,$(CL_RES))
 
 
 # Set CL_BTYPE and CL_LTYPE to be available at WI's rules.cvslvk inclution

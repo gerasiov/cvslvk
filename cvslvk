@@ -130,6 +130,8 @@ get_os()
 get_comp_defaults()
 {
   case "`gcc -v 2>&1 | grep version`" in
+    *4.0*)  echo gcc40 ;;
+    *3.4*)  echo gcc34 ;;
     *3.3*)  echo gcc33 ;;
     *3.2*)  echo gcc32 ;;
     *2.95*)  echo gcc295 ;;
@@ -145,6 +147,16 @@ get_comp_defaults()
 get_comp_execs()
 {
   case "$1" in
+    gcc40)
+      defc=gcc-4.0
+      defcpp=g++-4.0
+      ver=4.0
+      ;;
+    gcc34)
+      defc=gcc-3.4
+      defcpp=g++-3.4
+      ver=3.4
+      ;;
     gcc33)
       defc=gcc-3.3
       defcpp=g++-3.3
@@ -231,9 +243,9 @@ make_rules()
 # process_wi [in_clean] <фиксировать ли компилятор> <какой компилятор> <запросы модулей>
 #   возможный нулевой параметр - in_clean если не нужно убивать make по ошибкам
 #   первый параметр: yes или unknown
-#   второй параметр: gcc33, gcc32, gcc295, gcc296 или any
+#   второй параметр: gcc40, gcc34, gcc33, gcc32, gcc295, gcc296 или any
 #   возврат: первое слово - comp_param_needed или comp_param_not_needed
-#            второе - gcc33, gcc32, gcc295, gcc296 или any
+#            второе - gcc40, gcc34, gcc33, gcc32, gcc295, gcc296 или any
 #            дальше - список примененных WI
 process_wi()
 {
@@ -251,6 +263,7 @@ process_wi()
 # gcc33 and gcc32 are compatable.
 # If no compiler is set via CL_COMP, try to use gcc33 if any of those
 # is suggested, and revert to gcc32 if gcc33 is not available.
+# Same with gcc40 and gcc34
 # If particular one is set via CL_COMP, enforce it.
   echo $res | ( read p1 ncomp rest;
 		  if test "$comp" = "any"; then
@@ -260,11 +273,21 @@ process_wi()
 		      elif test -n "`which gcc-3.2`"; then
 		        ncomp=gcc32
 		      fi
+                    elif test "$ncomp" = "gcc40" -o "$ncomp" = "gcc34"; then
+		      if test -n "`which gcc-4.0`"; then
+		        ncomp=gcc40
+		      elif test -n "`which gcc-3.4`"; then
+		        ncomp=gcc34
+		      fi
 		    fi
 		  elif test "$comp" = "gcc33" -a "$ncomp" = "gcc32"; then
 		    ncomp=gcc33
 		  elif test "$comp" = "gcc32" -a "$ncomp" = "gcc33"; then
 		    ncomp=gcc32
+		  elif test "$comp" = "gcc40" -a "$ncomp" = "gcc34"; then
+		    ncomp=gcc40
+		  elif test "$comp" = "gcc34" -a "$ncomp" = "gcc40"; then
+		    ncomp=gcc34
 		  fi
 		  echo $p1 $ncomp $rest )
     return
@@ -315,6 +338,8 @@ get_bd_for_clean()
   part12=`echo $1 | cut -d- -f1-2`
   rest=`echo $1 | cut -d- -f3-`
   test "$rest" = "" || rest="-$rest" 
+  if test -d $part12-gcc40$rest; then echo $part12-gcc40$rest; return; fi
+  if test -d $part12-gcc34$rest; then echo $part12-gcc34$rest; return; fi
   if test -d $part12-gcc33$rest; then echo $part12-gcc33$rest; return; fi
   if test -d $part12-gcc32$rest; then echo $part12-gcc32$rest; return; fi
   if test -d $part12-gcc295$rest; then echo $part12-gcc295$rest; return; fi
