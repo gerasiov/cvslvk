@@ -62,6 +62,8 @@
 // Сортировка списка инсталляций по качеству
 // LIST - входной список номеров, RES - выходной список номеров
 // optimized предпочитаем перед debug, shared предпочитаем перед static.
+// WARNING: if you change parameter weihts (values added to aq[ai]),
+//          don't forget to fix the loop bound in the bottom of the macro!
 #define sort_wi_list(LIST,RES)  { @\
   an = split ( LIST, a, " " ) @\
   for ( ai=1; ai<=an; ai++ )  { @\
@@ -76,7 +78,7 @@
       } @\
     } @\
   RES=""; @\
-  for ( ai=8; ai>=0; ai-- )  for ( aj=1; aj<=an; aj++ )  @\
+  for ( ai=10; ai>=0; ai-- )  for ( aj=1; aj<=an; aj++ )  @\
     if ( aq[aj]==ai )  append ( RES, a[aj], " " ); @\
   } @\
 
