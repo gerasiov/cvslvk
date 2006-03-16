@@ -493,6 +493,8 @@ endif  # CL_LOCALWORK
 # $(CL_INFO) is the third part of the wi name, defaults to $(CL_DIR_PARAMS)
 # Sets $(CL_PREFIX) and uses make install
 
+# Support 'make -f xxx update_wi'
+override CL_MAKE_CMD := $(MAKE) -f $(firstword $(MAKEFILE_LIST))
 
 override CL_WI_DIR := $(CL_MODULE)_$(CL_DIR_PARAMS)
 
@@ -501,14 +503,14 @@ create_wi: $(ALWAYS)
 	@echo Creating working installation $(CL_WI_DIR) ...
 	@echo
 	@$(CL_HELPER) before_create_wi $(CL_WI_DIR)
-	@echo Running $(MAKE) all CL_PREFIX=$(CL_DIR)/$(CL_WI_DIR) ...
+	@echo Running $(CL_MAKE_CMD) all CL_PREFIX=$(CL_DIR)/$(CL_WI_DIR) ...
 	@echo
-	@$(MAKE) all CL_PREFIX=$(CL_DIR)/$(CL_WI_DIR)
+	@$(CL_MAKE_CMD) all CL_PREFIX=$(CL_DIR)/$(CL_WI_DIR)
 	@$(CL_HELPER) before_install_wi $(CL_WI_DIR)
 	@echo
-	@echo Running $(MAKE) install CL_PREFIX=$(CL_DIR)/$(CL_WI_DIR) ...
+	@echo Running $(CL_MAKE_CMD) install CL_PREFIX=$(CL_DIR)/$(CL_WI_DIR) ...
 	@echo
-	@$(MAKE) install CL_PREFIX=$(CL_DIR)/$(CL_WI_DIR) CL_INSTALL_WI=1
+	@$(CL_MAKE_CMD) install CL_PREFIX=$(CL_DIR)/$(CL_WI_DIR) CL_INSTALL_WI=1
 	@$(CL_HELPER) complete_wi $(CL_WI_DIR)
 	@echo
 
@@ -518,7 +520,7 @@ update_wi: $(ALWAYS)
 	  echo Removing available working installation $(CL_WI_DIR) ...; \
 	  $(CL_HELPER) remove_wi $(CL_WI_DIR); \
 	  echo; fi
-	@make create_wi
+	@$(CL_MAKE_CMD) create_wi
 
 
 
