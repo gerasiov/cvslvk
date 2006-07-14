@@ -71,7 +71,9 @@
     am = split ( WI_params[a[ai]], a2, "-" ); @\
     for ( aj=1; aj<=am; aj++ )  { @\
       if ( a2[aj]=="gcc33" )  aq[ai]+=7; @\
-      if ( a2[aj]=="gcc40" )  aq[ai]+=5; @\
+      if ( a2[aj]=="gcc41" )  aq[ai]+=5; @\
+      if ( a2[aj]=="gcc42" )  aq[ai]+=4; @\
+      if ( a2[aj]=="gcc40" )  aq[ai]+=4; @\
       if ( a2[aj]=="gcc34" )  aq[ai]+=4; @\
       if ( a2[aj]=="optimized" )  aq[ai]+=2; @\
       if ( a2[aj]=="shared" )  aq[ai]+=1; @\

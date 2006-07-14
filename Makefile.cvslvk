@@ -73,7 +73,7 @@ override CL_GCC_OPTIMIZE := $(CL_GCC_OPTIMIZE)
 # Either just names or name:val1|...|valN
 
 # Check some system settings also
-override CL_VARS += $(if $(CL_COMP),CL_COMP:gcc40|gcc34|gcc33|gcc32|gcc295|gcc296)
+override CL_VARS += $(if $(CL_COMP),CL_COMP:gcc42|gcc41|gcc40|gcc34|gcc33|gcc32|gcc295|gcc296)
 override CL_VARS += $(if $(CL_LTYPE),CL_LTYPE:shared|static)
 override CL_VARS += $(if $(filter create_wi update_wi,$(MAKECMDGOALS)),CL_MODULE)
 override CL_VARS += $(if $(filter install,$(MAKECMDGOALS)),CL_PREFIX)
@@ -103,8 +103,7 @@ override CL_OS := $(shell $(CL_HELPER) get_os)
 #   first parameter of "$(CL_HELPER) process_wi" is "need" or "compute",
 #     "need" means that compiler is the build parameter anyway,
 #     "compute" means that WI processing should find out whether it is needed 
-#   second parameter of "$(CL_HELPER) process_wi" is "gcc40" or "gcc34" or
-#     "gcc33" or "gcc32" or "gcc295" or "gcc296" or "any"
+#   second parameter of "$(CL_HELPER) process_wi" is "gcc*" or "any"
 #     "gcc*" means that exacltly this compiler should be used
 #     "any" means that WI processing should choose (it will try to use gcc33
 #     if possible)
@@ -112,7 +111,7 @@ override CL_OS := $(shell $(CL_HELPER) get_os)
 override CL_COMP_TMP := $(if $(CL_COMP),$(CL_COMP),any)
 override CL_COMP_PARAM_TMP := $(if $(CL_PARAM_COMP),need,compute)
 
-# Don't do anythong more if we need only to show WI logic
+# Don't do anything more if we need only to show WI logic
 # ('$(CL_HELPER) show_wi' will kill make)
 ifeq ($(MAKECMDGOALS),show_wi)
 override CL_TMP := $(shell $(CL_HELPER) show_wi $(CL_COMP_PARAM_TMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
@@ -126,35 +125,19 @@ else
 override CL_RES := $(shell $(CL_HELPER) process_wi $(CL_COMP_PARAM_TMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
 endif
 
-ifeq ($(filter comp_param_needed comp_param_not_needed,$(CL_RES)),comp_param_needed)
+override CL_RES_NEEDED := $(word 1,$(CL_RES))
+override CL_RES_COMP := $(word 2,$(CL_RES))
+override CL_WI_LIST := $(filter-out $(CL_RES_NEEDED) $(CL_RES_COMP),$(CL_RES))
+
+ifeq ($(CL_RES_NEEDED),comp_param_needed)
 override CL_PARAM_COMP := 1
 endif
 
-ifeq ($(filter gcc40,$(CL_RES)),gcc40)
-override CL_COMP := gcc40
-endif
-ifeq ($(filter gcc34,$(CL_RES)),gcc34)
-override CL_COMP := gcc34
-endif
-ifeq ($(filter gcc33,$(CL_RES)),gcc33)
-override CL_COMP := gcc33
-endif
-ifeq ($(filter gcc32,$(CL_RES)),gcc32)
-override CL_COMP := gcc32
-endif
-ifeq ($(filter gcc295,$(CL_RES)),gcc295)
-override CL_COMP := gcc295
-endif
-ifeq ($(filter gcc296,$(CL_RES)),gcc296)
-override CL_COMP := gcc296
-endif
-ifeq ($(filter any,$(CL_RES)),any)
+ifneq ($(CL_RES_COMP),any)
+override CL_COMP := $(CL_RES_COMP)
+else
 override CL_COMP := $(if $(CL_COMP),$(CL_COMP),$(shell $(CL_HELPER) get_comp_defaults))
 endif
-
-# Get the full WI list to use
-
-override CL_WI_LIST := $(filter-out gcc40 gcc34 gcc33 gcc32 gcc295 gcc296 any comp_param_needed comp_param_not_needed,$(CL_RES))
 
 
 # Set CL_BTYPE and CL_LTYPE to be available at WI's rules.cvslvk inclution
@@ -199,21 +182,25 @@ override CL_DIR_PARAMS := $(CL_DIR_PARAMS)-$(CL_BTYPE)
 
 # Now $(CL_DIR_PARAMS) is the parameter string
 
-# Since WI logic don't always work on 'make clean' (because we want 'make clean'
+# Since WI logic does not always work on 'make clean' (because we want 'make clean'
 # to work even when there are WI errors), $(CL_BD) may be set incorrectly.
 # When CL_PARAM_COMP is not set, comp may be not in $(CL_BD), but it *may*
 # be in the real build birectory name.
 
+override CL_TMP := $(if $(CL_MODULE),$(CL_MODULE)_)$(CL_DIR_PARAMS)
 ifneq ($(filter clean cleanall,$(MAKECMDGOALS)),)
-override CL_BD := $(shell $(CL_HELPER) get_bd_for_clean $(CL_DIR_PARAMS) $(CL_COMP))
+override CL_BD := $(shell $(CL_HELPER) get_bd_for_clean $(CL_TMP) $(CL_COMP))
 else
-override CL_BD := $(CL_DIR_PARAMS)
+override CL_BD := $(CL_TMP)
 ifdef CL_LOCALWORK
 # Create the build directory and remove symlinks to other BDs
 override CL_TMP := $(shell $(CL_HELPER) setup_bd $(CL_BD))
 endif
 endif
 
+ifdef CL_MODULE
+override CL_WI_NAME := $(CL_BD)
+endif
 
 # Since some include files may be generated, we want to add $(CL_BD) to
 # include search path. -I. is needed because without it, includes are searched
@@ -489,39 +476,29 @@ endif  # CL_LOCALWORK
 
 # Rule to create and update working installation.
 # $(CL_MODULE) is the module name
-# $(CL_VERSION) is the wi version, defaults to 'unknown'
-# $(CL_INFO) is the third part of the wi name, defaults to $(CL_DIR_PARAMS)
 # Sets $(CL_PREFIX) and uses make install
 
 # Support 'make -f xxx update_wi'
-override CL_MAKE_CMD := $(MAKE) -f $(firstword $(MAKEFILE_LIST))
+override CL_MAKE_ADDARGS := -f $(firstword $(MAKEFILE_LIST))
 
-override CL_WI_DIR := $(CL_MODULE)_$(CL_DIR_PARAMS)
-
-create_wi: $(ALWAYS)
+create_wi update_wi: $(ALWAYS)
 	@echo
-	@echo Creating working installation $(CL_WI_DIR) ...
+	@echo Running $(MAKE) $(CL_MAKE_ADDARGS) all CL_PREFIX=$(CL_DIR)/$(CL_WI_NAME) ...
 	@echo
-	@$(CL_HELPER) before_create_wi $(CL_WI_DIR)
-	@echo Running $(CL_MAKE_CMD) all CL_PREFIX=$(CL_DIR)/$(CL_WI_DIR) ...
+	@$(MAKE) $(CL_MAKE_ADDARGS) all CL_PREFIX=$(CL_DIR)/$(CL_WI_NAME)
 	@echo
-	@$(CL_MAKE_CMD) all CL_PREFIX=$(CL_DIR)/$(CL_WI_DIR)
-	@$(CL_HELPER) before_install_wi $(CL_WI_DIR)
+	@if test -d $(CL_WI_NAME); then \
+	  echo Updating working installation $(CL_WI_NAME) ...; \
+	  rm -rf $(CL_DIR)/$(CL_WI_NAME) || exit 1; \
+	 else \
+	  echo Creating working installation $(CL_WI_NAME) ...; \
+	 fi
 	@echo
-	@echo Running $(CL_MAKE_CMD) install CL_PREFIX=$(CL_DIR)/$(CL_WI_DIR) ...
+	@echo Running $(MAKE) $(CL_MAKE_ADDARGS) install CL_PREFIX=$(CL_DIR)/$(CL_WI_NAME) ...
 	@echo
-	@$(CL_MAKE_CMD) install CL_PREFIX=$(CL_DIR)/$(CL_WI_DIR) CL_INSTALL_WI=1
-	@$(CL_HELPER) complete_wi $(CL_WI_DIR)
+	@$(MAKE) $(CL_MAKE_ADDARGS) install CL_PREFIX=$(CL_DIR)/$(CL_WI_NAME) CL_INSTALL_WI=1
+	@$(CL_HELPER) complete_wi $(CL_WI_NAME)
 	@echo
-
-update_wi: $(ALWAYS)
-	@if test -d $(CL_DIR)/$(CL_WI_DIR); then \
-	  echo; \
-	  echo Removing available working installation $(CL_WI_DIR) ...; \
-	  $(CL_HELPER) remove_wi $(CL_WI_DIR); \
-	  echo; fi
-	@$(CL_MAKE_CMD) create_wi
-
 
 
 # Make things like "make file.o" work
@@ -615,10 +592,10 @@ endif
 endif
 
 ifdef CL_INSTALL_WI
-override CL_WI_DEPEND := $(foreach dep,$(CL_DEPEND_ON_EXACT),$(filter $(dep)_%,$(CL_WI_LIST)))
 install_rules: $(ALWAYS)
-	$(V)if test -f rules.cvslvk; then rm -f $(CL_PREFIX)/rules.cvslvk && cp -p rules.cvslvk $(CL_PREFIX)/; fi
-	$(V)if test -f depend.cvslvk; then rm -f $(CL_PREFIX)/depend.cvslvk && cp -p depend.cvslvk $(CL_PREFIX)/; fi
+	$(V)rm -f  $(CL_PREFIX)/rules.cvslvk $(CL_PREFIX)/depend.cvslvk
+	$(V)if test -f rules.cvslvk; then cp -p rules.cvslvk $(CL_PREFIX)/; fi
+	$(V)if test -f depend.cvslvk; then cp -p depend.cvslvk $(CL_PREFIX)/; fi
 ifneq ($(strip $(CL_WI_DEPEND)),)
 	$(V)printf "\n%s\n" $(CL_WI_DEPEND) >> $(CL_PREFIX)/depend.cvslvk
 endif

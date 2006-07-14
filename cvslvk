@@ -130,6 +130,8 @@ get_os()
 get_comp_defaults()
 {
   case "`gcc -v 2>&1 | grep version`" in
+    *4.2*)  echo gcc42 ;;
+    *4.1*)  echo gcc41 ;;
     *4.0*)  echo gcc40 ;;
     *3.4*)  echo gcc34 ;;
     *3.3*)  echo gcc33 ;;
@@ -147,35 +149,12 @@ get_comp_defaults()
 get_comp_execs()
 {
   case "$1" in
-    gcc40)
-      defc=gcc-4.0
-      defcpp=g++-4.0
-      ver=4.0
-      ;;
-    gcc34)
-      defc=gcc-3.4
-      defcpp=g++-3.4
-      ver=3.4
-      ;;
-    gcc33)
-      defc=gcc-3.3
-      defcpp=g++-3.3
-      ver=3.3
-      ;;
-    gcc32)
-      defc=gcc-3.2
-      defcpp=g++-3.2
-      ver=3.2
-      ;;
-    gcc295)
-      defc=gcc-2.95
-      defcpp=g++-2.95
-      ver=2.95
-      ;;
-    gcc296)
-      defc=gcc-2.96
-      defcpp=g++-2.96
-      ver=2.96
+    gcc*)
+      maj=`echo $1 | cut -c 4`
+      min=`echo $1 | cut -c 5-`
+      ver=$maj.$min
+      defc=gcc-$ver
+      defcpp=g++-$ver
       ;;
     *)
       error "get_comp_execs: unsupported CL_COMP $1"
@@ -243,9 +222,9 @@ make_rules()
 # process_wi [in_clean] <фиксировать ли компилятор> <какой компилятор> <запросы модулей>
 #   возможный нулевой параметр - in_clean если не нужно убивать make по ошибкам
 #   первый параметр: yes или unknown
-#   второй параметр: gcc40, gcc34, gcc33, gcc32, gcc295, gcc296 или any
+#   второй параметр: gcc* или any
 #   возврат: первое слово - comp_param_needed или comp_param_not_needed
-#            второе - gcc40, gcc34, gcc33, gcc32, gcc295, gcc296 или any
+#            второе - gcc* или any
 #            дальше - список примененных WI
 process_wi()
 {
@@ -263,33 +242,33 @@ process_wi()
 # gcc33 and gcc32 are compatable.
 # If no compiler is set via CL_COMP, try to use gcc33 if any of those
 # is suggested, and revert to gcc32 if gcc33 is not available.
-# Same with gcc40 and gcc34
+# Same with gcc42 and gcc41 and gcc40 and gcc34 - prefer gcc41 of those
 # If particular one is set via CL_COMP, enforce it.
   echo $res | ( read p1 ncomp rest;
-		  if test "$comp" = "any"; then
-                    if test "$ncomp" = "gcc33" -o "$ncomp" = "gcc32"; then
-		      if test -n "`which gcc-3.3`"; then
-		        ncomp=gcc33
-		      elif test -n "`which gcc-3.2`"; then
-		        ncomp=gcc32
-		      fi
-                    elif test "$ncomp" = "gcc40" -o "$ncomp" = "gcc34"; then
-		      if test -n "`which gcc-4.0`"; then
-		        ncomp=gcc40
-		      elif test -n "`which gcc-3.4`"; then
-		        ncomp=gcc34
-		      fi
+                case "$comp-$ncomp" in
+		  any-gcc33|any-gcc32)
+		    if test -n "`which gcc-3.3`"; then
+		      ncomp=gcc33
+		    elif test -n "`which gcc-3.2`"; then
+		      ncomp=gcc32
 		    fi
-		  elif test "$comp" = "gcc33" -a "$ncomp" = "gcc32"; then
-		    ncomp=gcc33
-		  elif test "$comp" = "gcc32" -a "$ncomp" = "gcc33"; then
-		    ncomp=gcc32
-		  elif test "$comp" = "gcc40" -a "$ncomp" = "gcc34"; then
-		    ncomp=gcc40
-		  elif test "$comp" = "gcc34" -a "$ncomp" = "gcc40"; then
-		    ncomp=gcc34
-		  fi
-		  echo $p1 $ncomp $rest )
+		    ;;
+		  any-gcc4*|any-gcc34)
+		    if test -n "`which gcc-4.1`"; then
+		      ncomp=gcc41
+		    elif test -n "`which gcc-4.2`"; then
+		      ncomp=gcc42
+		    elif test -n "`which gcc-4.0`"; then
+		      ncomp=gcc40
+		    elif test -n "`which gcc-3.4`"; then
+		      ncomp=gcc34
+		    fi
+		    ;;
+		  gcc33-gcc32|gcc32-gcc33|gcc4*-gcc4*|gcc34-gcc4*|gcc4*-gcc34)
+		    ncomp=$comp
+		    ;;
+		esac
+		echo $p1 $ncomp $rest )
     return
   fi
 
@@ -329,23 +308,28 @@ get_bd_for_clean()
 {
   if test -d $1; then echo $1; return; fi
 
-  part3=`echo $1 | cut -d- -f3`
-  if test "$part3" = "gcc33" -o "$part3" = "gcc32" -o "$part3" = "gcc295" -o $part3 = "gcc296" -o "$part3" = "gcc"; then
-    echo $1
-    return
-  fi
+  # Maybe replacing compiler field will help ...
+  case "$1" in
+    *_*-*-*)
+      # module name exists, at least 3 params
+      regexp='^\([^_]*_[^-]*-[^-]*-\)\([^-]*\)\(.*\)$'
+      ;;
+    *-*-*)
+      # no module name, at least 3 params
+      regexp='^\([^-]*-[^-]*-\)\([^-]*\)\(.*\)$'
+      ;;
+    *)
+      # less than 3 params - we can't help ...
+      echo $1
+      return
+  esac
 
-  part12=`echo $1 | cut -d- -f1-2`
-  rest=`echo $1 | cut -d- -f3-`
-  test "$rest" = "" || rest="-$rest" 
-  if test -d $part12-gcc40$rest; then echo $part12-gcc40$rest; return; fi
-  if test -d $part12-gcc34$rest; then echo $part12-gcc34$rest; return; fi
-  if test -d $part12-gcc33$rest; then echo $part12-gcc33$rest; return; fi
-  if test -d $part12-gcc32$rest; then echo $part12-gcc32$rest; return; fi
-  if test -d $part12-gcc295$rest; then echo $part12-gcc295$rest; return; fi
-  if test -d $part12-gcc296$rest; then echo $part12-gcc296$rest; return; fi
-  if test -d $part12-gcc$rest; then echo $part12-gcc$rest; return; fi
-  
+  for comp in $2 gcc33 gcc32 gcc41 gcc42 gcc40 gcc295 gcc296; do
+    try=`echo -n $1 | sed s/"$regexp"/'\1'$comp'\3'/`
+    if test -d $try; then echo $try; return; fi
+  done
+   
+  # We can't help more ...
   echo $1
 }
 
@@ -403,42 +387,6 @@ cleanall()
       rm -rf $symlinks $d
     fi
   done
-}
-
-
-# before_create_wi <полное имя инсталляции>
-# Вызывается по make create_wi перед вызовом make all
-before_create_wi()
-{
-  cd $CL_DIR
-  if test -d $1; then
-    echo_build_error
-    echo "The working installation $1 already exists" 1>&2
-    echo "If you wish, you may remove in by running" 1>&2
-    echo "  cvslvk remove_wi $1" 1>&2
-    echo 1>&2
-    return 1
-  fi
-
-  mkdir $1
-  if test $? -ne 0; then
-    echo_build_error
-    echo "Failed to create directory $CL_DIR/$1" 1>&2
-    echo "Are you sure you are in cvsusers group ?" 1>&2
-    echo 1>&2
-    return 1
-  fi
-  rmdir $1
-  return 0
-}
-
-
-# before_install_wi <полное имя инсталляции>
-# Вызывается по make create_wi перед вызовом make all
-before_install_wi()
-{
-  cd $CL_DIR
-  mkdir $1
 }
 
 
@@ -731,7 +679,7 @@ shift
 case "$command" in
   check_vars|error|get_arch|get_os|make_rules|setup_bd|remove_old_symlinks|\
   cleanall|process_wi|show_wi|get_bd_for_clean|liborder|touchap|\
-  before_create_wi|before_install_wi|complete_wi|remove_wi|\
+  complete_wi|remove_wi|\
   install|build|show_ab|compile|link|get_comp_defaults|get_comp_execs)
     $command $*
     exit $?
