@@ -32,7 +32,7 @@ endif
 
 override CL_NO_COMMAND_ERROR = $(shell $(CL_HELPER) error At least one of SUBDIRS, EXECUTABLE, LIBRARY or INTERNAL_LIBRARY should be defined)
 override CL_DUP_COMMAND_ERROR = $(shell $(CL_HELPER) error No more than one of EXECUTABLE, LIBRARY and INTERNAL_LIBRARY should be defined)
-override CL_TMP := $(if $(SUBDIRS)$(EXECUTABLE)$(LIBRARY)$(INTERNAL_LIBRARY),,$(CL_DUP_COMMAND_ERROR))
+override CL_TMP := $(if $(SUBDIRS)$(EXECUTABLE)$(LIBRARY)$(INTERNAL_LIBRARY),,$(CL_NO_COMMAND_ERROR))
 override CL_TMP := $(if $(EXECUTABLE),$(if $(LIBRARY)$(INTERNAL_LIBRARY),$(CL_DUP_COMMAND_ERROR)))
 override CL_TMP := $(if $(LIBRARY),$(if $(EXECUTABLE)$(INTERNAL_LIBRARY),$(CL_DUP_COMMAND_ERROR)))
 override CL_TMP := $(if $(INTERNAL_LIBRARY),$(if $(EXECUTABLE)$(LIBRARY),$(CL_DUP_COMMAND_ERROR)))
@@ -351,6 +351,8 @@ override LDFLAGS := $(CL_IL_DIRS) $(CL_LDFLAGS_DIRS) $(CL_LDFLAGS_DIRS:-L%=$(CL_
 # Reorder includes so that WI includes are always before other includes
 override INCLUDES := -I. -I$(CL_BD) $(filter $(CL_DIR)/%,$(INCLUDES)) $(filter-out $(CL_DIR)/% -I. -I$(CL_BD),$(INCLUDES))
 
+# Add wanted vars to DEFINES
+override DEFINES += $(foreach var,$(CL_ADD_TO_DEFINES), -D$(var)=$($(var)) )
 
 # Add $(INCLUDES) and $(DEFINES) to $(C{XX}FLAGS)
 override CFLAGS += $(INCLUDES) $(DEFINES)
