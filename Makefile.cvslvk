@@ -352,7 +352,7 @@ override LDFLAGS := $(CL_IL_DIRS) $(CL_LDFLAGS_DIRS) $(CL_LDFLAGS_DIRS:-L%=$(CL_
 override INCLUDES := -I. -I$(CL_BD) $(filter $(CL_DIR)/%,$(INCLUDES)) $(filter-out $(CL_DIR)/% -I. -I$(CL_BD),$(INCLUDES))
 
 # Add wanted vars to DEFINES
-override DEFINES += $(foreach var,$(CL_ADD_TO_DEFINES), -D$(var)=\"$($(var))\" )
+override DEFINES += $(foreach var,$(CL_ADD_TO_DEFINES), $(if $(filter undefined,$(origin $(var))),, -D$(var)=\"$($(var))\"))
 
 # Add $(INCLUDES) and $(DEFINES) to $(C{XX}FLAGS)
 override CFLAGS += $(INCLUDES) $(DEFINES)
