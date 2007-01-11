@@ -628,7 +628,7 @@ compile()
   if test "" = "$CL_VERBOSE"; then
     locale 2>/dev/null | awk -F '(=|")+' '
       $1=="LC_MESSAGES" && $2=="ru_RU.KOI8-R" {
-        print("Компиляция '"$source"' при помощи '"$comp"' ...")
+        print("Компилируется '"$source"' при помощи '"$comp"' ...")
         f=1
       }
       END { if (f!=1) print("Compiling '"$source"' using '"$comp"' ...") }'
@@ -659,7 +659,7 @@ link()
   if test "" = "$CL_VERBOSE"; then
     locale 2>/dev/null | awk -F '(=|")+' '
       $1=="LC_MESSAGES" && $2=="ru_RU.KOI8-R" {
-        print("Сборка '"$target"' ...")
+        print("Собирается '"$target"' ...")
         f=1
       }
       END { if (f!=1) print("Linking '"$target"' ...") }'
