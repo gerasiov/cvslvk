@@ -70,11 +70,11 @@
     aq[ai] = 0; @\
     am = split ( WI_params[a[ai]], a2, "-" ); @\
     for ( aj=1; aj<=am; aj++ )  { @\
-      if ( a2[aj]=="gcc33" )  aq[ai]+=7; @\
-      if ( a2[aj]=="gcc41" )  aq[ai]+=5; @\
-      if ( a2[aj]=="gcc42" )  aq[ai]+=4; @\
+      if ( a2[aj]=="gcc41" )  aq[ai]+=7; @\
+      if ( a2[aj]=="gcc42" )  aq[ai]+=5; @\
       if ( a2[aj]=="gcc40" )  aq[ai]+=4; @\
       if ( a2[aj]=="gcc34" )  aq[ai]+=4; @\
+      if ( a2[aj]=="gcc33" )  aq[ai]+=3; @\
       if ( a2[aj]=="optimized" )  aq[ai]+=2; @\
       if ( a2[aj]=="shared" )  aq[ai]+=1; @\
       } @\
@@ -108,7 +108,15 @@
   fcnn = split ( PARAMS, fcna, "-" ); @\
   RES = ""; @\
   for ( fcni=1; fcni<=fcnn; fcni++ ) @\
-    if ( (fcna[fcni]=="gcc40") || (fcna[fcni]=="gcc34") || (fcna[fcni]=="gcc33") || (fcna[fcni]=="gcc32") || (fcna[fcni]=="gcc295") || (fcna[fcni]=="gcc296") || (fcna[fcni]=="gcc") )  {RES=fcna[fcni]; break;} @\
+    if ( (fcna[fcni]=="gcc41") || @\
+         (fcna[fcni]=="gcc42") || @\
+         (fcna[fcni]=="gcc40") || @\
+         (fcna[fcni]=="gcc34") || @\
+	 (fcna[fcni]=="gcc33") || @\
+	 (fcna[fcni]=="gcc32") || @\
+	 (fcna[fcni]=="gcc295") || @\
+	 (fcna[fcni]=="gcc296") || @\
+	 (fcna[fcni]=="gcc") )  {RES=fcna[fcni]; break;} @\
   } @\
 
 // Установка переменной conflicts в зависимости от текущей установки comp
@@ -126,7 +134,7 @@
 // Вторая строка - параметры:
 //   $1: quiet | verbose
 //   $2: need | compute (про comp_param)
-//   $3: gcc40 | gcc34 | gcc33 | gcc32 | gcc295 | gcc296 | any
+//   $3: gcc42 | gcc41 | gcc40 | gcc34 | gcc33 | gcc32 | gcc295 | gcc296 | any
 // Каждая из следующих строк - доступная рабочая инсталляция, после которой ее
 //   требования
 BEGIN  {
@@ -252,7 +260,7 @@ END  {
    // Первый же кандидат, в параметры которого входит компилятор, устанавливает
    // comp_param="need" и comp=<использованный компилятор>
     find_comp_name ( candp[n], tmpcomp );
-    if ( tmpcomp == "gcc" )  tmpcomp = "gcc295"
+    if ( tmpcomp == "gcc" )  tmpcomp = "gcc41"
     if ( tmpcomp != "" )  {
       comp_param="need"; comp=tmpcomp;  set_conflicts;
       if ( verbose && (save_cp[n-1]!="need") )
