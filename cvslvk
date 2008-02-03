@@ -395,11 +395,11 @@ complete_wi()
 {
   cd $CL_DIR
   choose_chgrp_and_chmod
-  find $1 -exec $CHGRP $CVSGROUP \{\} \;
-  find $1 -exec $CHMOD ug+rw \{\} \;
-  find $1 -perm -100 -exec $CHMOD g+rwx \{\} \;
-  find $1 -exec chmod a+r \{\} \;
-  find $1 -perm -100 -exec chmod a+rx \{\} \;
+  find $1 -exec $CHGRP $CVSGROUP \{\} \; 2>/dev/null
+  find $1 -exec $CHMOD ug+rw \{\} \; 2>/dev/null
+  find $1 -perm -100 -exec $CHMOD g+rwx \{\} \; 2>/dev/null
+  find $1 -exec chmod a+r \{\} \; 2>/dev/null
+  find $1 -perm -100 -exec chmod a+rx \{\} \; 2>/dev/null
 
   make_rules
 }
