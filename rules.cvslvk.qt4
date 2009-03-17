@@ -35,8 +35,8 @@ endif
 
 ifdef TS_FILES
 override QM_FILES += $(TS_FILES:%.ts=$(CL_BD)/%.qm)
-$(TS_FILES): $(SOURCES) $(MOC_GEN_SOURCES)
-	$(LUPDATE) $(SOURCES) $(MOC_GEN_SOURCES) -ts $(TS_FILES)
+$(TS_FILES): $(SOURCES) $(MOC_HEADERS)
+	$(LUPDATE) $(SOURCES) $(MOC_HEADERS) -ts $(TS_FILES)
 $(QM_FILES): $(TS_FILES)
 	$(LRELEASE) $< -qm $@
 endif
