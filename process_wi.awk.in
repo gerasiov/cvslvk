@@ -70,6 +70,7 @@
     aq[ai] = 0; @\
     am = split ( WI_params[a[ai]], a2, "-" ); @\
     for ( aj=1; aj<=am; aj++ )  { @\
+      if ( a2[aj]=="gcc43" )  aq[ai]+=8; @\
       if ( a2[aj]=="gcc41" )  aq[ai]+=7; @\
       if ( a2[aj]=="gcc42" )  aq[ai]+=5; @\
       if ( a2[aj]=="gcc40" )  aq[ai]+=4; @\
@@ -110,6 +111,7 @@
   for ( fcni=1; fcni<=fcnn; fcni++ ) @\
     if ( (fcna[fcni]=="gcc41") || @\
          (fcna[fcni]=="gcc42") || @\
+         (fcna[fcni]=="gcc43") || @\
          (fcna[fcni]=="gcc40") || @\
          (fcna[fcni]=="gcc34") || @\
 	 (fcna[fcni]=="gcc33") || @\
@@ -260,7 +262,7 @@ END  {
    // Первый же кандидат, в параметры которого входит компилятор, устанавливает
    // comp_param="need" и comp=<использованный компилятор>
     find_comp_name ( candp[n], tmpcomp );
-    if ( tmpcomp == "gcc" )  tmpcomp = "gcc41"
+    if ( tmpcomp == "gcc" )  tmpcomp = "gcc43"
     if ( tmpcomp != "" )  {
       comp_param="need"; comp=tmpcomp;  set_conflicts;
       if ( verbose && (save_cp[n-1]!="need") )
