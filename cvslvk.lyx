@@ -2,9 +2,9 @@
 #LyX 0.12 (C) 1995-1998 Matthias Ettrich and the LyX Team
 \lyxformat 2.15
 \textclass article
+\language russian
+\inputencoding koi8-r
 \begin_preamble
-\usepackage[koi8-r]{inputenc}
-\usepackage[russian]{babel}
 \sloppy
 \end_preamble
 \language default
