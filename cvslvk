@@ -396,6 +396,23 @@ cleanall()
 # complete_wi <полное имя инсталляции>
 complete_wi()
 {
+  scm=""
+  branch=$(git name-rev --name-only HEAD 2>/dev/null)
+  if [ "$branch" ]; then
+    scm="git"
+    head=$(git log -1 --pretty=format:%h 2>/dev/null)
+    git-update-index --refresh -q >/dev/null
+    if ! git diff-index --quiet HEAD .;then
+      head="+$head"
+    fi
+  else
+    branch=$(svn info 2>/dev/null | sed -n 's/^URL: //p')
+    if [ "$branch" ]; then
+      scm="svn"
+      head=$(LANG=C svnversion -n .| sed 's/^\(.*\)M/+\1/')
+    fi
+  fi
+
   cd $CL_DIR
   choose_chgrp_and_chmod
   find $1 -exec $CHGRP $CVSGROUP \{\} \; 2>/dev/null
@@ -403,6 +420,12 @@ complete_wi()
   find $1 -perm -100 -exec $CHMOD g+rwx \{\} \; 2>/dev/null
   find $1 -exec chmod a+r \{\} \; 2>/dev/null
   find $1 -perm -100 -exec chmod a+rx \{\} \; 2>/dev/null
+
+  if [ "$scm" ]; then
+    echo
+    echo "$scm $head $branch" > $1/revision
+    echo -e "scm head branch \n $scm $head $branch" | column -t
+  fi
 
   make_rules
 }
