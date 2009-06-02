@@ -12,4 +12,4 @@ override MOC_GEN_SOURCES += $(MOC_HEADERS:%.h=$(CL_BD)/moc_%.cpp)
 override CL_GEN_SOURCES += $(MOC_GEN_SOURCES)
 $(MOC_GEN_SOURCES) : $(CL_BD)/moc_%.cpp: %.h $(MOC)
 	$(MOC) -o $@ $<
-endif 
+endif

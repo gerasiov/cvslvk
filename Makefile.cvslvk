@@ -19,7 +19,7 @@ $(ALWAYS):
 
 # This is used to control make output
 ifdef CL_VERBOSE
-override V := 
+override V :=
 else
 override V := @
 endif
@@ -102,7 +102,7 @@ override CL_OS := $(shell $(CL_HELPER) get_os)
 # Find out what WIs we will use. Required compiler setting may go from here.
 #   first parameter of "$(CL_HELPER) process_wi" is "need" or "compute",
 #     "need" means that compiler is the build parameter anyway,
-#     "compute" means that WI processing should find out whether it is needed 
+#     "compute" means that WI processing should find out whether it is needed
 #   second parameter of "$(CL_HELPER) process_wi" is "gcc*" or "any"
 #     "gcc*" means that exacltly this compiler should be used
 #     "any" means that WI processing should choose (it will try to use gcc33
@@ -310,7 +310,7 @@ override CL_LDFLAGS_LIBS := $(foreach x,$(sort $(CL_LDFLAGS_LIBS)),$(findstring 
 # The subdirs should be in CL_USE_IL variable
 # Current restrictions:
 #   each library should be in a subdir;
-#   subdir name and library name should be the same 
+#   subdir name and library name should be the same
 # The subdirs of the used internal libraries should be in CL_USE_IL variable
 # When internal libraries are used, executable is linked separately during build
 # and during installation.
@@ -463,7 +463,7 @@ vpath lib%.so $(CL_TMP:-L%=%)
 vpath lib%.a $(CL_TMP:-L%=%)
 endif
 ifneq ($(CL_LDFLAGS_LIBS),)
-$(CL_LDFLAGS_LIBS) : 
+$(CL_LDFLAGS_LIBS) :
 endif
 ifneq ($(EXECUTABLE),)
 $(CL_BD)/$(EXECUTABLE) : $(CL_BD)/LINKFLAGS $(filter -l%, $(LDFLAGS))
@@ -619,8 +619,8 @@ ifneq ($(MAKECMDGOALS),cleanall)
 override CL_CLEAN := clean_subdirs $(CL_CLEAN)
 endif
 else # No SUBDIRS
-override ALL_SUBDIRS = 
-override CLEANALL_SUBDIRS = 
+override ALL_SUBDIRS =
+override CLEANALL_SUBDIRS =
 endif # SUBDIRS
 
 all : $(ALL_SUBDIRS)
@@ -649,7 +649,7 @@ $(EXECUTABLE): $(CL_BD)/$(EXECUTABLE)
 	$(V)rm -f  $(EXECUTABLE) && ln -s $(CL_BD)/$(EXECUTABLE) $(EXECUTABLE)
 
 $(CL_BD)/$(EXECUTABLE): $(CL_OBJECTS_ALL)
-	@$(CL_HELPER) link $(EXECUTABLE) $(LD) $(CL_OBJECTS_ALL) $(LDFLAGS) $(CL_IL_LDFLAGS_BUILD) -o $@ 
+	@$(CL_HELPER) link $(EXECUTABLE) $(LD) $(CL_OBJECTS_ALL) $(LDFLAGS) $(CL_IL_LDFLAGS_BUILD) -o $@
 ifdef CL_OPTIMIZE
 	$(V)strip $@
 endif

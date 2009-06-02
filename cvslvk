@@ -177,7 +177,7 @@ get_comp_execs()
       fi
     fi
   fi
-  
+
   error "get_comp_execs: can't find $1 compilers." \
         "If you are sure they are present in \$PATH, edit cvslvk script and" \
 	"fix get_comp_execs() function."
@@ -331,7 +331,7 @@ get_bd_for_clean()
     try=`echo -n $1 | sed s/"$regexp"/'\1'$comp'\3'/`
     if test -d $try; then echo $try; return; fi
   done
-   
+
   # We can't help more ...
   echo $1
 }
@@ -570,7 +570,7 @@ build()
   echo
   cvs checkout $TAG_FLAG $MODULE
   if test $? -ne 0 -o ! -d $MODULE; then
-    echo 
+    echo
     echo "CVS checkout failed."
     echo "Make sure that you have set CVSROOT correctly, done 'cvs login'"
     echo "and have appropriate permissions."
@@ -583,10 +583,10 @@ build()
   MAKE_PARAMS="CL_MODULE=$WINAME CL_OPTIMIZE=1 $PARAMS"
   echo
   echo "Running make update_wi $MAKE_PARAMS ..."
-  echo 
+  echo
   make update_wi $MAKE_PARAMS
   if test $? -ne 0; then
-    echo 
+    echo
     echo "Command failed. Please report to the module maintainer[s]."
     echo
     cd ..
