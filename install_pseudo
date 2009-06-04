@@ -14,73 +14,120 @@ choose_chgrp_and_chmod()
   fi
 }
 
-get_arch()
+# Создание псевдомодуля pccts
+install_pccts()
 {
-  case `uname -m` in
-    *86*)        echo x86   ;;
-    sun*|sparc)  echo sparc ;;
-    *)           echo error ;;
-  esac
+  WINAME='pccts_'$ARCH
+  mkdir $WINAME
+  touch $WINAME/REMOVE_ON_CVSLVK_UPDATE
+  touch $WINAME/NOREMOVE
+  cp $SOURCE/rules.cvslvk.pccts $WINAME/rules.cvslvk
+  cp $SOURCE/convgen.sed $WINAME/
+  mkdir $WINAME/bin
+  for prog in /usr/bin/antlr /usr/bin/dlg /usr/bin/genmk /usr/bin/sor; do
+    link=$(basename "$prog")
+    ln -s "$prog" "$WINAME/bin/$link"
+  done
+  ln -s /usr/include/pccts $WINAME/include
+  $CHGRP -R $CVSGROUP $WINAME
+  $CHMOD -R g+rw $WINAME
 }
 
-get_os()
+# Создание псевдомодуля lexyacc
+install_lexyacc()
 {
-  case `uname -s` in
-    Linux|linux)  echo linux    ;;
-    SunOS)        echo solaris  ;;
-    *)            echo error ;;
-  esac
+  WINAME='lexyacc_'$ARCH
+  mkdir $WINAME
+  touch $WINAME/REMOVE_ON_CVSLVK_UPDATE
+  touch $WINAME/NOREMOVE
+  cp $SOURCE/rules.cvslvk.lexyacc $WINAME/rules.cvslvk
+  $CHGRP -R $CVSGROUP $WINAME
+  $CHMOD -R g+rw $WINAME
+}
+
+# Cоздание псевдомодуля для X11
+# На платформе linux ставим WI для совместимости
+install_X()
+{
+  WINAME='X_'$ARCH
+  mkdir $WINAME
+  touch $WINAME/REMOVE_ON_CVSLVK_UPDATE
+  touch $WINAME/NOREMOVE
+  cp $SOURCE/rules.cvslvk.x11 $WINAME/rules.cvslvk
+  $CHMOD -R g+rw $WINAME
+  $CHGRP -R $CVSGROUP $WINAME
+}
+
+install_Glib2()
+{
+  WINAME='GLib2_'$ARCH
+  mkdir $WINAME
+  touch $WINAME/REMOVE_ON_CVSLVK_UPDATE
+  touch $WINAME/NOREMOVE
+  cp $SOURCE/rules.cvslvk.Glib2 $WINAME/rules.cvslvk
+  mkdir $WINAME/include $WINAME/lib
+  for header in /usr/include/glib-2.0/* /usr/lib/glib-2.0/include/*; do
+    link=$(basename "$header")
+    ln -s "$header" "$WINAME/include/$link"
+  done
+  for lib in /usr/lib/libglib-2.0.* /usr/lib/libgmodule-2.0.* /usr/lib/libgobject-2.0.* /usr/lib/libgthread-2.0.*; do
+    link=$(basename "$lib")
+    ln -s "$lib" "$WINAME/lib/$link"
+  done
+  $CHGRP -R $CVSGROUP $WINAME
+  $CHMOD -R g+rw $WINAME
+}
+
+install_Qt3()
+{
+  WINAME='Qt3_'$ARCH
+  mkdir $WINAME
+  touch $WINAME/REMOVE_ON_CVSLVK_UPDATE
+  touch $WINAME/NOREMOVE
+  cp $SOURCE/rules.cvslvk.qt3 $WINAME/rules.cvslvk
+  ln -s /usr/include/qt3 $WINAME/include
+  mkdir $WINAME/bin $WINAME/lib
+  for prog in /usr/bin/lrelease-qt3 /usr/bin/lupdate-qt3 /usr/bin/moc-qt3 /usr/bin/uic-qt3; do
+    link=$(basename "$prog" -qt3)
+    ln -s "$prog" "$WINAME/bin/$link"
+  done
+  for lib in /usr/lib/libqt-mt.so /usr/lib/libqt-mt.so.3; do
+    link=$(basename "$lib")
+    ln -s "$lib" "$WINAME/lib/$link"
+  done
+  $CHGRP -R $CVSGROUP $WINAME
+  $CHMOD -R g+rw $WINAME
+}
+
+install_Qt4()
+{
+  WINAME='Qt4_'$ARCH
+  mkdir $WINAME
+  touch $WINAME/REMOVE_ON_CVSLVK_UPDATE
+  touch $WINAME/NOREMOVE
+  cp $SOURCE/rules.cvslvk.qt4 $WINAME/rules.cvslvk
+  ln -s /usr/include/qt4 $WINAME/include
+  mkdir $WINAME/bin $WINAME/lib
+  for prog in /usr/bin/lrelease-qt4 /usr/bin/lupdate-qt4 /usr/bin/moc-qt4 /usr/bin/uic-qt4 /usr/bin/rcc; do
+    link=$(basename "$prog" -qt4)
+    ln -s "$prog" "$WINAME/bin/$link"
+  done
+  for lib in /usr/lib/libQt*; do
+    link=$(basename "$lib")
+    ln -s "$lib" "$WINAME/lib/$link"
+  done
+  $CHGRP -R $CVSGROUP $WINAME
+  $CHMOD -R g+rw $WINAME
 }
 
 choose_chgrp_and_chmod
-ARCH=`get_arch`-`get_os`
+ARCH=x86-linux
 SOURCE=`pwd`
 cd $CL_DIR
 
-# Удаление устаревших WI
-for i in */REMOVE_ON_CVSLVK_UPDATE; do
-  test -f $i && rm -rf `dirname $i`
-done
-
-
-# Установка/обновление rules.cvslvk для PCCTS
-for WINAME in cvslvk 'pccts_'$ARCH''*; do
-  if test -d $WINAME; then
-    cp $SOURCE/rules.cvslvk.pccts $WINAME/rules.cvslvk
-    cp $SOURCE/convgen.sed $WINAME/
-    touch $WINAME/NOREMOVE
-    $CHGRP $CVSGROUP $WINAME/*
-    $CHMOD g+rw $WINAME/*
-  fi
-done
-
-# Создание псевдомодуля lexyacc
-WINAME='lexyacc_'$ARCH
-mkdir $WINAME
-cp $SOURCE/rules.cvslvk.lexyacc $WINAME/rules.cvslvk
-touch $WINAME/REMOVE_ON_CVSLVK_UPDATE
-$CHGRP $CVSGROUP $WINAME/* $WINAME
-$CHMOD g+rw $WINAME/* $WINAME
-
-# Cоздание псевдомодуля для X11
-# Sun-овские include-файлы из /usr/openwin/include не определяют типы,
-#   возвращаемые функицями, из-за чего g++ ругается
-# Создаем workaround. На платформе linux ставим WI для совместимости
-WINAME='X_'$ARCH
-mkdir $WINAME
-touch $WINAME/REMOVE_ON_CVSLVK_UPDATE
-if test `get_os` = solaris; then
-  echo 'override INCLUDES += -I$(CL_WI)/include -I/usr/openwin/include' > $WINAME/rules.cvslvk
-  echo 'override LDFLAGS += -L/usr/openwin/lib -lX11' >> $WINAME/rules.cvslvk
-  mkdir -p $WINAME/include/X11
-  for i in Xlib.h Xutil.h Xresource.h; do
-    test -f /usr/openwin/include/X11/$i && sed 's/extern[ \t]*\(X[a-zA-Z0-9_]*[ \t]*(\)/extern int \1/' </usr/openwin/include/X11/$i >$WINAME/include/X11/$i
-  done
-  mkdir -p $WINAME/include/X11/ICE
-  test -f /usr/openwin/include/X11/ICE/ICElib.h && sed 's/extern[ \t]*\(I[a-zA-Z0-9_]*[ \t]*(\)/extern int \1/' </usr/openwin/include/X11/ICE/ICElib.h >$WINAME/include/X11/ICE/ICElib.h
-else
-  echo 'override INCLUDES += -I/usr/X11R6/include' > $WINAME/rules.cvslvk
-  echo 'override LDFLAGS += -L/usr/X11R6/lib -lX11' >> $WINAME/rules.cvslvk
-fi
-$CHMOD g+rw `find $WINAME -print`
-$CHGRP $CVSGROUP `find $WINAME -print`
+install_pccts
+install_lexyacc
+install_X
+install_Glib2
+install_Qt3
+install_Qt4

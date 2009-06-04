@@ -1,0 +1,2 @@
+override INCLUDES += -I/usr/X11R6/include
+override LDFLAGS += -L/usr/X11R6/lib -lX11
