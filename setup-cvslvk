@@ -1,0 +1,29 @@
+#!/bin/bash
+
+GLOBAL=/space/cvslvk
+
+if [ x"$CL_DIR" = x"" -o x"$CL_DIR" = x$GLOBAL ]; then
+  echo "You should point CL_DIR variable to the place where CVSLVK directory"
+  echo "should be created."
+  echo "Aborting now."
+  exit 1
+fi
+
+test -d $CL_DIR || mkdir $CL_DIR
+if [ ! -d $CL_DIR ]; then
+  echo "Failed to create $CL_DIR directory."
+  echo "Aborting now."
+  exit 1
+fi
+
+list="cppargs.awk getppid.awk cvslvk liborder.awk Makefile.cvslvk \
+      process_wi.awk `cd $GLOBAL && echo *_x86-linux*/`"
+
+cd $CL_DIR
+for i in $list; do ln -s $GLOBAL/$i .; done
+
+cvslvk make_rules
+
+echo "CVSLVK directory set up at $CL_DIR."
+echo "Now you can add your own CVSLVK modules."
+exit 0
