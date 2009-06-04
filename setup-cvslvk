@@ -1,29 +1,36 @@
 #!/bin/bash
 
-GLOBAL=/space/cvslvk
+if [ "$#" -ne 2 ]; then
+  echo "Usage: $0 FROM TO"
+  echo "  FROM  original CVSLVK directory"
+  echo "  TO    where new CVSLVK directory should be created"
+  exit 1
+fi
 
-if [ x"$CL_DIR" = x"" -o x"$CL_DIR" = x$GLOBAL ]; then
-  echo "You should point CL_DIR variable to the place where CVSLVK directory"
-  echo "should be created."
+FROM="$1"
+TO="$2"
+
+if [ x"$FROM" = x"$TO" ]; then
+  echo "FROM and TO directories should be different."
   echo "Aborting now."
   exit 1
 fi
 
-test -d $CL_DIR || mkdir $CL_DIR
-if [ ! -d $CL_DIR ]; then
-  echo "Failed to create $CL_DIR directory."
+test -d "$TO" || mkdir "$TO"
+if [ ! -d "$TO" ]; then
+  echo "Failed to create $TO directory."
   echo "Aborting now."
   exit 1
 fi
 
 list="cppargs.awk getppid.awk cvslvk liborder.awk Makefile.cvslvk \
-      process_wi.awk `cd $GLOBAL && echo *_x86-linux*/`"
+      process_wi.awk `cd $FROM && echo *_x86-linux*/`"
 
-cd $CL_DIR
-for i in $list; do ln -s $GLOBAL/$i .; done
+cd "$TO"
+for i in $list; do ln -s "$FROM/$i" .; done
 
-cvslvk make_rules
+CL_DIR="$TO" cvslvk make_rules
 
-echo "CVSLVK directory set up at $CL_DIR."
+echo "CVSLVK directory set up at $TO."
 echo "Now you can add your own CVSLVK modules."
 exit 0
