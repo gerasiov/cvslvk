@@ -4,6 +4,7 @@ override LDFLAGS += -L$(CL_WI)/lib -lQt3Support -lQtCore -lQtDBus -lQtGui -lQtNe
 
 override UIC := $(CL_WI)/bin/uic
 override MOC := $(CL_WI)/bin/moc
+override RCC := $(CL_WI)/bin/rcc
 override LRELEASE := $(CL_WI)/bin/lrelease
 override LUPDATE := $(CL_WI)/bin/lupdate
 
@@ -39,4 +40,11 @@ $(TS_FILES): $(SOURCES) $(MOC_HEADERS)
 	$(LUPDATE) $(SOURCES) $(MOC_HEADERS) -ts $(TS_FILES)
 $(QM_FILES): $(TS_FILES)
 	$(LRELEASE) $< -qm $@
+endif
+
+ifdef RCFILES
+override RCC_GEN_SOURCES := $(RCFILES:%.qrc=$(CL_BD)/%_rc.cpp)
+$(RCC_GEN_SOURCES): $(RCFILES)
+	$(RCC) -name $(<:%.qrc=%) $< -o $@
+override CL_GEN_SOURCES += $(RCC_GEN_SOURCES)
 endif
