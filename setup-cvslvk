@@ -1,36 +1,36 @@
 #!/bin/bash
 
 if [ "$#" -ne 2 ]; then
-  echo "Usage: $0 FROM TO"
-  echo "  FROM  original CVSLVK directory"
-  echo "  TO    where new CVSLVK directory should be created"
+  echo "Usage: $0 SOURCE TARGET"
+  echo "  SOURCE  original CVSLVK directory"
+  echo "  TARGET  where new CVSLVK directory should be created"
   exit 1
 fi
 
-FROM="$1"
-TO="$2"
+SOURCE="$1"
+TARGET="$2"
 
-if [ x"$FROM" = x"$TO" ]; then
-  echo "FROM and TO directories should be different."
+if [ x"$SOURCE" = x"$TARGET" ]; then
+  echo "SOURCE and TARGET directories should be different."
   echo "Aborting now."
   exit 1
 fi
 
-test -d "$TO" || mkdir "$TO"
-if [ ! -d "$TO" ]; then
-  echo "Failed to create $TO directory."
+test -d "$TARGET" || mkdir "$TARGET"
+if [ ! -d "$TARGET" ]; then
+  echo "Failed to create $TARGET directory."
   echo "Aborting now."
   exit 1
 fi
 
 list="cppargs.awk getppid.awk cvslvk liborder.awk Makefile.cvslvk \
-      process_wi.awk `cd $FROM && echo *_x86-linux*/`"
+      process_wi.awk `cd $SOURCE && echo *_x86-linux*/`"
 
-cd "$TO"
-for i in $list; do ln -s "$FROM/$i" .; done
+cd "$TARGET"
+for i in $list; do ln -s "$SOURCE/$i" .; done
 
-CL_DIR="$TO" cvslvk make_rules
+CL_DIR="$TARGET" cvslvk make_rules
 
-echo "CVSLVK directory set up at $TO."
+echo "CVSLVK directory set up at $TARGET."
 echo "Now you can add your own CVSLVK modules."
 exit 0
