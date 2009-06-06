@@ -401,7 +401,7 @@ complete_wi()
   if [ "$branch" ]; then
     scm="git"
     head=$(git log -1 --pretty=format:%h 2>/dev/null)
-    git-update-index --refresh -q >/dev/null
+    git update-index --refresh -q >/dev/null
     if ! git diff-index --quiet HEAD .;then
       head="+$head"
     fi
