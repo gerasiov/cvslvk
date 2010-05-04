@@ -44,7 +44,7 @@ endif
 
 ifdef RCFILES
 override RCC_GEN_SOURCES := $(RCFILES:%.qrc=$(CL_BD)/%_rc.cpp)
-$(RCC_GEN_SOURCES): $(RCFILES)
+$(RCC_GEN_SOURCES): $(RCFILES) $(QM_FILES)
 	$(RCC) -name $(<:%.qrc=%) $< -o $@
 override CL_GEN_SOURCES += $(RCC_GEN_SOURCES)
 endif
