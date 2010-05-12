@@ -80,7 +80,7 @@ install_Glib2()
     link=$(basename "$header")
     link_safe "$header" "$WINAME/include/$link"
   done
-  for lib in /usr/lib/libglib-2.0.* /usr/lib/libgmodule-2.0.* /usr/lib/libgobject-2.0.* /usr/lib/libgthread-2.0.*; do
+  for lib in /usr/lib/libglib-2.0.* /usr/lib/libgmodule-2.0.* /usr/lib/libgobject-2.0.* /usr/lib/libgthread-2.0.* /usr/lib/libgio-2.0.*; do
     link=$(basename "$lib")
     link_safe "$lib" "$WINAME/lib/$link"
   done

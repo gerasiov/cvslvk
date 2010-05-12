@@ -1,2 +1,2 @@
 override INCLUDES += -I$(CL_WI)/include
-override LDFLAGS += -L$(CL_WI)/lib -lglib-2.0
+override LDFLAGS += -L$(CL_WI)/lib -lglib-2.0 -lgio-2.0 -lgobject-2.0 -lgthread-2.0
