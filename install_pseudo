@@ -1,139 +1,116 @@
 #!/bin/sh
+set -e
 
 CVSGROUP=cvsusers
 
-choose_chgrp_and_chmod()
+create_wi()
 {
-  clgroup=`ls -Lld $CL_DIR | awk '{print($4)}'`
-  if test "$clgroup" = "$CVSGROUP"; then
-    CHGRP=chgrp
-    CHMOD=chmod
-  else
-    CHGRP=true
-    CHMOD=true
-  fi
+	local WINAME="$1"
+	mkdir "$WINAME"
+	touch "$WINAME"/REMOVE_ON_CVSLVK_UPDATE
+	touch "$WINAME"/NOREMOVE
 }
 
-link_safe()
+create_link()
 {
-	#usage: link_safe SOURCE TARGET
-	if [ -e "$1" ]; then
-		ln -s "$1" "$2"
+	local TARGET="$1"
+	local LINK="$2"
+	if [ -e "$TARGET" ]; then
+		ln -s "$TARGET" "$LINK"
 	else
-		echo "Path $1 not found." >&2
+		echo "Warning: $TARGET not found." >&2
 	fi
+
+}
+
+create_links()
+{
+	local TARGET="$1"
+	shift 1
+
+	test -d "$TARGET" || mkdir "$TARGET"
+	for FILE in "$@"; do
+		create_link "$FILE" "$TARGET/$(basename "$FILE")"
+	done
+
+}
+
+
+chmod_wi()
+{
+	WINAME="$1"
+	clgroup=$(ls -Lld "$CL_DIR" | awk '{print($4)}')
+	test "$clgroup" = "$CVSGROUP"||return 0
+	chgrp -R "$CVSGROUP" "$WINAME"
+	chmod -R g+rw "$WINAME"
 }
 
 # Создание псевдомодуля pccts
 install_pccts()
 {
-  WINAME='pccts_'$ARCH
-  mkdir $WINAME
-  touch $WINAME/REMOVE_ON_CVSLVK_UPDATE
-  touch $WINAME/NOREMOVE
-  cp $SOURCE/rules.cvslvk.pccts $WINAME/rules.cvslvk
-  cp $SOURCE/convgen.sed $WINAME/
-  mkdir $WINAME/bin
-  for prog in /usr/bin/antlr /usr/bin/dlg /usr/bin/genmk /usr/bin/sor; do
-    link=$(basename "$prog")
-    link_safe "$prog" "$WINAME/bin/$link"
-  done
-  link_safe /usr/include/pccts $WINAME/include
-  $CHGRP -R $CVSGROUP $WINAME
-  $CHMOD -R g+rw $WINAME
+	WINAME='pccts_'$ARCH
+	create_wi "$WINAME"
+	cp "$SOURCE/rules.cvslvk.pccts" "$WINAME/rules.cvslvk"
+	cp "$SOURCE/convgen.sed" "$WINAME"
+	create_links "$WINAME/bin" /usr/bin/antlr /usr/bin/dlg /usr/bin/genmk /usr/bin/sor
+	create_link /usr/include/pccts "$WINAME/include"
+	chmod_wi "$WINAME"
 }
 
 # Создание псевдомодуля lexyacc
 install_lexyacc()
 {
-  WINAME='lexyacc_'$ARCH
-  mkdir $WINAME
-  touch $WINAME/REMOVE_ON_CVSLVK_UPDATE
-  touch $WINAME/NOREMOVE
-  cp $SOURCE/rules.cvslvk.lexyacc $WINAME/rules.cvslvk
-  $CHGRP -R $CVSGROUP $WINAME
-  $CHMOD -R g+rw $WINAME
+	WINAME='lexyacc_'$ARCH
+	create_wi "$WINAME"
+	cp "$SOURCE/rules.cvslvk.lexyacc" "$WINAME/rules.cvslvk"
+	chmod_wi "$WINAME"
 }
 
 # Cоздание псевдомодуля для X11
 # На платформе linux ставим WI для совместимости
 install_X()
 {
-  WINAME='X_'$ARCH
-  mkdir $WINAME
-  touch $WINAME/REMOVE_ON_CVSLVK_UPDATE
-  touch $WINAME/NOREMOVE
-  cp $SOURCE/rules.cvslvk.x11 $WINAME/rules.cvslvk
-  $CHMOD -R g+rw $WINAME
-  $CHGRP -R $CVSGROUP $WINAME
+	WINAME='X_'$ARCH
+	create_wi "$WINAME"
+	cp "$SOURCE/rules.cvslvk.x11" "$WINAME/rules.cvslvk"
+	chmod_wi "$WINAME"
 }
 
 install_Glib2()
 {
-  WINAME='GLib2_'$ARCH
-  mkdir $WINAME
-  touch $WINAME/REMOVE_ON_CVSLVK_UPDATE
-  touch $WINAME/NOREMOVE
-  cp $SOURCE/rules.cvslvk.Glib2 $WINAME/rules.cvslvk
-  mkdir $WINAME/include $WINAME/lib
-  for header in /usr/include/glib-2.0/* /usr/lib/glib-2.0/include/*; do
-    link=$(basename "$header")
-    link_safe "$header" "$WINAME/include/$link"
-  done
-  for lib in /usr/lib/libglib-2.0.* /usr/lib/libgmodule-2.0.* /usr/lib/libgobject-2.0.* /usr/lib/libgthread-2.0.* /usr/lib/libgio-2.0.*; do
-    link=$(basename "$lib")
-    link_safe "$lib" "$WINAME/lib/$link"
-  done
-  $CHGRP -R $CVSGROUP $WINAME
-  $CHMOD -R g+rw $WINAME
+	WINAME='GLib2_'$ARCH
+	create_wi "$WINAME"
+	cp "$SOURCE/rules.cvslvk.Glib2" "$WINAME/rules.cvslvk"
+	create_links "$WINAME/include" /usr/include/glib-2.0/* /usr/lib/glib-2.0/include/*
+	create_links "$WINAME/lib" /usr/lib/libglib-2.0.* /usr/lib/libgmodule-2.0.* /usr/lib/libgobject-2.0.* /usr/lib/libgthread-2.0.* /usr/lib/libgio-2.0.*
+	chmod_wi "$WINAME"
 }
 
 install_Qt3()
 {
-  WINAME='Qt3_'$ARCH
-  mkdir $WINAME
-  touch $WINAME/REMOVE_ON_CVSLVK_UPDATE
-  touch $WINAME/NOREMOVE
-  cp $SOURCE/rules.cvslvk.qt3 $WINAME/rules.cvslvk
-  link_safe /usr/include/qt3 $WINAME/include
-  mkdir $WINAME/bin $WINAME/lib
-  for prog in /usr/bin/lrelease-qt3 /usr/bin/lupdate-qt3 /usr/bin/moc-qt3 /usr/bin/uic-qt3; do
-    link=$(basename "$prog" -qt3)
-    link_safe "$prog" "$WINAME/bin/$link"
-  done
-  for lib in /usr/lib/libqt-mt.so /usr/lib/libqt-mt.so.3; do
-    link=$(basename "$lib")
-    link_safe "$lib" "$WINAME/lib/$link"
-  done
-  $CHGRP -R $CVSGROUP $WINAME
-  $CHMOD -R g+rw $WINAME
+	WINAME='Qt3_'$ARCH
+	create_wi "$WINAME"
+	cp "$SOURCE/rules.cvslvk.qt3" "$WINAME/rules.cvslvk"
+	create_link /usr/include/qt3 "$WINAME/include"
+	create_links "$WINAME/bin" /usr/bin/lrelease-qt3 /usr/bin/lupdate-qt3 /usr/bin/moc-qt3 /usr/bin/uic-qt3
+	create_links "$WINAME/lib" /usr/lib/libqt-mt.so /usr/lib/libqt-mt.so.3
+	chmod_wi "$WINAME"
 }
 
 install_Qt4()
 {
-  WINAME='Qt4_'$ARCH
-  mkdir $WINAME
-  touch $WINAME/REMOVE_ON_CVSLVK_UPDATE
-  touch $WINAME/NOREMOVE
-  cp $SOURCE/rules.cvslvk.qt4 $WINAME/rules.cvslvk
-  link_safe /usr/include/qt4 $WINAME/include
-  mkdir $WINAME/bin $WINAME/lib
-  for prog in /usr/bin/lrelease-qt4 /usr/bin/lupdate-qt4 /usr/bin/moc-qt4 /usr/bin/uic-qt4 /usr/bin/rcc; do
-    link=$(basename "$prog" -qt4)
-    link_safe "$prog" "$WINAME/bin/$link"
-  done
-  for lib in /usr/lib/libQt*; do
-    link=$(basename "$lib")
-    link_safe "$lib" "$WINAME/lib/$link"
-  done
-  $CHGRP -R $CVSGROUP $WINAME
-  $CHMOD -R g+rw $WINAME
+	WINAME='Qt4_'$ARCH
+	create_wi "$WINAME"
+	cp "$SOURCE/rules.cvslvk.qt4" "$WINAME/rules.cvslvk"
+	create_link /usr/include/qt4 "$WINAME/include"
+	create_links "$WINAME/bin" /usr/bin/lrelease-qt4 /usr/bin/lupdate-qt4 /usr/bin/moc-qt4 /usr/bin/uic-qt4 /usr/bin/rcc;
+	create_links "$WINAME/lib" /usr/lib/libQt*
+	chmod_wi "$WINAME"
 }
 
-choose_chgrp_and_chmod
-ARCH=x86-linux
-SOURCE=`pwd`
-cd $CL_DIR
+SOURCE=$(pwd)
+ARCH="$("$SOURCE/cvslvk" get_arch)-$("$SOURCE/cvslvk" get_os)"
+cd "$CL_DIR"
 
 install_pccts
 install_lexyacc

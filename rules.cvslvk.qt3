@@ -2,10 +2,10 @@ override DEFINES += -D_REENTRANT
 override INCLUDES += -I$(CL_WI)/include
 override LDFLAGS += -L$(CL_WI)/lib -lqt-mt
 
-override UIC := $(CL_WI)/bin/uic
-override MOC := $(CL_WI)/bin/moc
-override LRELEASE := $(CL_WI)/bin/lrelease
-override LUPDATE := $(CL_WI)/bin/lupdate
+override UIC := $(CL_WI)/bin/uic-qt3
+override MOC := $(CL_WI)/bin/moc-qt3
+override LRELEASE := $(CL_WI)/bin/lrelease-qt3
+override LUPDATE := $(CL_WI)/bin/lupdate-qt3
 
 ifdef UIFILES
 override UIC_GEN_HEADERS := $(UIFILES:%.ui=$(CL_BD)/%.h)

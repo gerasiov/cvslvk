@@ -2,11 +2,11 @@ override DEFINES += -DQT3_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -D
 override INCLUDES += -I$(CL_WI)/include -I$(CL_WI)/include/Qt -I$(CL_WI)/include/Qt3Support -I$(CL_WI)/include/QtCore -I$(CL_WI)/include/QtDBus -I$(CL_WI)/include/QtGui -I$(CL_WI)/include/QtNetwork -I$(CL_WI)/include/QtOpenGL -I$(CL_WI)/include/QtSql -I$(CL_WI)/include/QtSvg -I$(CL_WI)/include/QtTest -I$(CL_WI)/include/QtUiTools -I$(CL_WI)/include/QtXml
 override LDFLAGS += -L$(CL_WI)/lib -lQt3Support -lQtCore -lQtDBus -lQtGui -lQtNetwork -lQtOpenGL -lQtSql -lQtSvg -lQtTest -lQtXml
 
-override UIC := $(CL_WI)/bin/uic
-override MOC := $(CL_WI)/bin/moc
+override UIC := $(CL_WI)/bin/uic-qt4
+override MOC := $(CL_WI)/bin/moc-qt4
 override RCC := $(CL_WI)/bin/rcc
-override LRELEASE := $(CL_WI)/bin/lrelease
-override LUPDATE := $(CL_WI)/bin/lupdate
+override LRELEASE := $(CL_WI)/bin/lrelease-qt4
+override LUPDATE := $(CL_WI)/bin/lupdate-qt4
 
 ifdef UIFILES
 override UIC_GEN_HEADERS := $(UIFILES:%.ui=$(CL_BD)/%.h)
