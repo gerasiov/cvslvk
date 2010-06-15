@@ -283,7 +283,7 @@ endif
 # We use -h instead of -soname because we want sun ld to work
 override CFLAGS += -fPIC
 override CXXFLAGS += -fPIC
-CL_MKLIB := $(LD) -shared -Wl,-h,$(CL_LIBRARY_SONAME) -o
+CL_MKLIB := $(LD) -shared -Wl,-h,$(CL_LIBRARY_SONAME) $(CL_LIBRARY_LINK_ADD) -o
 endif
 
 ifeq ($(CL_LTYPE),static)
