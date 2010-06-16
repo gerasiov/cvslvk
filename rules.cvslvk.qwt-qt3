@@ -1,0 +1,6 @@
+override DEFINES += -D_REENTRANT
+override INCLUDES += -I$(CL_WI)/include
+override LDFLAGS += -L$(CL_WI)/lib -lqwt-qt3
+ifdef QWT_LINK_ADD
+override CL_LIBRARY_LINK_ADD += -L$(CL_WI)/lib -lqwt-qt3
+endif

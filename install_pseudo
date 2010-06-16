@@ -118,6 +118,26 @@ install_xml2()
 	chmod_wi "$WINAME"
 }
 
+install_qwt()
+{
+	WINAME='qwt_'$ARCH
+	create_wi "$WINAME"
+	cp "$SOURCE/rules.cvslvk.qwt" "$WINAME/rules.cvslvk"
+	create_link /usr/include/qwt "$WINAME/include"
+	create_links "$WINAME/lib" /usr/lib/libqwt*
+	chmod_wi "$WINAME"
+}
+
+install_qwt_qt3()
+{
+	WINAME='qwt_'$ARCH
+	create_wi "$WINAME"
+	cp "$SOURCE/rules.cvslvk.qwt-qt3" "$WINAME/rules.cvslvk"
+	create_link /usr/include/qwt-qt3 "$WINAME/include"
+	create_links "$WINAME/lib" /usr/lib/libqwt*
+	chmod_wi "$WINAME"
+}
+
 SOURCE=$(pwd)
 ARCH="$("$SOURCE/cvslvk" get_arch)-$("$SOURCE/cvslvk" get_os)"
 cd "$CL_DIR"
@@ -129,3 +149,8 @@ install_Glib2
 install_Qt3
 install_Qt4
 install_xml2
+if [ -d /usr/include/qwt ]; then
+	install_qwt
+elif [ -d /usr/include/qwt-qt3 ]; then
+	install_qwt_qt3
+fi
