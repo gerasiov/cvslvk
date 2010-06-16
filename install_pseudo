@@ -108,6 +108,16 @@ install_Qt4()
 	chmod_wi "$WINAME"
 }
 
+install_xml2()
+{
+	WINAME='xml2_'$ARCH
+	create_wi "$WINAME"
+	cp "$SOURCE/rules.cvslvk.xml2" "$WINAME/rules.cvslvk"
+	create_link /usr/include/libxml2 "$WINAME/include"
+	create_links "$WINAME/lib" /usr/lib/libxml2*
+	chmod_wi "$WINAME"
+}
+
 SOURCE=$(pwd)
 ARCH="$("$SOURCE/cvslvk" get_arch)-$("$SOURCE/cvslvk" get_os)"
 cd "$CL_DIR"
@@ -118,3 +128,4 @@ install_X
 install_Glib2
 install_Qt3
 install_Qt4
+install_xml2

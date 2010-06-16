@@ -1,0 +1,3 @@
+override DEFINES += -D_REENTRANT
+override INCLUDES += -I$(CL_WI)/include
+override LDFLAGS += -L$(CL_WI)/lib -lxml2
