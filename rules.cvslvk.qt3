@@ -1,6 +1,9 @@
 override DEFINES += -D_REENTRANT
 override INCLUDES += -I$(CL_WI)/include
 override LDFLAGS += -L$(CL_WI)/lib -lqt-mt
+ifdef QT_LINK_ADD
+override CL_LIBRARY_LINK_ADD += -L$(CL_WI)/lib -lqt-mt
+endif
 
 override UIC := $(CL_WI)/bin/uic-qt3
 override MOC := $(CL_WI)/bin/moc-qt3
