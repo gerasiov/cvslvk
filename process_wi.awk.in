@@ -70,6 +70,7 @@
     aq[ai] = 0; @\
     am = split ( WI_params[a[ai]], a2, "-" ); @\
     for ( aj=1; aj<=am; aj++ )  { @\
+      if ( a2[aj]=="gcc44" )  aq[ai]+=4; @\
       if ( a2[aj]=="gcc43" )  aq[ai]+=4; @\
       if ( a2[aj]=="gcc41" )  aq[ai]+=4; @\
       if ( a2[aj]=="gcc42" )  aq[ai]+=4; @\
@@ -109,6 +110,7 @@
     if ( (fcna[fcni]=="gcc41") || @\
          (fcna[fcni]=="gcc42") || @\
          (fcna[fcni]=="gcc43") || @\
+         (fcna[fcni]=="gcc44") || @\
          (fcna[fcni]=="gcc40") || @\
          (fcna[fcni]=="gcc34") || @\
 	 (fcna[fcni]=="gcc33") || @\
@@ -133,7 +135,7 @@
 // Вторая строка - параметры:
 //   $1: quiet | verbose
 //   $2: need | compute (про comp_param)
-//   $3: gcc42 | gcc41 | gcc40 | gcc34 | gcc33 | gcc32 | gcc295 | gcc296 | any
+//   $3: gcc44 | gcc43| gcc42 | gcc41 | gcc40 | gcc34 | gcc33 | gcc32 | gcc295 | gcc296 | any
 // Каждая из следующих строк - доступная рабочая инсталляция, после которой ее
 //   требования
 BEGIN  {

@@ -130,6 +130,7 @@ get_os()
 get_comp_defaults()
 {
   case "`gcc -v 2>&1 | grep version`" in
+    *4.4*)  echo gcc44 ;;
     *4.3*)  echo gcc43 ;;
     *4.2*)  echo gcc42 ;;
     *4.1*)  echo gcc41 ;;
@@ -255,7 +256,9 @@ process_wi()
 		    fi
 		    ;;
 		  any-gcc4*|any-gcc34)
-		    if test -n "`which gcc-4.3`"; then
+		    if test -n "`which gcc-4.4`"; then
+		      ncomp=gcc44
+		    elif test -n "`which gcc-4.3`"; then
 		      ncomp=gcc43
 		    elif test -n "`which gcc-4.1`"; then
 		      ncomp=gcc41
@@ -327,7 +330,7 @@ get_bd_for_clean()
       return
   esac
 
-  for comp in $2 gcc33 gcc32 gcc41 gcc43 gcc42 gcc40 gcc295 gcc296; do
+  for comp in $2 gcc44 gcc33 gcc32 gcc41 gcc43 gcc42 gcc40 gcc295 gcc296; do
     try=`echo -n $1 | sed s/"$regexp"/'\1'$comp'\3'/`
     if test -d $try; then echo $try; return; fi
   done
