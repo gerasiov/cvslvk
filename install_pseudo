@@ -103,7 +103,7 @@ install_Qt4()
 	create_wi "$WINAME"
 	cp "$SOURCE/rules.cvslvk.qt4" "$WINAME/rules.cvslvk"
 	create_link /usr/include/qt4 "$WINAME/include"
-	create_links "$WINAME/bin" /usr/bin/lrelease-qt4 /usr/bin/lupdate-qt4 /usr/bin/moc-qt4 /usr/bin/uic-qt4 /usr/bin/rcc;
+	create_links "$WINAME/bin" /usr/bin/lrelease-qt4 /usr/bin/lupdate-qt3 /usr/bin/moc-qt4 /usr/bin/uic-qt4 /usr/bin/rcc;
 	create_links "$WINAME/lib" /usr/lib/libQt*
 	chmod_wi "$WINAME"
 }

@@ -11,7 +11,7 @@ override UIC := $(CL_WI)/bin/uic-qt4
 override MOC := $(CL_WI)/bin/moc-qt4
 override RCC := $(CL_WI)/bin/rcc
 override LRELEASE := $(CL_WI)/bin/lrelease-qt4
-override LUPDATE := $(CL_WI)/bin/lupdate-qt4
+override LUPDATE := $(CL_WI)/bin/lupdate-qt3
 
 ifdef UIFILES
 override UIC_GEN_HEADERS := $(UIFILES:%.ui=$(CL_BD)/%.h)
