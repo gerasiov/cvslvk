@@ -427,7 +427,7 @@ complete_wi()
   if [ "$scm" ]; then
     echo
     echo "$scm $head $branch" > $1/revision
-    (echo "scm head branch"; echo "$scm $head $branch") | column -t
+    printf "scm head branch\n$scm $head $branch\n" | column -t
   fi
 
   make_rules
