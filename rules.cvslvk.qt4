@@ -1,10 +1,15 @@
-override DEFINES += -DQT3_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_NO_DEBUG -DQT_QT3SUPPORT_LIB -DQT_SQL_LIB -DQT_XML_LIB
+override DEFINES += -DQT_CORE_LIB -DQT_GUI_LIB
 override INCLUDES += -I$(CL_WI)/include -I$(CL_WI)/include/Qt -I$(CL_WI)/include/Qt3Support -I$(CL_WI)/include/QtCore -I$(CL_WI)/include/QtDBus -I$(CL_WI)/include/QtGui -I$(CL_WI)/include/QtNetwork -I$(CL_WI)/include/QtOpenGL -I$(CL_WI)/include/QtSql -I$(CL_WI)/include/QtSvg -I$(CL_WI)/include/QtTest -I$(CL_WI)/include/QtUiTools -I$(CL_WI)/include/QtXml
 
 ifdef QT_LIBS
 override LDFLAGS += -L$(CL_WI)/lib $(QT_LIBS:%=-lQt%)
 else
 override LDFLAGS += -L$(CL_WI)/lib -lQt3Support -lQtCore -lQtDBus -lQtGui -lQtNetwork -lQtOpenGL -lQtSql -lQtSvg -lQtTest -lQtXml
+override DEFINES += -DQT3_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_NO_DEBUG -DQT_QT3SUPPORT_LIB -DQT_SQL_LIB -DQT_XML_LIB
+endif
+
+ifdef CL_OPTIMIZE
+override DEFINES += -DQT_NO_DEBUG
 endif
 
 override UIC := $(CL_WI)/bin/uic-qt4
