@@ -17,7 +17,7 @@ RULES_CVSLVK=$CL_DIR/rules.cvslvk
 RULES_CVSLVK_TMP=$CL_DIR/rules.cvslvk.tmp.$$  # Временная копия того же файла
 
 # Группа пользователей CVS
-CVSGROUP=cvsusers
+CVSGROUP=stand
 
 # Полные имена следующих двух файлов получаются добавлением к ним -<arch>-<os>
 # Префикс файла со списком рабочих инсталляций и их требований
