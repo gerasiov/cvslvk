@@ -52,6 +52,7 @@ endif
 
 ifdef TS_FILES
 override QM_FILES += $(TS_FILES:%.ts=%.qm)
+override CL_CLEAN_FILES += $(QM_FILES)
 $(TS_FILES): $(SOURCES) $(MOC_HEADERS)
 	$(LUPDATE) $(SOURCES) $(MOC_HEADERS) -ts $@
 %.qm : %.ts
