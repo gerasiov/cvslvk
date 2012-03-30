@@ -37,9 +37,9 @@ $(MOC_GEN_SOURCES) : $(CL_BD)/moc_%.cpp: %.h $(MOC)
 endif
 
 ifdef TS_FILES
-override QM_FILES += $(TS_FILES:%.ts=$(CL_BD)/%.qm)
+override QM_FILES += $(TS_FILES:%.ts=%.qm)
 $(TS_FILES): $(SOURCES) $(MOC_HEADERS)
-	$(LUPDATE) $(SOURCES) $(MOC_HEADERS) -ts $(TS_FILES)
-$(CL_BD)/%.qm : %.ts
+	$(LUPDATE) $(SOURCES) $(MOC_HEADERS) -ts $@
+%.qm : %.ts
 	$(LRELEASE) $< -qm $@
 endif
