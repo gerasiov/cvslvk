@@ -1,3 +1,9 @@
+ifdef USE_QT
+$(error Do not use both Qt3 and Qt4.)
+endif
+
+override USE_QT = 1
+
 override DEFINES += -DQT_CORE_LIB -DQT_GUI_LIB
 override INCLUDES += -I$(CL_WI)/include -I$(CL_WI)/include/Qt -I$(CL_WI)/include/Qt3Support -I$(CL_WI)/include/QtCore -I$(CL_WI)/include/QtDBus -I$(CL_WI)/include/QtGui -I$(CL_WI)/include/QtNetwork -I$(CL_WI)/include/QtOpenGL -I$(CL_WI)/include/QtSql -I$(CL_WI)/include/QtSvg -I$(CL_WI)/include/QtTest -I$(CL_WI)/include/QtUiTools -I$(CL_WI)/include/QtXml
 

@@ -1,3 +1,9 @@
+ifdef USE_QT
+$(error Do not use both Qt3 and Qt4.)
+endif
+
+override USE_QT = 1
+
 override DEFINES += -D_REENTRANT
 override INCLUDES += -I$(CL_WI)/include
 override LDFLAGS += -L$(CL_WI)/lib -lqt-mt
