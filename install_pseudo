@@ -81,8 +81,13 @@ install_Glib2()
 	WINAME='GLib2_'$ARCH
 	create_wi "$WINAME"
 	cp "$SOURCE/rules.cvslvk.Glib2" "$WINAME/rules.cvslvk"
-	create_links "$WINAME/include" /usr/include/glib-2.0/* /usr/lib/glib-2.0/include/*
-	create_links "$WINAME/lib" /usr/lib/libglib-2.0.* /usr/lib/libgmodule-2.0.* /usr/lib/libgobject-2.0.* /usr/lib/libgthread-2.0.* /usr/lib/libgio-2.0.*
+	if [ -e /usr/lib/i386-linux-gnu ];then
+		local BASE=/usr/lib/i386-linux-gnu
+	else
+		local BASE=/usr/lib
+	fi
+	create_links "$WINAME/include" /usr/include/glib-2.0/* ${BASE}/glib-2.0/include/*
+	create_links "$WINAME/lib" ${BASE}/libglib-2.0.* ${BASE}/libgmodule-2.0.* ${BASE}/libgobject-2.0.* ${BASE}/libgthread-2.0.* ${BASE}/libgio-2.0.*
 	chmod_wi "$WINAME"
 }
 
@@ -104,7 +109,12 @@ install_Qt4()
 	cp "$SOURCE/rules.cvslvk.qt4" "$WINAME/rules.cvslvk"
 	create_link /usr/include/qt4 "$WINAME/include"
 	create_links "$WINAME/bin" /usr/bin/lrelease-qt4 /usr/bin/lupdate-qt3 /usr/bin/moc-qt4 /usr/bin/uic-qt4 /usr/bin/rcc;
-	create_links "$WINAME/lib" /usr/lib/libQt*
+	if [ -e /usr/lib/i386-linux-gnu ];then
+		local BASE=/usr/lib/i386-linux-gnu
+	else
+		local BASE=/usr/lib
+	fi
+	create_links "$WINAME/lib" ${BASE}/libQt*
 	chmod_wi "$WINAME"
 }
 
@@ -114,7 +124,12 @@ install_xml2()
 	create_wi "$WINAME"
 	cp "$SOURCE/rules.cvslvk.xml2" "$WINAME/rules.cvslvk"
 	create_link /usr/include/libxml2 "$WINAME/include"
-	create_links "$WINAME/lib" /usr/lib/libxml2*
+	if [ -e /usr/lib/i386-linux-gnu ];then
+		local BASE=/usr/lib/i386-linux-gnu
+	else
+		local BASE=/usr/lib
+	fi
+	create_links "$WINAME/lib" ${BASE}/libxml2*
 	chmod_wi "$WINAME"
 }
 
