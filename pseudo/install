@@ -50,7 +50,7 @@ install_pccts()
 {
 	WINAME='pccts_'$ARCH
 	create_wi "$WINAME"
-	cp "$SOURCE/rules.cvslvk.pccts" "$WINAME/rules.cvslvk"
+	cp "$SOURCE/pccts.rules" "$WINAME/rules.cvslvk"
 	cp "$SOURCE/convgen.sed" "$WINAME"
 	create_links "$WINAME/bin" /usr/bin/antlr /usr/bin/dlg /usr/bin/genmk /usr/bin/sor
 	create_link /usr/include/pccts "$WINAME/include"
@@ -62,7 +62,7 @@ install_lexyacc()
 {
 	WINAME='lexyacc_'$ARCH
 	create_wi "$WINAME"
-	cp "$SOURCE/rules.cvslvk.lexyacc" "$WINAME/rules.cvslvk"
+	cp "$SOURCE/lexyacc.rules" "$WINAME/rules.cvslvk"
 	chmod_wi "$WINAME"
 }
 
@@ -72,7 +72,7 @@ install_X()
 {
 	WINAME='X_'$ARCH
 	create_wi "$WINAME"
-	cp "$SOURCE/rules.cvslvk.x11" "$WINAME/rules.cvslvk"
+	cp "$SOURCE/x11.rules" "$WINAME/rules.cvslvk"
 	chmod_wi "$WINAME"
 }
 
@@ -80,7 +80,7 @@ install_Glib2()
 {
 	WINAME='GLib2_'$ARCH
 	create_wi "$WINAME"
-	cp "$SOURCE/rules.cvslvk.Glib2" "$WINAME/rules.cvslvk"
+	cp "$SOURCE/Glib2.rules" "$WINAME/rules.cvslvk"
 	if [ -e /usr/lib/i386-linux-gnu ];then
 		local BASE=/usr/lib/i386-linux-gnu
 	else
@@ -95,7 +95,7 @@ install_Qt3()
 {
 	WINAME='Qt3_'$ARCH
 	create_wi "$WINAME"
-	cp "$SOURCE/rules.cvslvk.qt3" "$WINAME/rules.cvslvk"
+	cp "$SOURCE/qt3.rules" "$WINAME/rules.cvslvk"
 	create_link /usr/include/qt3 "$WINAME/include"
 	create_links "$WINAME/bin" /usr/bin/lrelease-qt3 /usr/bin/lupdate-qt3 /usr/bin/moc-qt3 /usr/bin/uic-qt3
 	create_links "$WINAME/lib" /usr/lib/libqt-mt.so /usr/lib/libqt-mt.so.3
@@ -106,7 +106,7 @@ install_Qt4()
 {
 	WINAME='Qt4_'$ARCH
 	create_wi "$WINAME"
-	cp "$SOURCE/rules.cvslvk.qt4" "$WINAME/rules.cvslvk"
+	cp "$SOURCE/qt4.rules" "$WINAME/rules.cvslvk"
 	create_link /usr/include/qt4 "$WINAME/include"
 	create_links "$WINAME/bin" /usr/bin/lrelease-qt4 /usr/bin/lupdate-qt3 /usr/bin/moc-qt4 /usr/bin/uic-qt4 /usr/bin/rcc;
 	if [ -e /usr/lib/i386-linux-gnu ];then
@@ -122,7 +122,7 @@ install_xml2()
 {
 	WINAME='xml2_'$ARCH
 	create_wi "$WINAME"
-	cp "$SOURCE/rules.cvslvk.xml2" "$WINAME/rules.cvslvk"
+	cp "$SOURCE/xml2.rules" "$WINAME/rules.cvslvk"
 	create_link /usr/include/libxml2 "$WINAME/include"
 	if [ -e /usr/lib/i386-linux-gnu ];then
 		local BASE=/usr/lib/i386-linux-gnu
@@ -137,7 +137,7 @@ install_qwt_qt4()
 {
 	WINAME='qwt-qt4_'$ARCH
 	create_wi "$WINAME"
-	cp "$SOURCE/rules.cvslvk.qwt-qt4" "$WINAME/rules.cvslvk"
+	cp "$SOURCE/qwt-qt4.rules" "$WINAME/rules.cvslvk"
 	create_link /usr/include/qwt-qt4 "$WINAME/include"
 	create_links "$WINAME/lib" /usr/lib/libqwt-qt4*
 	chmod_wi "$WINAME"
@@ -147,14 +147,14 @@ install_qwt_qt3()
 {
 	WINAME='qwt-qt3_'$ARCH
 	create_wi "$WINAME"
-	cp "$SOURCE/rules.cvslvk.qwt-qt3" "$WINAME/rules.cvslvk"
+	cp "$SOURCE/qwt-qt3.rules" "$WINAME/rules.cvslvk"
 	create_link /usr/include/qwt-qt3 "$WINAME/include"
 	create_links "$WINAME/lib" /usr/lib/libqwt-qt3*
 	chmod_wi "$WINAME"
 }
 
 SOURCE=$(pwd)
-ARCH="$("$SOURCE/cvslvk" get_arch)-$("$SOURCE/cvslvk" get_os)"
+ARCH="$("../cvslvk" get_arch)-$("../cvslvk" get_os)"
 cd "$CL_DIR"
 
 install_pccts

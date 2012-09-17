@@ -522,7 +522,7 @@ install()
     test -f $i && rm -rf `dirname $i`
   done
  # Установка/обновление псевдомодулей
-  test -f ./install_pseudo && ./install_pseudo
+  test -f ./pseudo/install && (cd ./pseudo&&./install)
  # Установка прав
   cd $CL_DIR
   $CHGRP $CVSGROUP * 2>/dev/null
