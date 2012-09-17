@@ -1,0 +1,7 @@
+if [ -e /usr/lib/i386-linux-gnu ];then
+	BASE=/usr/lib/i386-linux-gnu
+else
+	BASE=/usr/lib
+fi
+create_links include /usr/include/glib-2.0/* ${BASE}/glib-2.0/include/*
+create_links lib ${BASE}/libglib-2.0.* ${BASE}/libgmodule-2.0.* ${BASE}/libgobject-2.0.* ${BASE}/libgthread-2.0.* ${BASE}/libgio-2.0.*

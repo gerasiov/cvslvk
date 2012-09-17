@@ -1,0 +1,7 @@
+create_link /usr/include/libxml2 include
+if [ -e /usr/lib/i386-linux-gnu ];then
+	BASE=/usr/lib/i386-linux-gnu
+else
+	BASE=/usr/lib
+fi
+create_links lib ${BASE}/libxml2*

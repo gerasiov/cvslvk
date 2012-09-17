@@ -1,14 +1,29 @@
 #!/bin/sh
 set -e
 
-CVSGROUP=stand
+CLGROUP=stand
 
 create_wi()
 {
 	local WINAME="$1"
-	mkdir "$WINAME"
-	touch "$WINAME"/REMOVE_ON_CVSLVK_UPDATE
-	touch "$WINAME"/NOREMOVE
+	mkdir "$CL_DIR/$WINAME"
+	touch "$CL_DIR/$WINAME"/REMOVE_ON_CVSLVK_UPDATE
+	touch "$CL_DIR/$WINAME"/NOREMOVE
+}
+
+delete_wi()
+{
+	local WINAME="$1"
+	rm -rf "$CL_DIR/$WINAME"
+}
+
+chmod_wi()
+{
+	WINAME="$1"
+	clgroup=$(ls -Lld "$CL_DIR" | awk '{print($4)}')
+	test "$clgroup" = "$CLGROUP"||return 0
+	chgrp -R "$CLGROUP" "$CL_DIR/$WINAME"
+	chmod -R g+rw "$CL_DIR/$WINAME"
 }
 
 create_link()
@@ -25,136 +40,30 @@ create_link()
 
 create_links()
 {
-	local TARGET="$1"
+	local DIR="$1"
 	shift 1
 
-	test -d "$TARGET" || mkdir "$TARGET"
-	for FILE in "$@"; do
-		create_link "$FILE" "$TARGET/$(basename "$FILE")"
+	test -d "$DIR" || mkdir "$DIR"
+	for TARGET in "$@"; do
+		create_link "$TARGET" "$DIR"
 	done
-
-}
-
-
-chmod_wi()
-{
-	WINAME="$1"
-	clgroup=$(ls -Lld "$CL_DIR" | awk '{print($4)}')
-	test "$clgroup" = "$CVSGROUP"||return 0
-	chgrp -R "$CVSGROUP" "$WINAME"
-	chmod -R g+rw "$WINAME"
-}
-
-# Создание псевдомодуля pccts
-install_pccts()
-{
-	WINAME='pccts_'$ARCH
-	create_wi "$WINAME"
-	cp "$SOURCE/pccts.rules" "$WINAME/rules.cvslvk"
-	cp "$SOURCE/convgen.sed" "$WINAME"
-	create_links "$WINAME/bin" /usr/bin/antlr /usr/bin/dlg /usr/bin/genmk /usr/bin/sor
-	create_link /usr/include/pccts "$WINAME/include"
-	chmod_wi "$WINAME"
-}
-
-# Создание псевдомодуля lexyacc
-install_lexyacc()
-{
-	WINAME='lexyacc_'$ARCH
-	create_wi "$WINAME"
-	cp "$SOURCE/lexyacc.rules" "$WINAME/rules.cvslvk"
-	chmod_wi "$WINAME"
-}
-
-# Cоздание псевдомодуля для X11
-# На платформе linux ставим WI для совместимости
-install_X()
-{
-	WINAME='X_'$ARCH
-	create_wi "$WINAME"
-	cp "$SOURCE/x11.rules" "$WINAME/rules.cvslvk"
-	chmod_wi "$WINAME"
-}
-
-install_Glib2()
-{
-	WINAME='GLib2_'$ARCH
-	create_wi "$WINAME"
-	cp "$SOURCE/Glib2.rules" "$WINAME/rules.cvslvk"
-	if [ -e /usr/lib/i386-linux-gnu ];then
-		local BASE=/usr/lib/i386-linux-gnu
-	else
-		local BASE=/usr/lib
-	fi
-	create_links "$WINAME/include" /usr/include/glib-2.0/* ${BASE}/glib-2.0/include/*
-	create_links "$WINAME/lib" ${BASE}/libglib-2.0.* ${BASE}/libgmodule-2.0.* ${BASE}/libgobject-2.0.* ${BASE}/libgthread-2.0.* ${BASE}/libgio-2.0.*
-	chmod_wi "$WINAME"
-}
-
-install_Qt3()
-{
-	WINAME='Qt3_'$ARCH
-	create_wi "$WINAME"
-	cp "$SOURCE/qt3.rules" "$WINAME/rules.cvslvk"
-	create_link /usr/include/qt3 "$WINAME/include"
-	create_links "$WINAME/bin" /usr/bin/lrelease-qt3 /usr/bin/lupdate-qt3 /usr/bin/moc-qt3 /usr/bin/uic-qt3
-	create_links "$WINAME/lib" /usr/lib/libqt-mt.so /usr/lib/libqt-mt.so.3
-	chmod_wi "$WINAME"
-}
-
-install_Qt4()
-{
-	WINAME='Qt4_'$ARCH
-	create_wi "$WINAME"
-	cp "$SOURCE/qt4.rules" "$WINAME/rules.cvslvk"
-	create_link /usr/include/qt4 "$WINAME/include"
-	create_links "$WINAME/bin" /usr/bin/lrelease-qt4 /usr/bin/lupdate-qt3 /usr/bin/moc-qt4 /usr/bin/uic-qt4 /usr/bin/rcc;
-	if [ -e /usr/lib/i386-linux-gnu ];then
-		local BASE=/usr/lib/i386-linux-gnu
-	else
-		local BASE=/usr/lib
-	fi
-	create_links "$WINAME/lib" ${BASE}/libQt*
-	chmod_wi "$WINAME"
-}
-
-install_xml2()
-{
-	WINAME='xml2_'$ARCH
-	create_wi "$WINAME"
-	cp "$SOURCE/xml2.rules" "$WINAME/rules.cvslvk"
-	create_link /usr/include/libxml2 "$WINAME/include"
-	if [ -e /usr/lib/i386-linux-gnu ];then
-		local BASE=/usr/lib/i386-linux-gnu
-	else
-		local BASE=/usr/lib
-	fi
-	create_links "$WINAME/lib" ${BASE}/libxml2*
-	chmod_wi "$WINAME"
-}
-
-install_qwt_qt4()
-{
-	WINAME='qwt-qt4_'$ARCH
-	create_wi "$WINAME"
-	cp "$SOURCE/qwt-qt4.rules" "$WINAME/rules.cvslvk"
-	create_link /usr/include/qwt-qt4 "$WINAME/include"
-	create_links "$WINAME/lib" /usr/lib/libqwt-qt4*
-	chmod_wi "$WINAME"
 }
 
 SOURCE=$(pwd)
 ARCH="$("../cvslvk" get_arch)-$("../cvslvk" get_os)"
-cd "$CL_DIR"
 
-install_pccts
-install_lexyacc
-install_X
-install_Glib2
-install_Qt3
-install_Qt4
-install_xml2
-
-if [ -d /usr/include/qwt-qt4 ]; then
-	install_qwt_qt4
-fi
+for FILE in *.rules; do
+	NAME="$(basename "$FILE" .rules)"
+	WINAME="${NAME}_${ARCH}"
+	create_wi "$WINAME"
+	cd "$CL_DIR/$WINAME"
+	cp "$SOURCE/$FILE" rules.cvslvk
+	if [ -e "$SOURCE/$NAME.install" ];then
+		if ! ( . "$SOURCE/$NAME.install" );then
+			cd "$SOURCE"
+			delete_wi "$WINAME"
+			continue
+		fi
+	fi
+	chmod_wi "$WINAME"
+done
