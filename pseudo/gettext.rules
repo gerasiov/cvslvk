@@ -1,0 +1,88 @@
+# gettext rules
+#
+# Accepted variables:
+#
+# GETTEXT_PACKAGE (default $LIBRARY or $EXECUTABLE) specify:
+# 	- base name for generated po files (GETTEXT_PACKAGE_LANG.po)
+#	- gettext domain
+#
+# GETTEXT_LOCALES space-separated list of supported locales (e.g. ru en de)
+#
+# PO_SOURCES (default $SOURCES) files which should be parsed by xgettext
+#
+# GETTEXT_KEYWORDS (default _) list of used gettext keywords
+#
+# Affected targets:
+#	po:
+#		for every used locale there will be generated/updated .po file
+#		in current directory
+#
+#	all:
+#		"po" target will be called as sub-target
+#
+#	create_wi:
+#		for every used locale there will be generated .mo file in
+#		$CL_DIR/$WI_NAME/share/locale
+
+
+override XGETTEXT := $(CL_WI)/bin/xgettext
+override MSGMERGE := $(CL_WI)/bin/msgmerge
+override MSGFMT := $(CL_WI)/bin/msgfmt
+
+override INCLUDES += -I$(CL_WI)/include
+
+ifndef GETTEXT_PACKAGE
+ifdef LIBRARY
+override GETTEXT_PACKAGE := $(LIBRARY)
+endif
+ifdef EXECUTABLE
+override GETTEXT_PACKAGE := $(EXECUTABLE)
+endif
+endif
+
+ifdef GETTEXT_LOCALES
+override PO_FILES := $(GETTEXT_LOCALES:%=$(GETTEXT_PACKAGE)_%.po)
+override CL_ADD_TO_DEFINES += GETTEXT_PACKAGE
+
+ifndef PO_SOURCES
+override PO_SOURCES := $(SOURCES)
+endif
+
+override POT_FILES := $(PO_SOURCES:%=$(CL_BD)/%.po)
+override POT_FILE := $(CL_BD)/$(GETTEXT_PACKAGE).po
+
+override monitor_i18n.cpp_type = --language=shell
+
+ifndef GETTEXT_KEYWORDS
+override GETTEXT_KEYWORDS := _
+endif
+
+override CL_GETTEXT_KEYWORDS := $(GETTEXT_KEYWORDS:%=--keyword=%)
+
+$(POT_FILES): $(CL_BD)/%.po : %
+	$(V)SOURCE_TYPE=$(shell file --mime-type -b $<) && \
+		case "$$SOURCE_TYPE" in\
+			text/x-c) SOURCE_LANG="--language=C++";;\
+			text/x-shellscript) SOURCE_LANG="--language=Shell";;\
+		esac && \
+		$(XGETTEXT) $$SOURCE_LANG $(CL_GETTEXT_KEYWORDS) --force-po --no-wrap --no-location --omit-header --from-code=utf-8 -o $@ $<
+
+$(POT_FILE): $(POT_FILES)
+	$(V)cat $^ > $@
+
+$(PO_FILES): $(POT_FILE)
+	$(V)$(MSGMERGE) -U -q $@ $(POT_FILE)
+
+all: $(PO_FILES)
+
+po: $(PO_FILES)
+
+override MO_FILES := $(GETTEXT_LOCALES:%=$(CL_PREFIX)/share/locale/%/LC_MESSAGES/$(GETTEXT_PACKAGE).mo)
+
+$(MO_FILES): $(CL_PREFIX)/share/locale/%/LC_MESSAGES/$(GETTEXT_PACKAGE).mo : $(GETTEXT_PACKAGE)_%.po
+	$(V)mkdir -p $(@D)
+	$(V)$(MSGFMT) -o $@ $<
+
+override CL_INSTALL_PARTS += $(MO_FILES)
+
+endif

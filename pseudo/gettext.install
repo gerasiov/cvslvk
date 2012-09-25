@@ -1,0 +1,3 @@
+create_links bin /usr/bin/xgettext /usr/bin/msgmerge /usr/bin/msgfmt
+mkdir include
+cp "$SOURCE/gettext.h" include
