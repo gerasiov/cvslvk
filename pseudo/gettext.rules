@@ -28,6 +28,7 @@
 override XGETTEXT := $(CL_WI)/bin/xgettext
 override MSGMERGE := $(CL_WI)/bin/msgmerge
 override MSGFMT := $(CL_WI)/bin/msgfmt
+override MSGUNIQ := $(CL_WI)/bin/msguniq
 
 override INCLUDES += -I$(CL_WI)/include
 
@@ -68,7 +69,7 @@ $(POT_FILES): $(CL_BD)/%.po : %
 		$(XGETTEXT) $$SOURCE_LANG $(CL_GETTEXT_KEYWORDS) --force-po --no-wrap --no-location --omit-header --from-code=utf-8 -o $@ $<
 
 $(POT_FILE): $(POT_FILES)
-	$(V)cat $^ > $@
+	$(V)cat $^ | $(MSGUNIQ) > $@
 
 $(PO_FILES): $(POT_FILE)
 	$(V)$(MSGMERGE) -U -q $@ $(POT_FILE)
