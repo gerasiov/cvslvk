@@ -2,7 +2,7 @@
 #
 # Accepted variables:
 #
-# GETTEXT_PACKAGE (default $LIBRARY or $EXECUTABLE) specify:
+# GETTEXT_PACKAGE (default $CL_MODULE, if defined, else $LIBRARY or $EXECUTABLE) specify:
 # 	- base name for generated po files (GETTEXT_PACKAGE_LANG.po)
 #	- gettext domain
 #
@@ -33,11 +33,15 @@ override MSGUNIQ := $(CL_WI)/bin/msguniq
 override INCLUDES += -I$(CL_WI)/include
 
 ifndef GETTEXT_PACKAGE
+ifdef CL_MODULE
+override GETTEXT_PACKAGE := $(CL_MODULE)
+else
 ifdef LIBRARY
 override GETTEXT_PACKAGE := $(LIBRARY)
 endif
 ifdef EXECUTABLE
 override GETTEXT_PACKAGE := $(EXECUTABLE)
+endif
 endif
 endif
 
