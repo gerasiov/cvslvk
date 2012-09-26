@@ -53,7 +53,7 @@ ifndef PO_SOURCES
 override PO_SOURCES := $(SOURCES)
 endif
 
-override POT_FILES := $(PO_SOURCES:%=$(CL_BD)/%.po)
+override POT_FILES := $(PO_SOURCES:%=$(CL_BD)/%.pot)
 override POT_FILE := $(CL_BD)/$(GETTEXT_PACKAGE).po
 
 override monitor_i18n.cpp_type = --language=shell
@@ -64,7 +64,7 @@ endif
 
 override CL_GETTEXT_KEYWORDS := $(GETTEXT_KEYWORDS:%=--keyword=%)
 
-$(POT_FILES): $(CL_BD)/%.po : %
+$(POT_FILES): $(CL_BD)/%.pot : %
 	$(V)SOURCE_TYPE=$(shell file --mime-type -b $<) && \
 		case "$$SOURCE_TYPE" in\
 			text/x-c) SOURCE_LANG="--language=C++";;\
