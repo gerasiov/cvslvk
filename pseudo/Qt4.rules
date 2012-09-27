@@ -1,18 +1,49 @@
+# Qt4 rules
+#
+# Accepted variables:
+#
+# QT_MODULE (default $CL_MODULE, if defined, else $LIBRARY or $EXECUTABLE) specify:
+# 	- base name for generated ts and qm files (QT_MODULE_LANG.ts)
+#
+# QT_LOCALES space-separated list of supported locales (e.g. ru en de)
+#
+# TS_SOURCES (default $SOURCES $MOC_HEADERS) files which should be parsed by lupdate
+#
+# QT_LIBS (default Core Gui) space-separated list of used Qt libaries
+#
+# UI_FILES list of .ui files which should be processed by uic and compiled
+#
+# UI_IMAGES list of images which should be compiled-in with uic
+#
+# RC_FILES list of .rc files which should be processed by rcc and compiled
+#
+# QT_INSTALL_QM set this flag to install .qm files into $CL_DIR/$WI_NAME/share/
+#
+# Affected targets:
+#	ts:
+#		for every used locale there will be generated/updated .ts file
+#		in current directory
+#
+#	all:
+#		"ts" target will be called as sub-target
+#
+#	create_wi:
+#		if QT_INSTALL_QM flag is set
+#		for every used locale there will be generated .qm file in
+#		$CL_DIR/$WI_NAME/share/
+
 ifdef USE_QT
 $(error Do not use both Qt3 and Qt4.)
 endif
-
 override USE_QT = 1
 
-override DEFINES += -DQT_CORE_LIB -DQT_GUI_LIB
-override INCLUDES += -I$(CL_WI)/include -I$(CL_WI)/include/Qt -I$(CL_WI)/include/Qt3Support -I$(CL_WI)/include/QtCore -I$(CL_WI)/include/QtDBus -I$(CL_WI)/include/QtGui -I$(CL_WI)/include/QtNetwork -I$(CL_WI)/include/QtOpenGL -I$(CL_WI)/include/QtSql -I$(CL_WI)/include/QtSvg -I$(CL_WI)/include/QtTest -I$(CL_WI)/include/QtUiTools -I$(CL_WI)/include/QtXml
-
-ifdef QT_LIBS
-override LDFLAGS += -L$(CL_WI)/lib $(QT_LIBS:%=-lQt%)
-else
-override LDFLAGS += -L$(CL_WI)/lib -lQtCore -lQtGui
-override DEFINES += -DQT_CORE_LIB -DQT_GUI_LIB
+ifndef QT_LIBS
+override QT_LIBS := Core Gui
 endif
+
+override LDFLAGS += -L$(CL_WI)/lib $(QT_LIBS:%=-lQt%)
+override INCLUDES += -I$(CL_WI)/include/ $(QT_LIBS:%=-I$(CL_WI)/include/Qt%)
+#override DEFINES += -DQT_<LIB>_LIB
 
 ifdef QT3_SUPPORT
 override INCLUDES += -I$(CL_WI)/include/Qt3Support
@@ -30,12 +61,44 @@ override RCC := $(CL_WI)/bin/rcc
 override LRELEASE := $(CL_WI)/bin/lrelease-qt4
 override LUPDATE := $(CL_WI)/bin/lupdate-qt3
 
+ifndef QT_MODULE
+ifdef CL_MODULE
+override QT_MODULE := $(CL_MODULE)
+else
+ifdef LIBRARY
+override QT_MODULE := $(LIBRARY)
+endif
+ifdef EXECUTALE
+override QT_MODULE := $(EXECUTABLE)
+endif
+endif
+endif
+
 ifdef UIFILES
-override UIC_GEN_HEADERS := $(UIFILES:%.ui=$(CL_BD)/%.h)
+$(warning UIFILES is deprecated, use UI_FILES instead.)
+override UI_FILES += $(UIFILES)
+endif
+
+ifdef RCFILES
+$(warning RCFILES is deprecated, use RC_FILES instead.)
+override RC_FILES += $(RCFILES)
+endif
+
+ifdef UICIMAGES
+$(warning UICIMAGES is deprecated, use UI_IMAGES instead.)
+override UI_IMAGES := $(UICIMAGES)
+endif
+
+ifdef TS_FILES
+$(warning Legacy TS_FILES variable used in Makefile. Please use QT_LOCALES instead.)
+endif
+
+ifdef UI_FILES
+override UIC_GEN_HEADERS := $(UI_FILES:%.ui=$(CL_BD)/%.h)
 $(UIC_GEN_HEADERS) : $(CL_BD)/%.h : %.ui
 	$(UIC) $(UICFLAGS) -o $@ $<
 override UIC_GEN_SOURCES := $(UIFILES:%.ui=$(CL_BD)/%.cpp)
-override UIC_GEN_MOC_SOURCES := $(UIFILES:%.ui=$(CL_BD)/moc_%.cpp)
+override UIC_GEN_MOC_SOURCES := $(UI_FILES:%.ui=$(CL_BD)/moc_%.cpp)
 $(UIC_GEN_SOURCES) : $(CL_BD)/%.cpp : %.ui $(CL_BD)/%.h
 	$(UIC) $(UICFLAGS) -o $@ -i $(<:%.ui=$(CL_BD)/%.h) $<
 $(UIC_GEN_MOC_SOURCES) : $(CL_BD)/moc_%.cpp : $(CL_BD)/%.h
@@ -43,10 +106,10 @@ $(UIC_GEN_MOC_SOURCES) : $(CL_BD)/moc_%.cpp : $(CL_BD)/%.h
 override CL_GEN_SOURCES += $(UIC_GEN_SOURCES) $(UIC_GEN_MOC_SOURCES)
 endif
 
-ifdef UICIMAGES
+ifdef UI_IMAGES
 override CL_GEN_SOURCES += $(CL_BD)/imagecollection.cpp
-$(CL_BD)/imagecollection.cpp : $(UICIMAGES)
-	$(UIC) -embed $(EXECUTABLE) $(UICIMAGES) -o $@
+$(CL_BD)/imagecollection.cpp : $(UI_IMAGES)
+	$(UIC) -embed $(QT_MODULE) $(UI_IMAGES) -o $@
 endif
 
 ifdef MOC_HEADERS
@@ -56,18 +119,42 @@ $(MOC_GEN_SOURCES) : $(CL_BD)/moc_%.cpp: %.h $(MOC)
 	$(MOC) -o $@ $<
 endif
 
-ifdef TS_FILES
-override QM_FILES += $(TS_FILES:%.ts=%.qm)
-override CL_CLEAN_FILES += $(QM_FILES)
-$(TS_FILES): $(SOURCES) $(MOC_HEADERS)
-	$(LUPDATE) $(SOURCES) $(MOC_HEADERS) -ts $@
-%.qm : %.ts
-	$(LRELEASE) $< -qm $@
+ifdef QT_LOCALES
+override TS_FILES :=  $(QT_LOCALES:%=$(QT_MODULE)_%.ts)
 endif
 
-ifdef RCFILES
-override RCC_GEN_SOURCES := $(RCFILES:%.qrc=$(CL_BD)/%_rc.cpp)
-$(RCC_GEN_SOURCES) : $(CL_BD)/%_rc.cpp : %.qrc $(QM_FILES)
+ifdef TS_FILES
+
+override QM_FILES := $(TS_FILES:%.ts=$(CL_BD)/%.qm)
+
+ifndef TS_SOURCES
+override TS_SOURCES := $(SOURCES) $(MOC_HEADERS)
+endif
+
+$(TS_FILES): $(TS_SOURCES)
+	$(V)$(LUPDATE) $(SOURCES) $(MOC_HEADERS) -ts $@
+
+$(QM_FILES) : $(CL_BD)/%.qm : %.ts
+	$(V)$(LRELEASE) $< -qm $@
+
+all: $(TS_FILES)
+
+ts: $(TS_FILES)
+
+ifdef QT_INSTALL_QM
+QM_FILES_WI := $(QM_FILES:$(CL_BD)/%.qm=$(CL_WI)/share/%.qm)
+$(QM_FILES_WI): $(QM_FILES)
+	$(V)mkdir -p $(@D)
+	$(V)cp $^ $@
+
+override CL_INSTALL_PARTS += $(QM_FILES_WI)
+endif
+
+endif
+
+ifdef RC_FILES
+override RCC_GEN_SOURCES := $(RC_FILES:%.qrc=$(CL_BD)/rc_%.cpp)
+$(RCC_GEN_SOURCES) : $(CL_BD)/rc_%.cpp : %.qrc $(QM_FILES)
 	$(RCC) -name $(<:%.qrc=%) $< -o $@
 override CL_GEN_SOURCES += $(RCC_GEN_SOURCES)
 endif
