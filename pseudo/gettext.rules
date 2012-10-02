@@ -65,6 +65,7 @@ endif
 override CL_GETTEXT_KEYWORDS := $(GETTEXT_KEYWORDS:%=--keyword=%)
 
 $(POT_FILES): $(CL_BD)/%.pot : %
+	$(V)mkdir -p $(@D)
 	$(V)SOURCE_TYPE=$(shell file --mime-type -b $<) && \
 		case "$$SOURCE_TYPE" in\
 			text/x-c) SOURCE_LANG="--language=C++";;\
