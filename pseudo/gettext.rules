@@ -12,6 +12,10 @@
 #
 # GETTEXT_KEYWORDS (default _) list of used gettext keywords
 #
+# Exported defines:
+#
+# GETTEXT_LOCALES_DIR ($CL_DIR/$CL_WI_NAME/share/locale) path to installed .mo files.
+#
 # Affected targets:
 #	po:
 #		for every used locale there will be generated/updated .po file
@@ -22,7 +26,7 @@
 #
 #	create_wi:
 #		for every used locale there will be generated .mo file in
-#		$CL_DIR/$WI_NAME/share/locale
+#		$GETTEXT_LOCALES_DIR
 
 
 override XGETTEXT := $(CL_WI)/bin/xgettext
@@ -83,9 +87,12 @@ all: $(PO_FILES)
 
 po: $(PO_FILES)
 
-override MO_FILES := $(GETTEXT_LOCALES:%=$(CL_PREFIX)/share/locale/%/LC_MESSAGES/$(GETTEXT_PACKAGE).mo)
+override GETTEXT_LOCALES_DIR := $(CL_DIR)/$(CL_WI_NAME)/share/locale
+override CL_ADD_TO_DEFINES += GETTEXT_LOCALES_DIR
 
-$(MO_FILES): $(CL_PREFIX)/share/locale/%/LC_MESSAGES/$(GETTEXT_PACKAGE).mo : $(GETTEXT_PACKAGE)_%.po
+override MO_FILES := $(GETTEXT_LOCALES:%=$(GETTEXT_LOCALES_DIR)/%/LC_MESSAGES/$(GETTEXT_PACKAGE).mo)
+
+$(MO_FILES): $(GETTEXT_LOCALES_DIR)/%/LC_MESSAGES/$(GETTEXT_PACKAGE).mo : $(GETTEXT_PACKAGE)_%.po
 	$(V)mkdir -p $(@D)
 	$(V)$(MSGFMT) -o $@ $<
 

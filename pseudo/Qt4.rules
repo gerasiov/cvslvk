@@ -17,7 +17,11 @@
 #
 # RC_FILES list of .rc files which should be processed by rcc and compiled
 #
-# QT_INSTALL_QM set this flag to install .qm files into $CL_DIR/$WI_NAME/share/
+# QT_INSTALL_QM set this flag to install .qm files into $QT_TRANSLATION_DIR
+#
+# Exported defines:
+#
+# QT_TRANSLATION_DIR ($CL_DIR/$CL_WI_NAME/share) path to installed .qm files.
 #
 # Affected targets:
 #	ts:
@@ -30,7 +34,7 @@
 #	create_wi:
 #		if QT_INSTALL_QM flag is set
 #		for every used locale there will be generated .qm file in
-#		$CL_DIR/$WI_NAME/share/
+#		$QT_TRANSLATION_DIR
 
 ifdef USE_QT
 $(error Do not use both Qt3 and Qt4.)
@@ -142,7 +146,11 @@ all: $(TS_FILES)
 ts: $(TS_FILES)
 
 ifdef QT_INSTALL_QM
-QM_FILES_WI := $(QM_FILES:$(CL_BD)/%.qm=$(CL_WI)/share/%.qm)
+
+override QT_TRANSLATION_DIR := $(CL_DIR)/$(CL_WI_NAME)/share
+override CL_ADD_TO_DEFINES += QT_TRANSLATION_DIR
+
+QM_FILES_WI := $(QM_FILES:$(CL_BD)/%.qm=$(QT_TRANSLATION_DIR)/%.qm)
 $(QM_FILES_WI): $(QM_FILES)
 	$(V)mkdir -p $(@D)
 	$(V)cp $^ $@
