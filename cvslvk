@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Вспомогательный скрипт для работы с CVS в ЛВК
 
 if test "$CL_DIR" = ""; then
