@@ -137,7 +137,7 @@ override TS_SOURCES := $(SOURCES) $(MOC_HEADERS)
 endif
 
 $(TS_FILES): $(TS_SOURCES)
-	$(V)$(LUPDATE) $(SOURCES) $(MOC_HEADERS) -ts $@
+	$(V)$(LUPDATE) $(LUPDATE_FLAGS) $(SOURCES) $(MOC_HEADERS) -ts $@
 
 $(QM_FILES) : %.qm : %.ts
 	$(V)$(LRELEASE) $< -qm $@
