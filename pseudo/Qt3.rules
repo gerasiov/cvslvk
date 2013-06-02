@@ -11,6 +11,9 @@ ifdef QT_LINK_ADD
 override CL_LIBRARY_LINK_ADD += -L$(CL_WI)/lib -lqt-mt
 endif
 
+#Workaround Qt3 bug in wheezy
+override CL_CXXFLAGS += -include cstddef
+
 override UIC := $(CL_WI)/bin/uic-qt3
 override MOC := $(CL_WI)/bin/moc-qt3
 override LRELEASE := $(CL_WI)/bin/lrelease-qt3
