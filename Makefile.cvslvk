@@ -613,7 +613,7 @@ override ALL_SUBDIRS := all_subdirs
 override CLEANALL_SUBDIRS := cleanall_subdirs
 all_subdirs install_subdirs clean_subdirs cleanall_subdirs: $(ALWAYS)
 	$(V)for dir in $(SUBDIRS); do \
-	  (cd $$dir && $(MAKE) `echo $@ | cut -d_ -f1`) || exit 1; \
+	  (cd $$dir && $(MAKE) CL_WI_NAME="$(CL_WI_NAME)" `echo $@ | cut -d_ -f1`) || exit 1; \
 	done
 ifneq ($(MAKECMDGOALS),cleanall)
 override CL_CLEAN := clean_subdirs $(CL_CLEAN)
