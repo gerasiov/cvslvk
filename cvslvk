@@ -670,7 +670,7 @@ compile()
   else
     echo "$comp $options -o $target $source"
   fi
-  DEPENDENCIES_OUTPUT="$dep.tmp $target" $comp $options -o "$target" "$source" || return 1
+  $comp $options -MMD -MF "$dep.tmp" -o "$target" "$source" || return 1
   tr '\n' ' ' < $dep.tmp | sed 's/[^ ]*://g; s/[\\]//g; s/$/:/' > $dep.tmp2
   echo >> $dep.tmp
   cat $dep.tmp2 >> $dep.tmp
