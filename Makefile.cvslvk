@@ -85,7 +85,7 @@ override CL_VARS += $(if $(filter install,$(MAKECMDGOALS)),CL_PREFIX)
 # If CL_VARS is empty, nothing is done
 override CL_CHECK_VARS_COMMAND = override CL_VARS := $(if $(CL_VARS),$(shell $(CL_HELPER) check_vars $(foreach d,$(CL_VARS),$(filter-out :%,$(subst :, :,$(d)))=$($(filter-out :%,$(subst :, :,$(d)))) $(subst |, ,$(filter-out $(filter-out :%,$(subst :, :,$(d))), $(subst :, ,$(d)))) --)))
 # The actual check
-$(CL_CHECK_VARS_COMMAND)
+$(eval $(CL_CHECK_VARS_COMMAND))
 # WI rules may define new CL_VARS that will be checked later.
 # They even may cause immidiate check via $(CL_CHECK_VARS_COMMAND)
 
@@ -220,7 +220,7 @@ endif
 
 # If WIs added anything to CL_VARS, check that now
 ifneq ($(CL_VARS),)
-$(CL_CHECK_VARS_COMMAND)
+$(eval $(CL_CHECK_VARS_COMMAND))
 endif
 
 
