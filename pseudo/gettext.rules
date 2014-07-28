@@ -81,7 +81,7 @@ $(POT_FILE): $(POT_FILES)
 	$(V)cat $^ | $(MSGUNIQ) > $@
 
 $(PO_FILES): $(POT_FILE)
-	$(V)$(MSGMERGE) -U -q $@ $(POT_FILE)
+	$(V)$(MSGMERGE) -U -q --no-wrap --no-location $@ $(POT_FILE)
 
 all: $(PO_FILES)
 
