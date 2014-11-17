@@ -98,16 +98,9 @@ $(warning Legacy TS_FILES variable used in Makefile. Please use QT_LOCALES inste
 endif
 
 ifdef UI_FILES
-override UIC_GEN_HEADERS := $(UI_FILES:%.ui=$(CL_BD)/%.h)
-$(UIC_GEN_HEADERS) : $(CL_BD)/%.h : %.ui
+override UIC_GEN_HEADERS := $(UI_FILES:%.ui=$(CL_BD)/ui_%.h)
+$(UIC_GEN_HEADERS) : $(CL_BD)/ui_%.h : %.ui
 	$(UIC) $(UICFLAGS) -o $@ $<
-override UIC_GEN_SOURCES := $(UIFILES:%.ui=$(CL_BD)/%.cpp)
-override UIC_GEN_MOC_SOURCES := $(UI_FILES:%.ui=$(CL_BD)/moc_%.cpp)
-$(UIC_GEN_SOURCES) : $(CL_BD)/%.cpp : %.ui $(CL_BD)/%.h
-	$(UIC) $(UICFLAGS) -o $@ -i $(<:%.ui=$(CL_BD)/%.h) $<
-$(UIC_GEN_MOC_SOURCES) : $(CL_BD)/moc_%.cpp : $(CL_BD)/%.h
-	$(MOC) -o $@ $<
-override CL_GEN_SOURCES += $(UIC_GEN_SOURCES) $(UIC_GEN_MOC_SOURCES)
 endif
 
 ifdef UI_IMAGES
@@ -133,7 +126,7 @@ override QM_FILES := $(TS_FILES:%.ts=%.qm)
 override CL_CLEAN_FILES += $(QM_FILES)
 
 ifndef TS_SOURCES
-override TS_SOURCES := $(SOURCES) $(MOC_HEADERS)
+override TS_SOURCES := $(SOURCES) $(MOC_HEADERS) $(UIC_GEN_HEADERS)
 endif
 
 $(TS_FILES): $(TS_SOURCES)
