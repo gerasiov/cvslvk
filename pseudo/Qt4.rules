@@ -139,6 +139,10 @@ all: $(TS_FILES)
 
 ts: $(TS_FILES)
 
+clean_ts:
+	$(V)touch $(TS_SOURCES)
+	$(V)$(MAKE) ts LUPDATE_FLAGS=-noobsolete
+
 ifdef QT_INSTALL_QM
 
 override QT_TRANSLATION_DIR := $(CL_DIR)/$(CL_WI_NAME)/share
