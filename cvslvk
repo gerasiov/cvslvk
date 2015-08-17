@@ -23,10 +23,6 @@ CVSGROUP=stand
 # Префикс файла со списком рабочих инсталляций и их требований
 WILIST=$CL_DIR/wilist
 
-# Файл управления автоматической сборкой
-# метка:WI:модуль:тег:параметры make:комментарий
-AUTOBUILD_CONF=$CL_DIR/autobuild.conf
-
 MYPID=$$
 kill_make()
 {
@@ -521,8 +517,8 @@ install()
     cpp -P process_wi.awk.in | tr '@' '\n' | awk '{if(NF>0)print}'
   ) > process_wi.awk
  # Собственно установка
-  (cd $CL_DIR && rm -f *.awk Makefile.cvslvk cvslvk autobuild.conf)
-  cp Makefile.cvslvk cvslvk getppid.awk process_wi.awk liborder.awk cppargs.awk autobuild.conf $CL_DIR/
+  (cd $CL_DIR && rm -f *.awk Makefile.cvslvk cvslvk)
+  cp Makefile.cvslvk cvslvk getppid.awk process_wi.awk liborder.awk cppargs.awk $CL_DIR/
   rm -f process_wi.awk
  # Удаление устаревших псевдомодулей
   for i in $CL_DIR/*/REMOVE_ON_CVSLVK_UPDATE; do
@@ -537,118 +533,6 @@ install()
  # Окончание установки
   make_rules
 }
-
-
-# autobuild <метка>
-# Параметры CL_MODULE=... и CL_OPTIMIZE=1 добавляются автоматически
-build()
-{
-  if test $# -ne 1; then
-    echo 1>&2
-    echo '"cvslvk build" requires single parameter, which is the label of the' 1>&2
-    echo 'requested builds. Type "cvslvk show_ab" to see available builds.' 1>&2
-    echo 1>&2
-    return 1
-  fi
-
-  FOUND=0
-  eval `cat $AUTOBUILD_CONF | grep -v '^#' | awk -F: '{if ($1=="'$1'") {printf("FOUND=1;WI="$2";MODULE="$3";TAG="$4";PARAMS=\""$5"\";DEPS="$6";COMMENT=\""$7"\";")} }'`
-  if test $FOUND -ne 1; then
-    echo 1>&2
-    echo 'Build "'$1'" is not available.' 1>&2
-    echo 'Type "cvslvk show_ab" to see available builds.'
-    echo 1>&2
-    return 1
-  fi
-
-  WINAME=`echo $WI | cut -d_ -f1`
-  WIPARAMS=`echo $WI | cut -d_ -f2`
-  if echo $WI | grep _ >/dev/null; then
-    FULL_WI_NAME=$WINAME'_'`get_arch`'-'`get_os`'-'$WIPARAMS'-optimized'
-  else
-    FULL_WI_NAME=$WINAME'_'`get_arch`'-'`get_os`'-optimized'
-  fi
-
-  if test -d $CL_DIR/$FULL_WI_NAME; then
-    echo
-    echo "Working installation $FULL_WI_NAME already exists."
-    echo "Most likely you will not want to touch it."
-    echo "If you really want to rebuild it, please remove it first."
-    echo
-    return 0
-  fi
-
-  if test "$DEPS" != ""; then
-    for d in `echo $DEPS | tr ',' ' '`; do
-      echo
-      echo "Building dependency $d ..."
-      echo
-      $CL_DIR/cvslvk build $d #Вызываем новую копию скрипта, чтобы не портить переменные
-      if test $? -ne 0; then
-        echo 1>&2
-	echo "Dependency $d build failed. Can't build $1" 1>&2
-        echo 1>&2
-	return 1
-      fi
-    done
-  fi
-
-  mkdir -p $CL_DIR/tmp/$LOGNAME
-  choose_chgrp_and_chmod
-  $CHGRP $CVSGROUP $CL_DIR/tmp 2>/dev/null
-  $CHMOD 775 $CL_DIR/tmp 2>/dev/null
-  cd $CL_DIR/tmp/$LOGNAME
-
-  TAGINFO="without tag"
-  test x"$TAG" != x && TAG_FLAG="-r $TAG" && TAGINFO="with tag $TAG"
-  echo
-  echo "Checking out CVS module $MODULE $TAGINFO ..."
-  echo
-  cvs checkout $TAG_FLAG $MODULE
-  if test $? -ne 0 -o ! -d $MODULE; then
-    echo
-    echo "CVS checkout failed."
-    echo "Make sure that you have set CVSROOT correctly, done 'cvs login'"
-    echo "and have appropriate permissions."
-    echo
-    rm -rf $CL_DIR/tmp/$LOGNAME/$MODULE
-    return 1
-  fi
-
-  cd $MODULE
-  MAKE_PARAMS="CL_MODULE=$WINAME CL_OPTIMIZE=1 $PARAMS"
-  echo
-  echo "Running make update_wi $MAKE_PARAMS ..."
-  echo
-  make update_wi $MAKE_PARAMS
-  if test $? -ne 0; then
-    echo
-    echo "Command failed. Please report to the module maintainer[s]."
-    echo
-    cd ..
-    rm -rf $CL_DIR/tmp/$LOGNAME/$MODULE
-    return 1
-  fi
-  cd ..
-
-  echo
-  echo "Cleaning up ..."
-  echo
-  rm -rf $CL_DIR/tmp/$LOGNAME/$MODULE
-  echo "Build complete."
-  echo
-  return 0
-}
-
-
-# show_ab
-show_ab()
-{
-  echo
-  cat $AUTOBUILD_CONF | grep -v '^#' | awk -F: '{if($1!="")print($1 ": "$7)}'
-  echo
-}
-
 
 # compile [nowall] <source> <target> <compiler> <options>
 # Одновременно вычисляются зависимости; пишется файл <target>.deps.
