@@ -1,7 +1,6 @@
 ifdef USE_QT
-$(error Do not use both Qt3 and Qt4.)
+$(error Do not use several Qt version the same time.)
 endif
-
 override USE_QT = 1
 
 override DEFINES += -D_REENTRANT

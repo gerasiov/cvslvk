@@ -1,0 +1,4 @@
+create_links bin /usr/lib/i386-linux-gnu/qt5/bin/uic /usr/lib/i386-linux-gnu/qt5/bin/moc /usr/lib/i386-linux-gnu/qt5/bin/rcc /usr/lib/i386-linux-gnu/qt5/bin/lrelease /usr/lib/i386-linux-gnu/qt5/bin/lupdate
+
+create_links include /usr/include/i386-linux-gnu/qt5/*
+create_links lib /usr/lib/i386-linux-gnu/libQt5*

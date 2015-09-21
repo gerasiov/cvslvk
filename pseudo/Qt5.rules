@@ -1,4 +1,4 @@
-# Qt4 rules
+# Qt5 rules
 #
 # Accepted variables:
 #
@@ -9,7 +9,7 @@
 #
 # TS_SOURCES (default $SOURCES $MOC_HEADERS) files which should be parsed by lupdate
 #
-# QT_LIBS (default Core Gui) space-separated list of used Qt libaries
+# QT_LIBS (default Core Gui Widget) space-separated list of used Qt libaries
 #
 # UI_FILES list of .ui files which should be processed by uic and compiled
 #
@@ -42,28 +42,23 @@ endif
 override USE_QT = 1
 
 ifndef QT_LIBS
-override QT_LIBS := Core Gui
+override QT_LIBS := Core Gui Widgets
 endif
 
-override LDFLAGS += -L$(CL_WI)/lib $(QT_LIBS:%=-lQt%)
+override CL_CXXFLAGS += -fPIC
+
+override LDFLAGS += -L$(CL_WI)/lib $(QT_LIBS:%=-lQt5%)
 override INCLUDES += -I$(CL_WI)/include/ $(QT_LIBS:%=-I$(CL_WI)/include/Qt%)
-#override DEFINES += -DQT_<LIB>_LIB
-
-ifdef QT3_SUPPORT
-override INCLUDES += -I$(CL_WI)/include/Qt3Support
-override LDFLAGS += -lQt3Support
-override DEFINES += -DQT3_SUPPORT
-endif
 
 ifdef CL_OPTIMIZE
 override DEFINES += -DQT_NO_DEBUG
 endif
 
-override UIC := $(CL_WI)/bin/uic-qt4
-override MOC := $(CL_WI)/bin/moc-qt4
+override UIC := $(CL_WI)/bin/uic
+override MOC := $(CL_WI)/bin/moc
 override RCC := $(CL_WI)/bin/rcc
-override LRELEASE := $(CL_WI)/bin/lrelease-qt4
-override LUPDATE := $(CL_WI)/bin/lupdate-qt4
+override LRELEASE := $(CL_WI)/bin/lrelease
+override LUPDATE := $(CL_WI)/bin/lupdate
 
 ifndef QT_MODULE
 ifdef CL_MODULE
