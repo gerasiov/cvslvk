@@ -133,13 +133,6 @@ ifeq ($(CL_RES_NEEDED),comp_param_needed)
 override CL_PARAM_COMP := 1
 endif
 
-ifneq ($(CL_RES_COMP),any)
-override CL_COMP := $(CL_RES_COMP)
-else
-override CL_COMP := $(if $(CL_COMP),$(CL_COMP),$(shell $(CL_HELPER) get_comp_defaults))
-endif
-
-
 # Set CL_BTYPE and CL_LTYPE to be available at WI's rules.cvslvk inclution
 # CL_BTYPE is one of 'debug','optimized','ndebug'
 #   'optimized' if CL_OPTIMIZED is defined to nonempty string,
@@ -157,10 +150,6 @@ override CL_LTYPE := $(if $(CL_LTYPE),$(CL_LTYPE),shared)
 # is the following.
 # Always CL_ARCH, CL_OS and CL_BTYPE are used
 #
-# CL_COMP is used if CL_PARAM_COMP is defined, or if we are building
-# a c++ library, or if we use a module that has CL_COMP in params
-# (latter was checked above and now the result is in CL_PARAM_COMP)
-#
 # CL_LTYPE is used, if CL_PARAM_LTYPE is defined, or if we are building
 # a library
 #
@@ -168,13 +157,6 @@ override CL_LTYPE := $(if $(CL_LTYPE),$(CL_LTYPE),shared)
 
 override CL_DIR_PARAMS := $(CL_ARCH)-$(CL_OS)
 
-ifdef LIBRARY
-ifneq ($(filter-out %.c,$(SOURCES)),)
-CL_PARAM_COMP = 1
-endif
-endif
-
-override CL_DIR_PARAMS := $(CL_DIR_PARAMS)$(if $(CL_PARAM_COMP),-$(CL_COMP))
 override CL_DIR_PARAMS := $(CL_DIR_PARAMS)$(if $(CL_PARAM_LTYPE)$(LIBRARY),-$(CL_LTYPE))
 override CL_DIR_PARAMS := $(CL_DIR_PARAMS)$(if $(CL_OTHERP),-$(CL_OTHERP))
 override CL_DIR_PARAMS := $(CL_DIR_PARAMS)-$(CL_BTYPE)
@@ -188,14 +170,11 @@ override CL_DIR_PARAMS := $(CL_DIR_PARAMS)-$(CL_BTYPE)
 # be in the real build birectory name.
 
 override CL_TMP := $(if $(CL_MODULE),$(CL_MODULE)_)$(CL_DIR_PARAMS)
-ifneq ($(filter clean cleanall,$(MAKECMDGOALS)),)
-override CL_BD := $(shell $(CL_HELPER) get_bd_for_clean $(CL_TMP) $(CL_COMP))
-else
 override CL_BD := $(CL_TMP)
+
 ifdef CL_LOCALWORK
 # Create the build directory and remove symlinks to other BDs
 override CL_TMP := $(shell $(CL_HELPER) setup_bd $(CL_BD))
-endif
 endif
 
 ifdef CL_MODULE
@@ -227,10 +206,9 @@ endif
 # Set C and C++ compilers and linker
 # Linker defaults to C compiler if all $(SOURCES) are .c files, and to
 # C++ compiler otherwise
-
-override CL_TMP := $(shell $(CL_HELPER) get_comp_execs $(CL_COMP))
-override CC := $(word 1,$(CL_TMP))
-override CXX := $(word 2,$(CL_TMP))
+#FIXME: Allow to override?
+override CC := cc
+override CXX := c++
 
 override LD := $(if $(filter-out %.c, $(SOURCES))$(CL_FORCE_CPLUSPLUS),$(CXX),$(CC))
 
