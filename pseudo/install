@@ -28,8 +28,8 @@ chmod_wi()
 
 create_link()
 {
-	local TARGET="$1"
-	local LINK="$2"
+	local LINK="$1"
+	local TARGET="$2"
 	if [ -e "$TARGET" ]; then
 		ln -s "$TARGET" "$LINK"
 	else
@@ -45,7 +45,7 @@ create_links()
 
 	test -d "$DIR" || mkdir "$DIR"
 	for TARGET in "$@"; do
-		create_link "$TARGET" "$DIR"
+		create_link "$DIR" "$TARGET"
 	done
 }
 

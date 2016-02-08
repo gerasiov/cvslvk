@@ -1,3 +1,3 @@
 cp "$SOURCE/pccts.convgen.sed" convgen.sed
 create_links bin /usr/bin/antlr /usr/bin/dlg /usr/bin/genmk /usr/bin/sor
-create_link /usr/include/pccts include
+create_link include /usr/include/pccts
