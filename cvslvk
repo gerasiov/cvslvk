@@ -122,67 +122,6 @@ get_os()
 }
 
 
-# get_comp_defaults
-get_comp_defaults()
-{
-  case "`gcc -v 2>&1 | grep version`" in
-    *4.8*)  echo gcc48 ;;
-    *4.7*)  echo gcc47 ;;
-    *4.6*)  echo gcc46 ;;
-    *4.4*)  echo gcc44 ;;
-    *4.3*)  echo gcc43 ;;
-    *4.2*)  echo gcc42 ;;
-    *4.1*)  echo gcc41 ;;
-    *4.0*)  echo gcc40 ;;
-    *3.4*)  echo gcc34 ;;
-    *3.3*)  echo gcc33 ;;
-    *3.2*)  echo gcc32 ;;
-    *2.95*)  echo gcc295 ;;
-    *2.96*)  echo gcc296 ;;
-    *)
-      error "get_comp_defaults: can't determine gcc version"
-      ;;
-  esac
-}
-
-# get_comp_execs $CL_COMP
-# Возвращаемое первое слово - исполняемый файл компилятора Си, второе - компилятора Си++
-get_comp_execs()
-{
-  case "$1" in
-    gcc*)
-      maj=`echo $1 | cut -c 4`
-      min=`echo $1 | cut -c 5-`
-      ver=$maj.$min
-      defc=gcc-$ver
-      defcpp=g++-$ver
-      ;;
-    *)
-      error "get_comp_execs: unsupported CL_COMP $1"
-      ;;
-  esac
-
-  wc=`which $defc`;  wcpp=`which $defcpp`
-  if test -n "$wc" -a -n "$wcpp" -a -x "$wc" -a -x "$wcpp"; then
-    echo $defc $defcpp
-    return 0
-  fi
-
-  wc=`which gcc`;  wcpp=`which g++`
-  if test -n "$wc" -a -n "$wcpp" -a -x "$wc" -a -x "$wcpp"; then
-    if gcc -v 2>&1 | grep version | grep -- "$ver" >/dev/null; then
-      if g++ -v 2>&1 | grep version | grep -- "$ver" >/dev/null; then
-        echo gcc g++
-        return 0
-      fi
-    fi
-  fi
-
-  error "get_comp_execs: can't find $1 compilers." \
-        "If you are sure they are present in \$PATH, edit cvslvk script and" \
-	"fix get_comp_execs() function."
-}
-
 # make_rules
 # Создает $CL_DIR/rules.cvslvk и $CL_DIR/wilist*
 make_rules()
