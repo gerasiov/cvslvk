@@ -50,7 +50,7 @@ create_links()
 }
 
 SOURCE=$(pwd)
-ARCH="$("../cvslvk" get_arch)-$("../cvslvk" get_os)"
+ARCH="$("../cvslvk" get_arch)"
 
 for FILE in *.rules; do
 	NAME="$(basename "$FILE" .rules)"

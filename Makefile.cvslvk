@@ -96,7 +96,6 @@ $(eval $(CL_CHECK_VARS_COMMAND))
 # Currently supported: solaris and linux, on x86 and sparc
 
 override CL_ARCH := $(shell $(CL_HELPER) get_arch)
-override CL_OS := $(shell $(CL_HELPER) get_os)
 
 
 # Find out what WIs we will use. Required compiler setting may go from here.
@@ -148,14 +147,14 @@ override CL_LTYPE := $(if $(CL_LTYPE),$(CL_LTYPE),shared)
 #
 # The combination of variables that are used to find out build parameters
 # is the following.
-# Always CL_ARCH, CL_OS and CL_BTYPE are used
+# Always CL_ARCH and CL_BTYPE are used
 #
 # CL_LTYPE is used, if CL_PARAM_LTYPE is defined, or if we are building
 # a library
 #
 # CL_OTHERP is used if defined
 
-override CL_DIR_PARAMS := $(CL_ARCH)-$(CL_OS)
+override CL_DIR_PARAMS := $(CL_ARCH)
 
 override CL_DIR_PARAMS := $(CL_DIR_PARAMS)$(if $(CL_PARAM_LTYPE)$(LIBRARY),-$(CL_LTYPE))
 override CL_DIR_PARAMS := $(CL_DIR_PARAMS)$(if $(CL_OTHERP),-$(CL_OTHERP))
@@ -190,7 +189,7 @@ override INCLUDES := -I. -I$(CL_BD) $(INCLUDES)
 endif
 
 # Now we are ready to include rules.cvslvk from WIs
-# CL_ARCH, CL_OS, CL_COMP, CL_LTYPE, CL_BTYPE are set
+# CL_ARCH, CL_LTYPE, CL_BTYPE are set
 # CL_BD is set and build directory is created if we are not in clean{all}
 
 ifdef CL_LOCALWORK

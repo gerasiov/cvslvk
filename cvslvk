@@ -101,26 +101,8 @@ check_vars()
 # get_arch
 get_arch()
 {
-  arch=`uname -m`
-  case "$arch" in
-    *86*)        echo x86   ;;
-    sun*|sparc)  echo sparc ;;
-    *)  error "get_arch: unsupported output from uname -m: $arch" ;;
-  esac
+  echo "x86-linux"
 }
-
-
-# get_os
-get_os()
-{
-  os=`uname -s`
-  case "$os" in
-    Linux|linux)  echo linux    ;;
-    SunOS)        echo solaris  ;;
-    *)  error "get_arch: unsupported output from uname -s: $os" ;;
-  esac
-}
-
 
 # make_rules
 # Создает $CL_DIR/rules.cvslvk и $CL_DIR/wilist*
@@ -168,9 +150,10 @@ make_rules()
 #            дальше - список примененных WI
 process_wi()
 {
+set -x
   if test $1 = "in_clean"; then in_clean=1; shift; else in_clean=0; fi
 
-  postfix=`get_arch`-`get_os`
+  postfix=`get_arch`
   key="$*"
   wilist=$WILIST-$postfix
 
@@ -244,7 +227,7 @@ process_wi()
 # show_wi <параметры process_wi>
 show_wi()
 {
-  postfix=`get_arch`-`get_os`
+  postfix=`get_arch`
   wilist=$WILIST-$postfix
   needcomp="$1"; comp="$2"; shift; shift
   (echo $*; echo verbose $needcomp $comp; cat $wilist 2>/dev/null) | awk -f $CL_DIR/process_wi.awk 1>&2
@@ -506,7 +489,7 @@ fi
 shift
 
 case "$command" in
-  check_vars|error|get_arch|get_os|make_rules|setup_bd|remove_old_symlinks|\
+  check_vars|error|get_arch|make_rules|setup_bd|remove_old_symlinks|\
   cleanall|process_wi|show_wi|liborder|touchap|\
   complete_wi|remove_wi|\
   install|build|show_ab|compile|link)
