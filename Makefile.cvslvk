@@ -60,6 +60,7 @@ override CL_VARS := $(CL_VARS)
 override INCLUDES := $(INCLUDES)
 override DEFINES := $(DEFINES)
 override LDFLAGS := $(LDFLAGS)
+override CL_LDFLAGS := $(CL_LDFLAGS)
 override CL_CFLAGS := $(CL_CFLAGS)
 override CL_CXXFLAGS := $(CL_CXXFLAGS)
 override CL_SYMLINKS := $(CL_SYMLINKS)
@@ -198,18 +199,20 @@ ifeq ($(CL_BTYPE),debug)
 override CL_GCC_DEBUG := $(if $(CL_GCC_DEBUG),$(CL_GCC_DEBUG),-g)
 override CFLAGS += $(CL_GCC_DEBUG)
 override CXXFLAGS += $(CL_GCC_DEBUG)
+override LDFLAGS += $(CL_GCC_DEBUG)
 endif
 
 ifeq ($(CL_BTYPE),optimized)
 override CL_GCC_OPTIMIZE := $(if $(CL_GCC_OPTIMIZE),$(CL_GCC_OPTIMIZE),-O2)
 override CFLAGS += $(CL_GCC_OPTIMIZE)
 override CXXFLAGS += $(CL_GCC_OPTIMIZE)
+override LDFLAGS += $(CL_GCC_OPTIMIZE)
 endif
 
 # Additional compiler flags may be passed via the following variables:
 override CFLAGS += $(CL_CFLAGS)
 override CXXFLAGS += $(CL_CXXFLAGS)
-
+override LDFLAGS += $(CL_LDFLAGS)
 
 # Library building tools
 
@@ -235,7 +238,7 @@ endif
 # We use -h instead of -soname because we want sun ld to work
 override CFLAGS += -fPIC
 override CXXFLAGS += -fPIC
-CL_MKLIB := $(LD) -shared -Wl,-h,$(CL_LIBRARY_SONAME) $(CL_LIBRARY_LINK_ADD) -o
+CL_MKLIB := $(LD) -shared -Wl,-h,$(CL_LIBRARY_SONAME) $(CL_LIBRARY_LINK_ADD) $(CL_LDFLAGS) -o
 endif
 
 ifeq ($(CL_LTYPE),static)
@@ -251,7 +254,7 @@ override CL_LDFLAGS_DIRS := $(filter -L%,$(LDFLAGS))
 override CL_LDFLAGS_LIBS := $(filter -l%,$(LDFLAGS))
 override CL_LDFLAGS_OTHER := $(filter-out $(CL_LDFLAGS_DIRS) $(CL_LDFLAGS_LIBS),$(LDFLAGS))
 
-# Make each entry in CL_LDFLAGS_LIBS and ÛL_LDFLAGS_DIRS unique
+# Make each entry in CL_LDFLAGS_LIBS and CL_LDFLAGS_DIRS unique
 override CL_LDFLAGS_DIRS := $(foreach x,$(sort $(CL_LDFLAGS_DIRS)),$(findstring $(x),$(CL_LDFLAGS_DIRS)))
 override CL_LDFLAGS_LIBS := $(foreach x,$(sort $(CL_LDFLAGS_LIBS)),$(findstring $(x),$(CL_LDFLAGS_LIBS)))
 
