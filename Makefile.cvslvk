@@ -73,7 +73,6 @@ override CL_GCC_OPTIMIZE := $(CL_GCC_OPTIMIZE)
 # Either just names or name:val1|...|valN
 
 # Check some system settings also
-override CL_VARS += $(if $(CL_COMP),CL_COMP:gcc48|gcc47|gcc46|gcc44|gcc43|gcc42|gcc41|gcc40|gcc34|gcc33|gcc32|gcc295|gcc296)
 override CL_VARS += $(if $(CL_LTYPE),CL_LTYPE:shared|static)
 override CL_VARS += $(if $(filter create_wi update_wi,$(MAKECMDGOALS)),CL_MODULE)
 override CL_VARS += $(if $(filter install,$(MAKECMDGOALS)),CL_PREFIX)
@@ -97,39 +96,18 @@ $(eval $(CL_CHECK_VARS_COMMAND))
 
 override CL_ARCH := $(shell $(CL_HELPER) get_arch)
 
-
-# Find out what WIs we will use. Required compiler setting may go from here.
-#   first parameter of "$(CL_HELPER) process_wi" is "need" or "compute",
-#     "need" means that compiler is the build parameter anyway,
-#     "compute" means that WI processing should find out whether it is needed
-#   second parameter of "$(CL_HELPER) process_wi" is "gcc*" or "any"
-#     "gcc*" means that exacltly this compiler should be used
-#     "any" means that WI processing should choose (it will try to use gcc33
-#     if possible)
-
-override CL_COMP_TMP := $(if $(CL_COMP),$(CL_COMP),any)
-override CL_COMP_PARAM_TMP := $(if $(CL_PARAM_COMP),need,compute)
-
 # Don't do anything more if we need only to show WI logic
 # ('$(CL_HELPER) show_wi' will kill make)
 ifeq ($(MAKECMDGOALS),show_wi)
-override CL_TMP := $(shell $(CL_HELPER) show_wi $(CL_COMP_PARAM_TMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
+override CL_TMP := $(shell $(CL_HELPER) show_wi $(CL_USE_MODULES))
 endif
 
 # We want "make clean" and "make cleanall" to work even when WIs are not available
 # So we process this case separately.
 ifneq ($(filter clean cleanall,$(MAKECMDGOALS)),)
-override CL_RES := $(shell $(CL_HELPER) process_wi in_clean $(CL_COMP_PARAM_TMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
+override CL_WI_LIST := $(shell $(CL_HELPER) process_wi in_clean $(CL_USE_MODULES))
 else
-override CL_RES := $(shell $(CL_HELPER) process_wi $(CL_COMP_PARAM_TMP) $(CL_COMP_TMP) $(CL_USE_MODULES))
-endif
-
-override CL_RES_NEEDED := $(word 1,$(CL_RES))
-override CL_RES_COMP := $(word 2,$(CL_RES))
-override CL_WI_LIST := $(filter-out $(CL_RES_NEEDED) $(CL_RES_COMP),$(CL_RES))
-
-ifeq ($(CL_RES_NEEDED),comp_param_needed)
-override CL_PARAM_COMP := 1
+override CL_WI_LIST := $(shell $(CL_HELPER) process_wi $(CL_USE_MODULES))
 endif
 
 # Set CL_BTYPE and CL_LTYPE to be available at WI's rules.cvslvk inclution
@@ -165,8 +143,6 @@ override CL_DIR_PARAMS := $(CL_DIR_PARAMS)-$(CL_BTYPE)
 
 # Since WI logic does not always work on 'make clean' (because we want 'make clean'
 # to work even when there are WI errors), $(CL_BD) may be set incorrectly.
-# When CL_PARAM_COMP is not set, comp may be not in $(CL_BD), but it *may*
-# be in the real build birectory name.
 
 override CL_TMP := $(if $(CL_MODULE),$(CL_MODULE)_)$(CL_DIR_PARAMS)
 override CL_BD := $(CL_TMP)
@@ -432,7 +408,7 @@ endif
 ifdef CL_LOCALWORK
 ifeq ($(filter clean cleanall,$(MAKECMDGOALS)),)
 
-override CL_TMP := $(shell $(CL_HELPER) touchap $(CL_BD) WILIST $(CL_DIR) $(CL_WI_LIST) -- ALLCOMPILEFLAGS $(CL_COMP) $(CFLAGS) $(CXXFLAGS) -- LINKFLAGS $(words $(CL_OBJECTS_ALL)) $(LDFLAGS))
+override CL_TMP := $(shell $(CL_HELPER) touchap $(CL_BD) WILIST $(CL_DIR) $(CL_WI_LIST) -- ALLCOMPILEFLAGS $(CFLAGS) $(CXXFLAGS) -- LINKFLAGS $(words $(CL_OBJECTS_ALL)) $(LDFLAGS))
 $(CL_OBJECTS_ALL) : $(CL_BD)/WILIST $(CL_BD)/ALLCOMPILEFLAGS $(filter $(CL_WI_LIST:%=$(CL_DIR)/%/rules.cvslvk),$(wildcard $(CL_DIR)/*/rules.cvslvk))
 override CL_TMP := $(filter -L%, $(LDFLAGS))
 ifneq ($(CL_TMP),)
