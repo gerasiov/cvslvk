@@ -111,13 +111,12 @@ override CL_WI_LIST := $(shell $(CL_HELPER) process_wi $(CL_USE_MODULES))
 endif
 
 # Set CL_BTYPE and CL_LTYPE to be available at WI's rules.cvslvk inclution
-# CL_BTYPE is one of 'debug','optimized','ndebug'
+# CL_BTYPE is one of 'debug','optimized'
 #   'optimized' if CL_OPTIMIZED is defined to nonempty string,
-#   otherwise, 'ndebug' if CL_NDEBUG is defined to nonempty string,
 #   'debug by default
 # CL_LTYPE in one of 'shared' and 'static'. Default is 'shared'
 
-override CL_BTYPE := $(if $(CL_OPTIMIZE),optimized,$(if $(CL_NDEBUG),ndebug,debug))
+override CL_BTYPE := $(if $(CL_OPTIMIZE),optimized,debug)
 override CL_LTYPE := $(if $(CL_LTYPE),$(CL_LTYPE),shared)
 
 
@@ -202,7 +201,7 @@ override CXXFLAGS += $(CL_GCC_DEBUG)
 endif
 
 ifeq ($(CL_BTYPE),optimized)
-override CL_GCC_OPTIMIZE := $(if $(CL_GCC_OPTIMIZE),$(CL_GCC_OPTIMIZE),-O2 -DNDEBUG)
+override CL_GCC_OPTIMIZE := $(if $(CL_GCC_OPTIMIZE),$(CL_GCC_OPTIMIZE),-O2)
 override CFLAGS += $(CL_GCC_OPTIMIZE)
 override CXXFLAGS += $(CL_GCC_OPTIMIZE)
 endif
