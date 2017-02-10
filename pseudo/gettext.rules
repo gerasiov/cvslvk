@@ -74,6 +74,7 @@ $(POT_FILES): $(CL_BD)/%.pot : %
 		case "$$SOURCE_TYPE" in\
 			text/x-c) SOURCE_LANG="--language=C++";;\
 			text/x-shellscript) SOURCE_LANG="--language=Shell";;\
+			text/x-python) SOURCE_LANG="--language=Python";;\
 		esac && \
 		$(XGETTEXT) $$SOURCE_LANG $(CL_GETTEXT_KEYWORDS) --force-po --no-wrap --no-location --omit-header --from-code=utf-8 -o $@ $<
 
