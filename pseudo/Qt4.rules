@@ -72,7 +72,7 @@ else
 ifdef LIBRARY
 override QT_MODULE := $(LIBRARY)
 endif
-ifdef EXECUTALE
+ifdef EXECUTABLE
 override QT_MODULE := $(EXECUTABLE)
 endif
 endif
