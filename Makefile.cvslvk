@@ -73,7 +73,7 @@ override CL_GCC_OPTIMIZE := $(CL_GCC_OPTIMIZE)
 # Either just names or name:val1|...|valN
 
 # Check some system settings also
-override CL_VARS += $(if $(CL_COMP),CL_COMP:gcc48|gcc47|gcc46|gcc44|gcc43|gcc42|gcc41|gcc40|gcc34|gcc33|gcc32|gcc295|gcc296)
+override CL_VARS += $(if $(CL_COMP),CL_COMP:gcc63|gcc48|gcc47|gcc46|gcc44|gcc43|gcc42|gcc41|gcc40|gcc34|gcc33|gcc32|gcc295|gcc296)
 override CL_VARS += $(if $(CL_LTYPE),CL_LTYPE:shared|static)
 override CL_VARS += $(if $(filter create_wi update_wi,$(MAKECMDGOALS)),CL_MODULE)
 override CL_VARS += $(if $(filter install,$(MAKECMDGOALS)),CL_PREFIX)
@@ -138,7 +138,6 @@ override CL_COMP := $(CL_RES_COMP)
 else
 override CL_COMP := $(if $(CL_COMP),$(CL_COMP),$(shell $(CL_HELPER) get_comp_defaults))
 endif
-
 
 # Set CL_BTYPE and CL_LTYPE to be available at WI's rules.cvslvk inclution
 # CL_BTYPE is one of 'debug','optimized','ndebug'

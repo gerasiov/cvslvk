@@ -126,6 +126,7 @@ get_os()
 get_comp_defaults()
 {
   case "`gcc -v 2>&1 | grep version`" in
+    *6.3*)  echo gcc63 ;;
     *4.8*)  echo gcc48 ;;
     *4.7*)  echo gcc47 ;;
     *4.6*)  echo gcc46 ;;
@@ -247,15 +248,10 @@ process_wi()
 # If particular one is set via CL_COMP, enforce it.
   echo $res | ( read p1 ncomp rest;
                 case "$comp-$ncomp" in
-		  any-gcc33|any-gcc32)
-		    if test -n "`which gcc-3.3`"; then
-		      ncomp=gcc33
-		    elif test -n "`which gcc-3.2`"; then
-		      ncomp=gcc32
-		    fi
-		    ;;
-		  any-gcc4*|any-gcc34)
-		    if test -n "`which gcc-4.8`"; then
+		  any-gcc63|any-gcc4*|any-gcc34|any-gcc33|any-gcc32)
+		    if test -n "`which gcc-6.3`"; then
+		      ncomp=gcc63
+		    elif test -n "`which gcc-4.8`"; then
 		      ncomp=gcc48
 		    elif test -n "`which gcc-4.7`"; then
 		      ncomp=gcc47
@@ -265,17 +261,21 @@ process_wi()
 		      ncomp=gcc44
 		    elif test -n "`which gcc-4.3`"; then
 		      ncomp=gcc43
-		    elif test -n "`which gcc-4.1`"; then
-		      ncomp=gcc41
 		    elif test -n "`which gcc-4.2`"; then
 		      ncomp=gcc42
+		    elif test -n "`which gcc-4.1`"; then
+		      ncomp=gcc41
 		    elif test -n "`which gcc-4.0`"; then
 		      ncomp=gcc40
 		    elif test -n "`which gcc-3.4`"; then
 		      ncomp=gcc34
+		    elif test -n "`which gcc-3.3`"; then
+		      ncomp=gcc33
+		    elif test -n "`which gcc-3.2`"; then
+		      ncomp=gcc32
 		    fi
 		    ;;
-		  gcc33-gcc32|gcc32-gcc33|gcc4*-gcc4*|gcc34-gcc4*|gcc4*-gcc34)
+		  gcc63-gcc*|gcc33-gcc32|gcc32-gcc33|gcc4*-gcc4*|gcc34-gcc4*|gcc4*-gcc34)
 		    ncomp=$comp
 		    ;;
 		esac
@@ -335,7 +335,7 @@ get_bd_for_clean()
       return
   esac
 
-  for comp in $2 gcc48 gcc47 gcc46 gcc44 gcc33 gcc32 gcc41 gcc43 gcc42 gcc40 gcc295 gcc296; do
+  for comp in $2 gcc63 gcc48 gcc47 gcc46 gcc44 gcc33 gcc32 gcc41 gcc43 gcc42 gcc40 gcc295 gcc296; do
     try=`echo -n $1 | sed s/"$regexp"/'\1'$comp'\3'/`
     if test -d $try; then echo $try; return; fi
   done
