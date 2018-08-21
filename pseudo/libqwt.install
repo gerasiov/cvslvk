@@ -1,0 +1,20 @@
+create_custom_links()
+{
+	local DIR="$1"
+	shift 1
+
+	test -d "$DIR" || mkdir "$DIR"
+	for TARGET in "$@"; do
+		ln -s -T "$TARGET" "${DIR}/$(echo "$TARGET" | sed "s/-qt.//" | cut -d'/' -f4)"
+	done
+}
+
+if [ -d /usr/include/qwt-qt4 ]; then
+	create_link include /usr/include/qwt-qt4
+	create_custom_links lib /usr/lib/libqwt-qt4*
+elif [ -d /usr/include/qwt ]; then
+	create_link include /usr/include/qwt
+	create_custom_links lib /usr/lib/libqwt-qt5*
+else
+	return 1
+fi

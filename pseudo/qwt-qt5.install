@@ -1,3 +1,0 @@
-[ -d /usr/include/qwt ]||return 1
-create_link include /usr/include/qwt
-create_links lib /usr/lib/libqwt-qt5*
