@@ -405,7 +405,7 @@ cleanall()
 complete_wi()
 {
   scm=""
-  branch=$(git name-rev --name-only HEAD 2>/dev/null)
+  branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
   if [ "$branch" ]; then
     scm="git"
     head=$(git log -1 --pretty=format:%h 2>/dev/null)
