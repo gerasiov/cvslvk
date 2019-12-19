@@ -2,6 +2,8 @@ create_link include /usr/include/qt4
 create_links bin /usr/bin/lrelease-qt4 /usr/bin/lupdate-qt4 /usr/bin/moc-qt4 /usr/bin/uic-qt4 /usr/bin/rcc;
 if [ -e /usr/lib/i386-linux-gnu ];then
 	BASE=/usr/lib/i386-linux-gnu
+elif [ -e /usr/lib/x86_64-linux-gnu ];then
+	BASE=/usr/lib/x86_64-linux-gnu
 else
 	BASE=/usr/lib
 fi

@@ -1,5 +1,7 @@
 if [ -e /usr/lib/i386-linux-gnu ];then
 	BASE=/usr/lib/i386-linux-gnu
+elif [ -e /usr/lib/x86_64-linux-gnu ];then
+	BASE=/usr/lib/x86_64-linux-gnu
 else
 	BASE=/usr/lib
 fi
