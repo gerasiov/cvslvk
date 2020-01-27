@@ -45,6 +45,9 @@ ifndef QT_LIBS
 override QT_LIBS := Core Gui
 endif
 
+override QT_EXCESS_MODULES := Widgets PrintSupport
+override QT_LIBS := $(filter-out $(QT_EXCESS_MODULES),$(QT_LIBS))
+
 override LDFLAGS += -L$(CL_WI)/lib $(QT_LIBS:%=-lQt%)
 override INCLUDES += -I$(CL_WI)/include/ $(QT_LIBS:%=-I$(CL_WI)/include/Qt%)
 #override DEFINES += -DQT_<LIB>_LIB
