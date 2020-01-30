@@ -19,6 +19,10 @@
 #
 # QT_INSTALL_QM set this flag to install .qm files into $QT_TRANSLATION_DIR
 #
+# QT_USE_LATEST_TRANSLATOR set this flag to use latest available lupdate utility
+# 	(e.g. from Qt5 instead of Qt4). This is useful for supporting multiple Qt versions in
+# 	one git repository and prevents overriding of TS version.
+#
 # Exported defines:
 #
 # QT_TRANSLATION_DIR ($CL_DIR/$CL_WI_NAME/share) path to installed .qm files.
@@ -66,7 +70,12 @@ override UIC := $(CL_WI)/bin/uic-qt4
 override MOC := $(CL_WI)/bin/moc-qt4
 override RCC := $(CL_WI)/bin/rcc
 override LRELEASE := $(CL_WI)/bin/lrelease-qt4
-override LUPDATE := $(CL_WI)/bin/lupdate
+
+ifdef QT_USE_LATEST_TRANSLATOR
+override LUPDATE := $(CL_WI)/bin/lupdate-qt5
+else
+override LUPDATE := $(CL_WI)/bin/lupdate-qt4
+endif
 
 ifndef QT_MODULE
 ifdef CL_MODULE
